@@ -1,0 +1,86 @@
+.generaluse-container {
+  background-color: #f8f8f8;
+  color: #111;
+  padding: 2rem;
+}
+
+.generaluse-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.build-card {
+  width: 320px;
+  background: white;
+  border: 2px solid #d1d5db; 
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+
+.build-card:hover {
+  transform: translateY(-5px);
+}
+
+.price {
+  color: #16a34a;
+  font-size: 1.3rem;
+}
+
+/* Progress Bars */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.progress-container {
+  background-color: #f3f4f6;
+  height: 6px;
+  width: 100%;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.progress-bar {
+  background-color: #2563eb;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* Button */
+.GeneralUseCustomization {
+  background-color: #4CAF50;     
+  color: white;                  
+  border: none;                  
+  padding: 10px 20px;             
+  font-size: 16px;              
+  border-radius: 8px;             
+  cursor: pointer;               
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: auto;
+}
+
+.GeneralUseCustomization:hover {
+  background-color: #45a049;      
+  transform: scale(1.05);        
+}
+
+.GeneralUseCustomization:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}

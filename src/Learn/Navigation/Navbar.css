@@ -1,0 +1,68 @@
+/* Container */
+.navbar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  margin: 16px auto 18px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+  max-width: 960px;
+}
+
+/* Legacy helper (kept to avoid markup changes) */
+.nav-links {
+  display: contents;
+}
+
+/* Link pill */
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background-color: transparent;
+  color: #0f172a;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 160ms ease;
+}
+
+.nav-item:hover {
+  background: #f1f5f9;
+}
+
+.nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+
+/* Active state uses aria-current from NavLink */
+.nav-item[aria-current="page"] {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 6px 16px rgba(29, 78, 216, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    column-gap: 8px;
+    border-radius: 18px;
+  }
+
+  .nav-item {
+    font-size: 0.9rem;
+    padding: 0.45rem 0.8rem;
+  }
+}

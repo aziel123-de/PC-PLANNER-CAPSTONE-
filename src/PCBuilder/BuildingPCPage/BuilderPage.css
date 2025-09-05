@@ -1,0 +1,86 @@
+/* BuilderPage.css */
+
+.BuilderPageLayout {
+  display: flex;
+
+  padding: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.LeftColumn, .RightColumn {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 400px;
+  box-sizing: border-box;
+  color: #444;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+}
+.LeftColumn{
+  text-align: left;
+}
+.PC-Note-Title{
+  text-align: left;
+}
+.PC-Parts-Buiderpage{
+  text-align: left;
+  margin-bottom: 1rem;
+  margin-left: 20px;
+}
+/* Stack columns on smaller screens */
+@media (max-width: 768px) {
+  .BuilderPageLayout {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .LeftColumn, .RightColumn {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .Note {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  .BuildSummary h1, .BuildSummary h2, .BuildSummary p {
+    font-size: 16px;
+  }
+
+  .ComponentCard {
+    padding: 10px;
+  }
+
+  .PartSelector {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+.Note {
+  background-color: #f0f6ff;
+  border: 1px solid #cfdff8;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px;
+  font-family: Tahoma, sans-serif;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  
+}
+
+.Note h1 {
+  color: #2c3e50;
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.Note h3 {
+  color: #444;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.4;
+}

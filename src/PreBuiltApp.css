@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.availability-note {
+  width: 100%;
+  background-color: #f3f4f6;
+  padding: 1rem 2rem;
+  text-align: center;
+  margin-top: 0;
+  justify-content: center;
+  
+  
+}
+
+.note-title {
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+  margin: 0;
+  justify-content: center;
+  color:#082f53;
+  font-size: 30px;
+}
+
+.note-description {
+  font-size: 15px;
+  color: #4b5563;
+  margin-top: 5px;
+  text-align: center;
+  justify-content: center;
+}

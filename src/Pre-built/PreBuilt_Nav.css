@@ -1,0 +1,83 @@
+/* ------------------ HEADER ------------------ */
+.prebuilt-nav-header {
+  margin-top: 2.5em;
+  margin-bottom: 1.5em;
+}
+
+.prebuilt-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 0.2em;
+}
+
+.prebuilt-desc {
+  text-align: center;
+  color: #555;
+  font-size: 1.1em;
+  margin-bottom: 2em;
+}
+/* ------------------ BASE ------------------ */
+.navbar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-weight: 450;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  margin: 5px;
+  padding: 0;
+  justify-content: space-between; 
+  max-width: 1200px;
+}
+
+.nav-item.active {
+  background-color: #1e3a8a;
+  color: #f7f7f7;
+  border-color: #1e3a8a;
+}
+
+.nav-item {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #0e1a40;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+/* ------------------ MOBILE ------------------ */
+@media (max-width: 768px) {
+  .nav-links {
+    flex-wrap: wrap;         
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .nav-item {
+    font-size: 0.85rem;     
+    padding: 0.4rem 0.6rem;  
+  }
+}
+
+/* ------------------ DESKTOP ------------------ */
+@media (min-width: 769px) {
+  .nav-links {
+    flex-wrap: nowrap;        
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .nav-item {
+    font-size: 0.95rem;    
+    padding: 0.5rem 1rem;
+  }
+}

@@ -1,0 +1,466 @@
+/* General App Styling */
+.app {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #ffffff;
+  width: 100vw;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header Bar */
+/*
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 1rem 1rem;
+  background-color: #084884;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: absolute; 
+  top: 0;
+  left: 0;
+  right: 0; 
+  width: auto;
+  z-index: 999;
+  box-sizing: border-box;
+}
+*/
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0 0 0.5rem 0; /* No left/right padding */
+  background-color: #0e1a40;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: static;
+  width: 100%;
+  z-index: 999;
+  box-sizing: border-box;
+}
+/* Logo */
+.logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0;
+}
+
+.app-title {
+  margin: 0;
+  font-size: clamp(1.25rem, 4vw, 1.5rem); /* Made responsive */
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Hamburger Button */
+.hamburger {
+  display: none;
+  font-size: 1.8rem;
+  color: white;
+  cursor: pointer;
+  z-index: 1001; /* Increased z-index */
+  background-color: transparent;
+  border: none;
+  position: relative; 
+  width: 2rem;
+  height: 2rem;
+  padding: 0; /* Added to remove default padding */
+}
+
+/* Hamburger Icons */
+.hamburger .icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 1.8rem;
+  color: white;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hamburger .show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.hamburger .hide {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+
+/* Desktop Navigation */
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
+  margin-top: 0rem;
+}
+
+
+/* Hover color */
+.nav-link:hover {
+  color: #00aeff;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  pointer-events: none;
+}
+
+.overlay.show {
+  opacity: 1;
+  visibility: visible;
+  /* Use pointer-events: auto but don't prevent default on wheel events */
+  pointer-events: auto;
+}
+
+/* Slide Down Menu */
+.slide-down-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(300px, 70vw);
+  height: 100vh;
+  background-color: #0e1a40;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4rem 1rem 2rem 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.slide-down-menu.show {
+  transform: translateX(0);
+}
+
+/* Menu Buttons Container */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.menu-buttons .sign-in,
+.menu-buttons .sign-up {
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+}
+
+/* Allow body scroll even when menu is open */
+body {
+  overflow-y: auto;
+}
+
+.navM {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Reduced gap for better spacing */
+  animation: fadeIn 0.4s ease forwards;
+   margin-right: 1rem;
+}
+
+.navM-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 0.75rem; /* Increased padding for better touch targets */
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+  border-radius: 8px; /* Slightly more rounded */
+  margin: 0.25rem 0; /* Reduced margin */
+  font-size: clamp(0.9rem, 2.5vw, 1rem); /* Responsive font size */
+  min-height: 44px; /* Minimum touch target size for mobile */
+}
+
+.navM-link:hover,
+.navM-link:focus {
+  color: #ffffff;
+  text-shadow: 0 0 8px #00cfff;
+  background-color: rgba(0, 207, 255, 0.1); /* Added background on hover */
+}
+
+/* Sign In / Sign Up Buttons */
+.sign-in,
+.sign-up {
+  padding: clamp(0.3rem, 1.5vw, 0.5rem) clamp(0.8rem, 2vw, 1rem); /* Responsive padding */
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: clamp(0.8rem, 2vw, 0.9rem); /* Responsive font size */
+  min-height: 20px; /* Minimum touch target size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.sign-in {
+  background-color: #3575ff;
+  color: white;
+  border: none;
+  
+  
+}
+
+.sign-in:hover {
+  background-color: rgb(7, 10, 151);
+  border-color: rgb(7, 10, 151);
+}
+
+
+.sign-up:hover {
+  background-color: #ffffff;
+  color: black;
+}
+
+.body-container {
+  padding-top: clamp(70px, 12vh, 90px); /* Responsive top padding */
+}
+
+/* Mobile-First Responsive Design */
+/* Small Mobile Devices (320px - 480px) */
+@media (max-width: 480px) {
+  .header {
+    padding: 0.75rem 1rem;
+    min-height: 60px; /* Ensure minimum height */
+  }
+
+  .logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo-container {
+    gap: 0.5rem;
+  }
+
+  .app-title {
+    font-size: clamp(1rem, 5vw, 1.25rem);
+  }
+
+  .slide-down-menu {
+    width: 100vw;
+    padding: 1rem;
+    padding-top: 4rem;
+  }
+
+  .navM-link {
+    padding: 1rem 0.75rem;
+    font-size: 1rem;
+    min-height: 48px; /* Larger touch target for mobile */
+  }
+
+  .sign-in,
+  .sign-up {
+    margin-right: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 70px; /* Ensure minimum button width */
+  }
+}
+
+/* Medium Mobile Devices (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .slide-down-menu {
+    width: min(320px, 75vw);
+   
+  }
+
+  .header {
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* Tablet Devices (769px - 900px) */
+@media (min-width: 769px) and (max-width: 900px) {
+  .hamburger {
+    display: block !important;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .slide-down-menu {
+    display: flex !important;
+  }
+
+  .slide-down-menu.show {
+    transform: translateX(0) !important;
+  }
+}
+
+/* Desktop and Large Screens (901px+) */
+@media (min-width: 901px) {
+  .hamburger {
+    display: none !important;
+  }
+
+  .desktop-nav {
+    display: flex !important;
+    gap: clamp(1rem, 2vw, 2rem);
+  }
+
+  .slide-down-menu {
+    display: none !important;
+    transform: translateX(100%) !important;
+  }
+
+  .overlay {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .header {
+    padding: 1.25rem clamp(1rem, 3vw, 3rem);
+  }
+}
+
+/* Responsive breakpoints for mobile menu display */
+@media (max-width: 900px) {
+  .hamburger {
+    display: block;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+}
+
+/* Force show desktop nav on larger screens */
+@media (min-width: 901px) {
+  .hamburger {
+    display: none !important;
+  }
+
+  .desktop-nav {
+    display: flex !important;
+  }
+
+  .slide-down-menu {
+    display: none !important;
+    transform: translateX(100%) !important;
+  }
+
+  .overlay {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+.hide-sidebar {
+  transform: translateX(100%) !important;
+}
+
+/* High DPI / Retina Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .hamburger .icon {
+    transform: translateZ(0); /* Force hardware acceleration */
+  }
+}
+
+/* Landscape Orientation on Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .slide-down-menu {
+    padding-top: 3rem;
+    height: 100vh;
+  }
+
+  .navM-link {
+    padding: 0.5rem 0.75rem;
+    margin: 0.1rem 0;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .slide-down-menu,
+  .hamburger .icon,
+  .overlay,
+  .navM-link {
+    transition: none;
+  }
+
+  .navM {
+    animation: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,151 @@
+/* Clean white card design for component cards */
+:root{
+  --card-bg: #ffffff;
+  --card-border: rgba(15,23,42,0.06);
+  --accent: #0e1a40; /* dark blue */
+  --muted: #55607a;
+  --shadow: 0 6px 20px rgba(13,20,40,0.06);
+  --radius: 12px;
+  --gap: 12px;
+}
+
+.component-card {
+  position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  color: #0b1220;
+  transition: transform .12s ease, box-shadow .12s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.component-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(13,20,40,0.10);
+}
+
+/* Empty card message */
+.component-card--empty {
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Image area */
+.component-image {
+  width: 100%;
+  height: 160px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(180deg,#f6f8fb,#ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.component-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Header row: title + optional price/badge */
+.component-card > h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--accent);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Price / tag styling if present */
+.component-price {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Specs list */
+.component-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.component-card ul li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6px 0;
+  border-top: 1px dashed rgba(15,23,42,0.03);
+}
+
+.component-card ul li:first-of-type {
+  border-top: none;
+}
+
+.component-card ul li strong {
+  min-width: 92px;
+  display: inline-block;
+  color: #111827;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Compact key/value for tight information */
+.component-card .meta {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:flex-start;
+}
+
+/* Small helper text */
+.component-card .note {
+  font-size: 0.85rem;
+  color: rgba(17,24,39,0.6);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .component-image { height: 130px; }
+  .component-card { padding: 12px; }
+  .component-card > h2 { font-size: 1rem; }
+  .component-card ul li strong { min-width: 82px; font-size: 0.92rem; }
+}
+
+/* Utility: make the card full-width inside grids */
+.component-card--full {
+  width: 100%;
+}
+
+/* category badge (top-right) */
+.component-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(14,26,64,0.06);
+  color: #0e1a40;
+  border: 1px solid rgba(14,26,64,0.08);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}

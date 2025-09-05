@@ -1,0 +1,47 @@
+.PartSelectorContainer {
+  font-family: Tahoma, sans-serif;
+  background-color: #f7f9fc;
+  border: 1px solid #d3d3d3;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.PartSelectorContainer h1 {
+  font-size: 20px;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.PartSelectorContainer h4 {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.PartSelector {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  font-family: Tahoma, sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  transition: border 0.2s ease;
+}
+
+.PartSelector:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 3px #4a90e2;
+}
+
+.PartSelectorContainer {
+  margin-bottom: 20px;
+  font-family: Tahoma, sans-serif;
+}
+
+.PartSelectorDropdown {
+  margin-top: 10px;
+}
