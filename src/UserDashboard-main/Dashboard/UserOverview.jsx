@@ -112,6 +112,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
               <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>PC Builder</a>
               <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>Pre-built PCs</a>
               <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>Components</a>
+              <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>Learn</a>
 
               {!isSmallScreen && (
                 <div className="header-dropdown" ref={dropdownRef}>
