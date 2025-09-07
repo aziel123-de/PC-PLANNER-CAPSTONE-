@@ -9,8 +9,6 @@ const pool = require('./mysql');
     const salt = 's';
     const hash = 'h';
     const createdAt = new Date();
-    const [res] = await conn.query('INSERT INTO users (id,email,username,salt,hash,createdAt) VALUES (?,?,?,?,?,?)', [id, email, username, salt, hash, createdAt]);
-    console.log('insert result', res);
   } catch (err) {
     console.error('DEBUG DB ERROR full:', err);
     console.error('DEBUG DB ERROR message:', err && err.message);
@@ -21,3 +19,8 @@ const pool = require('./mysql');
   }
   process.exit(0);
 })();
+// Archived: debug_db.js
+// This file was archived to keep the Backend folder minimal.
+// Use migrate_create_table.js and check_users_table.js for database setup and verification.
+
+module.exports = {};
