@@ -5,7 +5,7 @@ import './Gaming.css'; // same CSS for consistency
 const performanceData = {
   "Basic Home PC": { category: "General", web: 85, office: 70, entertainment: 60 },
   "Home Office PC": { category: "General", web: 95, office: 85, entertainment: 80 },
-  "Premium General Use PC": { category: "General", web: 100, office: 95, entertainment: 90 },
+  "Premium GeneralUse": { category: "General", web: 100, office: 95, entertainment: 90 },
 };
 
 const GeneralUse = () => {
@@ -17,30 +17,60 @@ const GeneralUse = () => {
       name: "Basic Home PC",
       description: "Simple PC for web, office, and entertainment.",
       price: 18000,
-      specs: ["Intel Pentium", "4GB RAM", "Integrated Graphics", "256GB SSD"],
-      peripherals: ["Basic Keyboard", "Basic Mouse"]
+      specs: [
+            "Intel Pentium Gold G6400",
+            "4GB DDR4 2666MHz",
+            "Intel UHD Graphics 610",
+            "256GB SATA SSD",
+            "Intel H410 Chipset",
+            "300W PSU"
+        ],
+      peripherals: [
+            "Logitech K120 Keyboard ",
+            "Logitech M90 Mouse"
+        ]
     },
     {
       id: 2,
       name: "Home Office PC",
       description: "Reliable PC for home office tasks.",
       price: 30000,
-      specs: ["Intel Core i3", "8GB RAM", "Integrated Graphics", "512GB SSD"],
-      peripherals: ["Wireless Keyboard", "Wireless Mouse"]
+      specs: [
+              "Intel Core i3-12100",
+              "8GB DDR4 3200MHz",
+              "Intel UHD Graphics 730",
+              "512GB NVMe SSD",
+              "Intel B660 Chipset",
+              "450W 80+ Bronze"
+  ],
+      peripherals:[
+              "Logitech MK270 Wireless Keyboard & Mouse Combo",
+              "Logitech C270 HD Webcam"
+      ]
     },
     {
       id: 3,
-      name: "Premium General Use PC",
-      description: "High-end PC for all-around use.",
+      name: "Premium GeneralUse",
+      description: "Premium desktop computer for versatile performance.",
       price: 60000,
-      specs: ["Intel Core i5", "16GB RAM", "Integrated Graphics", "1TB SSD"],
-      peripherals: ["Premium Keyboard", "Premium Mouse"]
+      specs: [
+                "Intel Core i5-12400",
+                "16GB DDR4 3200MHz",
+                "Intel UHD Graphics 730",
+                "1TB NVMe SSD",
+                "Intel B660 Chipset",
+                "500W 80+ Bronze"
+  ],
+      peripherals: [
+            "Logitech G413 Mechanical Keyboard",
+            "Logitech MX Master 3 Mouse"
+        ]
     }
   ];
   const [animatedValues, setAnimatedValues] = useState({
     "Basic Home PC": performanceData["Basic Home PC"],
     "Home Office PC": performanceData["Home Office PC"],
-    "Premium General Use PC": performanceData["Premium General Use PC"]
+    "Premium GeneralUse": performanceData["Premium GeneralUse"]
   });
   const navigate = useNavigate();
 
@@ -99,7 +129,7 @@ const GeneralUse = () => {
               <ul>{renderList(build.peripherals)}</ul>
 
               <button className="Customization" onClick={handleClick}>
-                Customize
+                Add to Build
               </button>
             </div>
           );

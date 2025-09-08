@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Gaming.css'; // Reuse the same CSS
 
 const performanceData = {
-  "Entry Workstation": { category: "Productivity", productivity: 75, multitasking: 60, mediaEditing: 55 },
+  "Entry-level Workstation": { category: "Productivity", productivity: 75, multitasking: 60, mediaEditing: 55 },
   "Professional Workstation": { category: "Productivity", productivity: 85, multitasking: 80, mediaEditing: 75 },
   "High-End Productivity PC": { category: "Productivity", productivity: 95, multitasking: 90, mediaEditing: 88 },
 };
@@ -14,31 +14,61 @@ const Productivity = () => {
   const builds = [
     {
       id: 1,
-      name: "Entry Workstation",
+      name: "Entry-level Workstation",
       description: "Affordable workstation for office and light editing.",
       price: 35000,
-      specs: ["Intel Core i5", "16GB RAM", "Integrated Graphics", "512GB SSD"],
-      peripherals: ["Standard Keyboard", "Standard Mouse"]
+      specs: [
+      "Intel Core i5-12400",
+      "16GB DDR4 3200MHz",
+      "Intel UHD Graphics 730",
+      "512GB NVMe SSD",
+      "Intel B660 Chipset",
+      "450W 80+ Bronze"
+    ],
+    peripherals: [
+      "Logitech K270 Wireless Keyboard",
+      "Logitech M185 Wireless Mouse"
+    ]
     },
     {
       id: 2,
       name: "Professional Workstation",
       description: "Powerful workstation for multitasking and editing.",
       price: 80000,
-      specs: ["Intel Core i7", "32GB RAM", "RTX 3060", "1TB SSD"],
-      peripherals: ["Ergonomic Keyboard", "Precision Mouse"]
+      specs: [
+      "Intel Core i7-12700",
+      "32GB DDR4 3200MHz",
+      "NVIDIA GeForce RTX 3060",
+      "1TB NVMe SSD",
+      "Intel Z690 Chipset",
+      "650W 80+ Gold"
+    ],
+    peripherals: [
+      "Logitech MX Keys Advanced Wireless Keyboard",
+      "Logitech MX Master 3S Wireless Mouse"
+    ]
     },
     {
       id: 3,
       name: "High-End Productivity PC",
       description: "Ultimate productivity for demanding tasks.",
       price: 150000,
-      specs: ["Intel Core i9", "64GB RAM", "RTX 4090", "2TB NVMe SSD"],
-      peripherals: ["Premium Keyboard", "Premium Mouse"]
+      specs:  [
+      "Intel Core i9-13900K",
+      "64GB DDR5 5600MHz",
+      "NVIDIA GeForce RTX 4090",
+      "2TB NVMe Gen4 SSD",
+      "Intel Z790 Chipset",
+      "1000W 80+ Platinum"
+    ],
+    peripherals: [
+      "Corsair K95 RGB Mechanical Keyboard",
+      "Logitech MX Master 3S Wireless Mouse"
+    ]
     }
   ];
   const [animatedValues, setAnimatedValues] = useState({
-    "Entry Workstation": performanceData["Entry Workstation"],
+    "Entry-level Workstation": performanceData["Entry-level Workstation"],
     "Professional Workstation": performanceData["Professional Workstation"],
     "High-End Productivity PC": performanceData["High-End Productivity PC"]
   });
@@ -99,7 +129,7 @@ const Productivity = () => {
               <ul>{renderList(build.peripherals)}</ul>
 
               <button className="Customization" onClick={handleClick}>
-                Customize
+                Add to Build
               </button>
             </div>
           );

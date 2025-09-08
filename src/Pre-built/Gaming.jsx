@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Gaming.css';
 
+
 const performanceData = {
-  "Budget Gaming PC": { category: "Gaming", gaming: 60, productivity: 50, streaming: 40 },
-  "Mid-Range Gaming PC": { category: "Gaming", gaming: 80, productivity: 65, streaming: 70 },
-  "High-End Gaming PC": { category: "Gaming", gaming: 95, productivity: 80, streaming: 90 },
+  "Budget Gaming": { category: "Gaming", gaming: 60, productivity: 50, streaming: 40 },
+  "Mid-Range Gaming": { category: "Gaming", gaming: 80, productivity: 65, streaming: 70 },
+  "High-End Gaming": { category: "Gaming", gaming: 95, productivity: 80, streaming: 90 },
 };
 
 const Gaming = () => {
@@ -14,33 +15,63 @@ const Gaming = () => {
   const builds = [
     {
       id: 1,
-      name: "Budget Gaming PC",
+      name: "Budget Gaming",
       description: "Entry-level gaming build for 1080p gaming.",
       price: 25000,
-      specs: ["Intel Core i3", "8GB RAM", "GTX 1650", "256GB SSD"],
-      peripherals: ["Basic Keyboard", "Basic Mouse"]
+      specs: [
+      "Intel Core i3-12100F",
+      "8GB DDR4 3200MHz",
+      "NVIDIA GeForce GTX 1650",
+      "256GB NVMe SSD",
+      "Intel B660 Chipset",
+      "450W 80+ Bronze"
+    ],
+    peripherals: [
+      "Logitech G213 Prodigy Gaming Keyboard",
+      "Logitech G102 Lightsync Gaming Mouse"
+    ]
     },
     {
       id: 2,
-      name: "Mid-Range Gaming PC",
+      name: "Mid-Range Gaming",
       description: "Smooth 1080p/1440p gaming experience.",
       price: 50000,
-      specs: ["Intel Core i5", "16GB RAM", "RTX 3060", "512GB SSD"],
-      peripherals: ["Gaming Keyboard", "Gaming Mouse"]
+      specs: [
+      "Intel Core i5-12400F",
+      "16GB DDR4 3200MHz",
+      "NVIDIA GeForce RTX 3060",
+      "512GB NVMe SSD",
+      "Intel B660 Chipset",
+      "650W 80+ Bronze"
+    ],
+    peripherals: [
+      "Corsair K55 RGB Gaming Keyboard",
+      "Logitech G502 Hero Gaming Mouse"
+    ]
     },
     {
       id: 3,
-      name: "High-End Gaming PC",
+      name: "High-End Gaming",
       description: "Max settings 1440p/4K gaming.",
       price: 120000,
-      specs: ["Intel Core i7", "32GB RAM", "RTX 4080", "1TB NVMe SSD"],
-      peripherals: ["Mechanical Keyboard", "High DPI Mouse"]
+      specs: [
+      "Intel Core i7-13700K",
+      "32GB DDR5 5600MHz",
+      "NVIDIA GeForce RTX 4080",
+      "1TB NVMe Gen4 SSD",
+      "Intel Z790 Chipset",
+      "850W 80+ Gold"
+    ],
+    peripherals: [
+      "Razer BlackWidow V3 Mechanical Gaming Keyboard",
+      "Logitech G Pro X Superlight Mouse"
+    ]
     }
   ];
   const [animatedValues, setAnimatedValues] = useState({
-    "Budget Gaming PC": performanceData["Budget Gaming PC"],
-    "Mid-Range Gaming PC": performanceData["Mid-Range Gaming PC"],
-    "High-End Gaming PC": performanceData["High-End Gaming PC"]
+    "Budget Gaming": performanceData["Budget Gaming"],
+    "Mid-Range Gaming": performanceData["Mid-Range Gaming"],
+    "High-End Gaming": performanceData["High-End Gaming"]
   });
   const navigate = useNavigate();
 
@@ -102,7 +133,7 @@ const Gaming = () => {
               <ul>{renderList(build.peripherals)}</ul>
 
               <button className="Customization" onClick={handleClick}>
-                Customize
+                Add to Build
               </button>
             </div>
           );

@@ -10,7 +10,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 999px;
   box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
-  max-width: 960px;
+  max-width: 450px;
 }
 
 /* Legacy helper (kept to avoid markup changes) */
