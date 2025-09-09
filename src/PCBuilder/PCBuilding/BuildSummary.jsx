@@ -103,7 +103,7 @@ function BuildSummary({ selectedParts }) {
   let compatSeverity = 'good'; // 'good' | 'warning' | 'bad'
   if (cpuIndex > 0 && gpuIndex > 0) {
     // Calibrate GPU vs CPU scale so mid-range pairs don’t read GPU-limited too easily
-    const BALANCE_K = 18; // slightly higher to reduce false GPU bottleneck flags
+    const BALANCE_K = 19; // slightly higher to reduce false GPU bottleneck flags
     const ratioAdj = (gpuIndex * BALANCE_K) / cpuIndex; // >1: GPU stronger; <1: CPU stronger
 
     // CPU bottleneck threshold: make it stricter so it triggers less often
