@@ -74,7 +74,7 @@ function ComponentPage() {
   return (
     <>
       {/* Header removed here — App.jsx should render the global Header */}
-      <div className="component-page" style={{ paddingTop: 10 }}>
+      <div className="component-page" style={{ paddingTop: 80 }}>
         <div className="componentdb-header">
           <h2 className="componentdb-title">Component Database</h2>
           <p className="componentdb-desc">Browse our comprehensive database of PC components with detailed specifications and compatibility information</p>

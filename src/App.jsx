@@ -4,6 +4,7 @@ import React from 'react';
 import Login from './LoginForm/Login.jsx';
 import SignUp from './SignUpForm/SignUp.jsx';
 import Header from './HomepageForm/Header.jsx';
+import LoggedInUserHeader from './UserDashboard-main/Dashboard/loggedInUserHeader';
 import Section from './HomepageForm/Section.jsx';
 import Footer from './HomepageForm/Footer.jsx';
 import BuilderPage from "./PCBuilder/BuildingPCPage/BuilderPage.jsx";
@@ -27,13 +28,43 @@ function App() {
 
   // hide header on these routes
   const hideHeaderOn = ['/login', '/signup'];
+  const navigate = useNavigate();
+
+  // decide logged-in by token in localStorage (matches other components)
+  const rawToken = (localStorage.getItem('token') || '').trim();
+  const isLoggedIn = !!rawToken && rawToken !== 'null' && rawToken !== 'undefined';
+
+  const topLogout = () => {
+    try {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      window.dispatchEvent(new CustomEvent('authChanged', { detail: null }));
+    } catch (e) {}
+    navigate('/');
+  };
+
+  const showHeader = !hideHeaderOn.includes(location.pathname);
+  const isDashboard = location.pathname === '/dashboard';
 
   return (
     <>
-      {/* render header except on login/signup */}
-      { !hideHeaderOn.includes(location.pathname) && <Header /> }
+      {/* render header except on login/signup; choose logged-in header when token exists */}
+      { showHeader && (
+        isLoggedIn ? (
+          <LoggedInUserHeader
+            isSmallScreen={false}
+            onClickSettings={() => navigate('/settings')}
+            onLogout={topLogout}
+            onClickSignIn={() => navigate('/login')}
+            onClickSignUp={() => navigate('/signup')}
+          />
+        ) : (
+          <Header />
+        )
+      ) }
 
-      <main className="main-content">
+      <div className={showHeader && !isDashboard ? 'with-global-header' : ''}>
+        <main className="main-content">
         <Routes>
           <Route
             path="/"
@@ -70,6 +101,7 @@ function App() {
           <Route path="/settings" element={<SettingsWrapper />} />
         </Routes>
       </main>
+      </div>
     </>
   );
 }

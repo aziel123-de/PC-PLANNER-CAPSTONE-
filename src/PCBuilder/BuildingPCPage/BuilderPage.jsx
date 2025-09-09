@@ -54,7 +54,7 @@ function BuilderPage() {
 
   return (
     <>
-      <main className='PC-Builder-Content'>
+      <main className='PC-Builder-Content' style={{ paddingTop: 80 }}>
         <div className='Note'>
           <h1 className='PC-Note-Title'>Note on Compatibility Availability</h1>
           <h3>
