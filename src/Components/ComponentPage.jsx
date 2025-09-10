@@ -6,25 +6,27 @@ import { FiFilter } from 'react-icons/fi';
 import { FaSortAlphaDown, FaDollarSign } from 'react-icons/fa';
 
 import {
-  moboOptions,
-  cpuOptions,
-  gpuOptions,
-  psuOptions,
-  ramOptions,
-  storageOptions,
-  m2Options,
-  caseOptions
+  moboOptions as moboLocal,
+  cpuOptions as cpuLocal,
+  gpuOptions as gpuLocal,
+  psuOptions as psuLocal,
+  ramOptions as ramLocal,
+  storageOptions as storageLocal,
+  m2Options as m2Local,
+  caseOptions as caseLocal
 } from "../PCBuilder/PCBuilding/PCcomponentsDatabase.js";
+import { useEffect } from 'react';
+import { useComponents } from '../contexts/ComponentsContext.jsx';
 
-const CATEGORY_LIST = [
-  { key: "motherboard", arr: moboOptions, title: "Motherboards" },
-  { key: "cpu", arr: cpuOptions, title: "CPUs" },
-  { key: "gpu", arr: gpuOptions, title: "GPUs" },
-  { key: "psu", arr: psuOptions, title: "PSUs" },
-  { key: "ram", arr: ramOptions, title: "RAM" },
-  { key: "storage", arr: storageOptions, title: "Storage" },
-  { key: "m2", arr: m2Options, title: "M.2 / NVMe" },
-  { key: "case", arr: caseOptions, title: "Cases" },
+const initialCategoryList = [
+  { key: "motherboard", arr: moboLocal, title: "Motherboards", type: 'mobo' },
+  { key: "cpu", arr: cpuLocal, title: "CPUs", type: 'cpu' },
+  { key: "gpu", arr: gpuLocal, title: "GPUs", type: 'gpu' },
+  { key: "psu", arr: psuLocal, title: "PSUs", type: 'psu' },
+  { key: "ram", arr: ramLocal, title: "RAM", type: 'ram' },
+  { key: "storage", arr: storageLocal, title: "Storage", type: 'storage' },
+  { key: "m2", arr: m2Local, title: "M.2 / NVMe", type: 'm2' },
+  { key: "case", arr: caseLocal, title: "Cases", type: 'case' },
 ];
 
 function ComponentPage() {
@@ -33,10 +35,22 @@ function ComponentPage() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortBy, setSortBy] = useState(null); // 'alpha' | 'price' | null
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' | 'desc'
+  const [categoryList, setCategoryList] = useState(initialCategoryList);
+  const { dataLookup, loading } = useComponents();
+
+  // update categoryList when provider finishes loading; fall back to local lists
+  useEffect(() => {
+    if (loading) return;
+    const results = initialCategoryList.map((cat) => {
+      const arrFromCtx = dataLookup?.[cat.type === 'case' ? 'case' : cat.type];
+      return { ...cat, arr: Array.isArray(arrFromCtx) && arrFromCtx.length ? arrFromCtx : cat.arr };
+    });
+    setCategoryList(results);
+  }, [dataLookup, loading]);
 
   const filters = [
     { key: "all", title: "All" },
-    ...CATEGORY_LIST.map((c) => ({ key: c.key, title: c.title })),
+  ...initialCategoryList.map((c) => ({ key: c.key, title: c.title })),
   ];
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -62,13 +76,13 @@ function ComponentPage() {
       return copy;
     };
 
-    return CATEGORY_LIST.map(({ key, arr, title }) => {
+  return categoryList.map(({ key, arr, title }) => {
       const filtered = (Array.isArray(arr) ? arr : []).filter((c) => {
         if (filter !== "all" && filter !== key) return false;
         return matchesQuery(c);
       });
       return { key, title, arr: sortArray(filtered) };
-    }).filter(cat => Array.isArray(cat.arr) && cat.arr.length > 0);
+  }).filter(cat => Array.isArray(cat.arr) && cat.arr.length > 0);
   }, [normalizedQuery, filter, sortBy, sortOrder]);
 
   return (

@@ -1,41 +1,41 @@
 import React from "react";
 import './ComponentCard.css';
 import {
-  moboOptions,
-  cpuOptions,
-  gpuOptions,
-  psuOptions,
-  ramOptions,
-  storageOptions,
-  m2Options,
-  caseOptions
+  moboOptions as moboLocal,
+  cpuOptions as cpuLocal,
+  gpuOptions as gpuLocal,
+  psuOptions as psuLocal,
+  ramOptions as ramLocal,
+  storageOptions as storageLocal,
+  m2Options as m2Local,
+  caseOptions as caseLocal
 } from "../PCBuilder/PCBuilding/PCcomponentsDatabase.js";
 
-function getCategoryArray(cat) {
+function getCategoryArray(cat, lookup) {
   switch ((cat || "").toLowerCase()) {
     case "mobo":
     case "motherboard":
-      return moboOptions;
+  return (lookup && lookup.mobo) || moboLocal;
     case "cpu":
     case "processor":
-      return cpuOptions;
+  return (lookup && lookup.cpu) || cpuLocal;
     case "gpu":
     case "graphics":
-      return gpuOptions;
+  return (lookup && lookup.gpu) || gpuLocal;
     case "psu":
     case "power":
-      return psuOptions;
+  return (lookup && lookup.psu) || psuLocal;
     case "ram":
     case "memory":
-      return ramOptions;
+  return (lookup && lookup.ram) || ramLocal;
     case "storage":
-      return storageOptions;
+  return (lookup && lookup.storage) || storageLocal;
     case "m2":
     case "nvme":
-      return m2Options;
+  return (lookup && lookup.m2) || m2Local;
     case "case":
     case "pcase":
-      return caseOptions;
+  return (lookup && lookup.case) || caseLocal;
     default:
       return null;
   }
@@ -50,11 +50,11 @@ function getCategoryArray(cat) {
  *
  * If component provided, it's used directly. Otherwise category+id is used to find the item.
  */
-function ComponentCard({ component, category, id }) {
+function ComponentCard({ component, category, id, lookup }) {
   let item = component || null;
 
   if (!item && category && id != null) {
-    const arr = getCategoryArray(category);
+  const arr = getCategoryArray(category, lookup);
     if (Array.isArray(arr)) {
       item = arr.find((it) => Number(it.id) === Number(id)) || null;
     }

@@ -136,6 +136,42 @@ app.get(`${API_PREFIX}/users/:id`, async (req, res) => {
   }
 });
 
+// Serve component tables from MySQL (cpu,gpu,psu,mobo,ram,storage,m2,case)
+app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
+  const type = (req.params.type || '').toString().toLowerCase();
+  const tableMap = {
+    cpu: 'cpu',
+    gpu: 'gpu',
+    psu: 'psu',
+    mobo: 'mobo',
+    ram: 'ram',
+    storage: 'storage',
+    m2: 'm2',
+    case: 'pc_case',
+    pc_case: 'pc_case'
+  };
+  const table = tableMap[type];
+  if (!table) return res.status(404).json({ error: 'unknown component type' });
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(`SELECT * FROM \`${table}\``);
+    // parse raw JSON column when present
+    const parsed = rows.map(r => {
+      if (r && r.raw && typeof r.raw === 'string') {
+        try { r.raw = JSON.parse(r.raw); } catch (e) { /* keep raw string */ }
+      }
+      return r;
+    });
+    return res.json(parsed);
+  } catch (err) {
+    console.error('db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
+
 const port = process.env.PORT || 5050;
 ensureSchema().then(() => {
   app.listen(port, '127.0.0.1', () => console.log('Backend listening on 127.0.0.1:' + port));

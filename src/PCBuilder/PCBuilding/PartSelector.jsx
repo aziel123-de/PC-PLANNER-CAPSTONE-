@@ -1,29 +1,40 @@
 import './PartSelector.css';
 import Select from 'react-select';
 import {
-  moboOptions,
-  cpuOptions,
-  gpuOptions,
-  psuOptions,
-  ramOptions,
-  storageOptions,
-  m2Options,
-  caseOptions
+  moboOptions as moboLocal,
+  cpuOptions as cpuLocal,
+  gpuOptions as gpuLocal,
+  psuOptions as psuLocal,
+  ramOptions as ramLocal,
+  storageOptions as storageLocal,
+  m2Options as m2Local,
+  caseOptions as caseLocal
 } from './PCcomponentsDatabase';
 
 const partOptionsMap = {
-  "Motherboard (MOBO)": moboOptions,
-  "Processor (CPU)": cpuOptions,
-  "Graphics Card (GPU)": gpuOptions,
-  "Power Supply (PSU)": psuOptions,
-  "Memory (RAM)": ramOptions,
-  "Storage": storageOptions,
-  "M.2 SSD": m2Options,
-  "Case": caseOptions,
+  "Motherboard (MOBO)": moboLocal,
+  "Processor (CPU)": cpuLocal,
+  "Graphics Card (GPU)": gpuLocal,
+  "Power Supply (PSU)": psuLocal,
+  "Memory (RAM)": ramLocal,
+  "Storage": storageLocal,
+  "M.2 SSD": m2Local,
+  "Case": caseLocal,
 };
 
-function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO }) {
-  let options = partOptionsMap[part.name] || [];
+function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dataLookup }) {
+  const resolvedMap = {
+    "Motherboard (MOBO)": dataLookup?.mobo || moboLocal,
+    "Processor (CPU)": dataLookup?.cpu || cpuLocal,
+    "Graphics Card (GPU)": dataLookup?.gpu || gpuLocal,
+    "Power Supply (PSU)": dataLookup?.psu || psuLocal,
+    "Memory (RAM)": dataLookup?.ram || ramLocal,
+    "Storage": dataLookup?.storage || storageLocal,
+    "M.2 SSD": dataLookup?.m2 || m2Local,
+    "Case": dataLookup?.case || caseLocal,
+  };
+
+  let options = resolvedMap[part.name] || [];
 
   // normalize keys from the database (handles mixed capitalization)
   const getFirst = (obj, ...keys) => {
