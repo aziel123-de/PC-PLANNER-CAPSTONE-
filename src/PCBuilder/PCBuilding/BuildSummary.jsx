@@ -125,6 +125,76 @@ function BuildSummary({ selectedParts }) {
     }
   }
 
+  // Recommendation based on the same ratio: suggest upgrading CPU or GPU when a bottleneck exists
+  let upgradeRecommendation = '';
+  if (cpuIndex > 0 && gpuIndex > 0) {
+    const BALANCE_K = 19;
+    const ratioAdj = (gpuIndex * BALANCE_K) / cpuIndex;
+    if (ratioAdj > 1.8) {
+      upgradeRecommendation = 'Consider upgrading the CPU to better match this GPU.';
+    } else if (ratioAdj < 0.7) {
+      upgradeRecommendation = 'Consider upgrading the GPU to better match this CPU.';
+    } else {
+      upgradeRecommendation = '';
+    }
+  }
+
+  // --- PSU compatibility check (CPU TDP + GPU power draw vs PSU wattage) ---
+  const getNumericFrom = (obj, ...keys) => {
+    if (!obj) return 0;
+    return toNumber(getFirst(obj, ...keys));
+  };
+
+  // Fallback scanner: look for any property name that contains tdp/power/thermal and return its numeric value
+  const getNumericByPattern = (obj, patterns = ['tdp', 'power', 'thermal']) => {
+    if (!obj || typeof obj !== 'object') return 0;
+    const lowerPatterns = patterns.map(p => p.toLowerCase());
+    for (const k of Object.keys(obj)) {
+      const kl = k.toLowerCase();
+      if (lowerPatterns.some(p => kl.includes(p))) {
+        const v = obj[k];
+        const n = toNumber(v);
+        if (n > 0) return n;
+      }
+    }
+    return 0;
+  };
+
+  // Use multiple common keys for CPU TDP and GPU power, then fallback to pattern scan
+  // prefer the standard 'TDP' value (typical thermal design power); fall back to MaxTDP or pattern matches
+  const cpuTDP = cpuRaw ? (getNumericFrom(cpuRaw, 'TDP', 'Tdp', 'MaxTDP', 'ThermalDesignPower', 'PackageTDP', 'PackageTDPWatts') || getNumericByPattern(cpuRaw, ['tdp', 'thermal'])) : 0;
+  const gpuPower = gpuRaw ? (getNumericFrom(gpuRaw, 'PowerDraw', 'TDP', 'BoardPower', 'TypicalBoardPower', 'Power') || getNumericByPattern(gpuRaw, ['power', 'tdp'])) : 0;
+
+  // Prefer explicit PSU slot from selectedParts (BuilderPage uses `psu`), otherwise try to find one heuristically
+  const psuPart = (selectedParts && selectedParts.psu) ? (selectedParts.psu._raw || selectedParts.psu || selectedParts.psu) : allParts.find(p => {
+    const type = (p.type || p.componentType || p.name || p.Name || '').toString().toLowerCase();
+    return type.includes('psu') || type.includes('power supply') || type.includes('power-supply');
+  });
+  const psuRaw = psuPart?._raw || psuPart || null;
+  const psuWatt = psuRaw ? getNumericFrom(psuRaw, 'Watt', 'Wattage', 'wattage', 'Power', 'Capacity', 'RatedPower', 'Output') : 0;
+
+  const totalRequiredPower = Math.round((cpuTDP || 0) + (gpuPower || 0));
+  const headroomMultiplier = 1.2; // 20% safety headroom
+  const requiredWithHeadroom = Math.round(totalRequiredPower * headroomMultiplier);
+  const showPowerWarning = psuWatt > 0 && requiredWithHeadroom > psuWatt;
+  const powerWarningText = showPowerWarning
+    ? `Power Warning: PSU ${psuWatt}W is less than estimated required ${requiredWithHeadroom}W (includes 20% headroom). CPU ${cpuTDP || 0}W + GPU ${gpuPower || 0}W = ${totalRequiredPower}W.`
+    : '';
+
+  // Determine which component contributes more to the required power for a small hint badge
+  const powerCause = (() => {
+    const c = cpuTDP || 0;
+    const g = gpuPower || 0;
+    if (c === 0 && g === 0) return 'unknown';
+    const total = c + g;
+    if (total === 0) return 'unknown';
+    const cShare = c / total;
+    const gShare = g / total;
+    if (cShare >= 0.65) return 'cpu';
+    if (gShare >= 0.65) return 'gpu';
+    return 'both';
+  })();
+
   return (
   <div className='BuildSummary'>
       <h1>Build Summary</h1>
@@ -148,13 +218,72 @@ function BuildSummary({ selectedParts }) {
       </div>
 
       <h1 className='Price'>Estimated Price: ₱{estimatedPrice.toLocaleString()}</h1>
-  <div className="compat-row">
-    <h2 style={{ margin: 0 }}>Compatibility:</h2>
-    <div className={`compat-badge ${compatSeverity === 'good' ? 'compat-good' : compatSeverity === 'warn' ? 'compat-warn' : 'compat-bad'}`}>
-      {compatSeverity === 'good' ? 'OK' : compatSeverity === 'warn' ? 'WARNING' : 'BAD'}
-    </div>
-  </div>
-  <p className="compat-note">{bottleneckNote}</p>
+      
+      {/* Enhanced Compatibility Section */}
+      <div className="compatibility-section">
+        <div className="compatibility-header">
+          <h2 className="compatibility-title">System Compatibility</h2>
+        </div>
+        
+        {/* Performance Balance Check */}
+        <div className="compat-card">
+          <div className="compat-card-header">
+            <div className="compat-card-title">
+              <span className="compat-icon">⚖️</span>
+              <span>Performance Balance</span>
+            </div>
+            <div className={`compat-badge ${compatSeverity === 'good' ? 'compat-good' : compatSeverity === 'warn' ? 'compat-warn' : 'compat-bad'}`}>
+              {compatSeverity === 'good' ? 'BALANCED' : compatSeverity === 'warn' ? 'WARNING' : 'BOTTLENECK'}
+            </div>
+          </div>
+          <div className="compat-card-content">
+            <p className="compat-description">{bottleneckNote}</p>
+            {upgradeRecommendation && (
+              <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div className="compat-badge compat-warn compat-secondary">RECOMMENDATION</div>
+                <div style={{ color: '#334155', fontWeight: 600 }}>{upgradeRecommendation}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Power Supply Check */}
+        {(showPowerWarning || (process.env.NODE_ENV !== 'production')) && (
+          <div className="compat-card">
+            <div className="compat-card-header">
+              <div className="compat-card-title">
+                <span className="compat-icon">⚡</span>
+                <span>Power Supply</span>
+              </div>
+              <div className="compat-badges">
+                <div className={`compat-badge ${showPowerWarning ? 'compat-bad' : 'compat-good'}`}>
+                  {showPowerWarning ? 'INSUFFICIENT' : 'SUFFICIENT'}
+                </div>
+                {showPowerWarning && (
+                  <div className={`compat-badge compat-warn compat-secondary`}>
+                    {powerCause === 'cpu' ? 'CPU' : powerCause === 'gpu' ? 'GPU' : powerCause === 'both' ? 'CPU+GPU' : 'N/A'}
+                  </div>
+                )}
+                {process.env.NODE_ENV !== 'production' && !showPowerWarning && (
+                  <div className={`compat-badge compat-info compat-secondary`}>
+                    INFO
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="compat-card-content">
+              <p className="compat-description">
+                {showPowerWarning 
+                  ? powerWarningText
+                  : process.env.NODE_ENV !== 'production' 
+                    ? `Power Check: PSU ${psuWatt || 'N/A'}W vs required ${requiredWithHeadroom}W (CPU ${cpuTDP || 0}W + GPU ${gpuPower || 0}W = ${totalRequiredPower}W). ${psuWatt ? (requiredWithHeadroom > psuWatt ? 'Not enough.' : 'Sufficient.') : 'PSU not selected.'}`
+                    : ''
+                }
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

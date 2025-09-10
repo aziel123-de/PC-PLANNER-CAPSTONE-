@@ -164,36 +164,193 @@
   }
 }
 
-/* Compatibility badge styles */
-.compat-row {
+/* Enhanced Compatibility Section */
+.compatibility-section {
+  margin-top: 24px;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.compatibility-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.compatibility-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1e293b;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.compat-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.compat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.compat-card:last-child {
+  margin-bottom: 0;
+}
+
+.compat-card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #f3f4f6;
 }
-.compat-badge {
-  padding: 6px 10px;
-  border-radius: 999px;
+
+.compat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 700;
-  font-size: 0.9rem;
-  color: white;
-  display: inline-flex;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.compat-icon {
+  font-size: 1.2rem;
+  filter: grayscale(0.2);
+}
+
+.compat-badges {
+  display: flex;
   align-items: center;
   gap: 8px;
 }
+
+.compat-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.compat-badge:hover {
+  transform: scale(1.05);
+}
+
+.compat-secondary {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  opacity: 0.9;
+}
+
 .compat-good {
-  background: linear-gradient(90deg, #16a34a, #059669); /* green */
-  box-shadow: 0 6px 18px rgba(5,150,105,0.12);
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
 }
+
 .compat-warn {
-  background: linear-gradient(90deg, #f59e0b, #f97316); /* amber */
-  box-shadow: 0 6px 18px rgba(249,115,22,0.12);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
 }
+
 .compat-bad {
-  background: linear-gradient(90deg, #ef4444, #dc2626); /* red */
-  box-shadow: 0 6px 18px rgba(220,38,38,0.12);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
 }
-.compat-note {
-  color: #374151;
-  font-weight: 600;
+
+.compat-info {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+}
+
+.compat-card-content {
+  padding: 12px 20px 16px;
+}
+
+.compat-description {
+  margin: 0;
+  color: #4b5563;
+  font-weight: 500;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.recommendation-text {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.compat-badge.compat-secondary.recommendation {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* Responsive Design for Compatibility Section */
+@media (max-width: 768px) {
+  .compatibility-section {
+    padding: 16px;
+    margin-top: 20px;
+  }
+  
+  .compatibility-title {
+    font-size: 1.1rem;
+  }
+  
+  .compat-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px 10px;
+  }
+  
+  .compat-badges {
+    align-self: stretch;
+    justify-content: flex-end;
+  }
+  
+  .compat-card-content {
+    padding: 10px 16px 14px;
+  }
+  
+  .compat-description {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .compat-card-header {
+    gap: 8px;
+  }
+  
+  .compat-badges {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .compat-badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+  
+  .compat-secondary {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
 }
