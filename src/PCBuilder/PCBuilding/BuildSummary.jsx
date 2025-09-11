@@ -99,6 +99,9 @@ function BuildSummary({ selectedParts }) {
   const cpuRaw = cpu?._raw || cpu || null;
   const gpuRaw = gpu?._raw || gpu || null;
 
+  // whether both CPU and GPU are present for a valid performance estimate
+  const hasCpuGpu = !!cpuRaw && !!gpuRaw;
+
   // Build comparable CPU/GPU indices (GHz-based scaling to avoid huge numbers)
   const cpuIndex = (() => {
     if (!cpuRaw) return 0;
@@ -165,6 +168,11 @@ function BuildSummary({ selectedParts }) {
       bottleneckNote = 'Good balance: CPU and GPU look well-matched.';
       compatSeverity = 'good';
     }
+  }
+
+  // If either CPU or GPU missing, show NO DATA instead of the estimate text
+  if (!hasCpuGpu) {
+    bottleneckNote = 'NO DATA';
   }
 
   // Recommendation based on the same ratio: suggest upgrading CPU or GPU when a bottleneck exists
@@ -276,13 +284,13 @@ function BuildSummary({ selectedParts }) {
               <span>Performance Balance</span>
             </div>
             <div
-              className={`compat-badge ${selectedCount === 0 ? 'compat-unknown' : (compatSeverity === 'good' ? 'compat-good' : compatSeverity === 'warn' ? 'compat-warn' : 'compat-bad')}`}
+              className={`compat-badge ${!hasCpuGpu ? 'compat-unknown' : (compatSeverity === 'good' ? 'compat-good' : compatSeverity === 'warn' ? 'compat-warn' : 'compat-bad')}`}
             >
-              {selectedCount === 0 ? 'NO DATA' : (compatSeverity === 'good' ? 'BALANCED' : compatSeverity === 'warn' ? 'WARNING' : 'BOTTLENECK')}
+              {!hasCpuGpu ? 'NO DATA' : (compatSeverity === 'good' ? 'BALANCED' : compatSeverity === 'warn' ? 'WARNING' : 'BOTTLENECK')}
             </div>
           </div>
           <div className="compat-card-content">
-            <p className="compat-description">{bottleneckNote}</p>
+            <p className="compat-description">{!hasCpuGpu ? 'NO DATA' : bottleneckNote}</p>
             {upgradeRecommendation && (
               <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div className="compat-badge compat-warn compat-secondary">RECOMMENDATION</div>
