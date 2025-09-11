@@ -413,8 +413,8 @@ export const cpuOptions = [
     Threads: 24,
     BaseClock: "3.40GHz",
     BoostClock: "5.40GHz",
-    TDP: "125W",
-    MaxTDP: "253W",
+  TDP: 125,
+  MaxTDP: 253,
     RamType: "DDR5 & DDR4",
     RamMax: 5600,
     Cache: 30,
@@ -428,7 +428,7 @@ export const cpuOptions = [
     Threads: 16,
     BaseClock: "3.8GHz",
     BoostClock: "4.8GHz",
-    TDP: "105W",
+  TDP: 105,
     RamType: "DDR4",
     RamMax: 3200,
     L1Cache: 512,
@@ -1015,7 +1015,7 @@ export const psuOptions = [
   id: 1,
   name: "Corsair CV550",
   price: 2800,
-  wattage: "550W",
+  wattage: 550,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1023,7 +1023,7 @@ export const psuOptions = [
   id: 2,
   name: "Seasonic S12III 650W",
   price: 3500,
-  wattage: "650W",
+  wattage: 650,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1031,7 +1031,7 @@ export const psuOptions = [
   id: 3,
   name: "MSI MAG A650BN",
   price: 3100,
-  wattage: "650W",
+  wattage: 650,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1039,7 +1039,7 @@ export const psuOptions = [
   id: 4,
   name: "Gigabyte GP-P550B",
   price: 2800,
-  wattage: "550W",
+  wattage: 550,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1047,7 +1047,7 @@ export const psuOptions = [
   id: 5,
   name: "FSP HV Pro 650W",
   price: 2950,
-  wattage: "650W",
+  wattage: 650,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1055,7 +1055,7 @@ export const psuOptions = [
   id: 6,
   name: "Cooler Master MWE 550 Bronze V2",
   price: 3000,
-  wattage: "550W",
+  wattage: 550,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1063,7 +1063,7 @@ export const psuOptions = [
   id: 7,
   name: "Antec Atom B650",
   price: 3150,
-  wattage: "650W",
+  wattage: 650,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1071,7 +1071,7 @@ export const psuOptions = [
   id: 8,
   name: "DeepCool PF600",
   price: 2700,
-  wattage: "600W",
+  wattage: 600,
   rating: "80+ (Standard)",
   modular: "Non-Modular"
 },
@@ -1079,7 +1079,7 @@ export const psuOptions = [
   id: 9,
   name: "Thermaltake Smart 600W",
   price: 3300,
-  wattage: "600W",
+  wattage: 600,
   rating: "80+ (Standard)",
   modular: "Non-Modular"
 },
@@ -1087,7 +1087,7 @@ export const psuOptions = [
   id: 10,
   name: "XPG Pylon 550",
   price: 3200,
-  wattage: "550W",
+  wattage: 550,
   rating: "80+ Bronze",
   modular: "Non-Modular"
 },
@@ -1195,7 +1195,7 @@ export const psuOptions = [
   id: 23,
   name: "Seasonic Focus GX-750",
   price: 6850,
-  wattage: "750W",
+  wattage: 750,
   rating: "80+ Gold",
   modular: "Fully Modular"
 },
@@ -2114,4 +2114,139 @@ normalizeList(ramOptions);
 normalizeList(storageOptions);
 normalizeList(m2Options);
 normalizeList(caseOptions);
+
+// --- Helpers to normalize values for DB insertion ---
+const parseFloatSafe = (v) => {
+  if (v == null) return null;
+  if (typeof v === 'number') return v;
+  const s = String(v).toLowerCase().replace(/ghz/g, '').trim();
+  const m = s.match(/-?[0-9]+(\.[0-9]+)?/);
+  return m ? parseFloat(m[0]) : null;
+};
+
+const parseIntSafe = (v) => {
+  if (v == null) return null;
+  if (typeof v === 'number') return Math.round(v);
+  const s = String(v).toLowerCase();
+  const m = s.match(/-?[0-9]+/);
+  return m ? parseInt(m[0], 10) : null;
+};
+
+const parseWatt = (v) => {
+  if (v == null) return null;
+  if (typeof v === 'number') return Math.round(v);
+  const s = String(v).toLowerCase();
+  const m = s.match(/([0-9]+)\s*w/);
+  if (m) return parseInt(m[1], 10);
+  return parseIntSafe(s.replace(/w/gi, ''));
+};
+
+const parseGB = (v) => {
+  if (v == null) return null;
+  if (typeof v === 'number') return Math.round(v);
+  const s = String(v).toLowerCase();
+  const m = s.match(/([0-9]+)\s*g/);
+  if (m) return parseInt(m[1], 10);
+  const n = parseIntSafe(s.replace(/gb/gi, ''));
+  return n;
+};
+
+// Build normalized rows ready for DB insertion
+export const cpuRows = (cpuOptions || []).map(c => ({
+  id: c.id || null,
+  name: c.name || c.Name || null,
+  price: parseIntSafe(c.Price || c.price),
+  socket: c.Socket || c.socket || null,
+  cores: parseIntSafe(c.Cores),
+  threads: parseIntSafe(c.Threads),
+  base_clock_ghz: parseFloatSafe(c.BaseClock),
+  boost_clock_ghz: parseFloatSafe(c.BoostClock),
+  tdp: parseWatt(c.TDP || c.Tdp || c.tdp),
+  max_tdp: parseWatt(c.MaxTDP || c.MaxTDP || c.maxTDP),
+  ram_type: c.RamType || c.ramType || null,
+  ram_max: parseIntSafe(c.RamMax || c.RAMMax || c.ramMax),
+  cache_mb: parseIntSafe(c.Cache || c.cache || c.L3Cache || c.L2Cache || c.L1Cache),
+  raw: c
+}));
+
+export const gpuRows = (gpuOptions || []).map(g => ({
+  id: g.id || g.Id || null,
+  name: g.name || g.Name || null,
+  price: parseIntSafe(g.Price || g.price),
+  vram_gb: parseGB(g.Vram || g.VRAM || g.vram),
+  power_draw_w: parseWatt(g.PowerDraw || g.Power || g.power),
+  boost_freq_mhz: parseIntSafe(g.BoostFrequency || g.boostFrequency),
+  cuda_cores: parseIntSafe(g.CudaCores || g.cudaCores),
+  compute_units: parseIntSafe(g.ComputeUnits || g.computeUnits),
+  xe_cores: parseIntSafe(g.XeCores || g.xeCores),
+  raw: g
+}));
+
+export const psuRows = (psuOptions || []).map(p => ({
+  id: p.id || null,
+  name: p.name || p.Name || null,
+  price: parseIntSafe(p.price || p.Price),
+  wattage: parseWatt(p.wattage || p.Watt || p.Wattage),
+  rating: p.rating || null,
+  modular: p.modular || null,
+  raw: p
+}));
+
+export const moboRows = (moboOptions || []).map(m => ({
+  id: m.id || null,
+  name: m.name || m.Name || null,
+  price: parseIntSafe(m.Price || m.price),
+  socket: m.Socket || m.socket || null,
+  chipset: m.Chipset || m.chipset || null,
+  form_factor: m.FormFactor || m.formFactor || null,
+  ram_type: m.RamType || m.ramType || null,
+  ram_slots: parseIntSafe(m.RamSlots || m.ramSlots),
+  gpu_slots: parseIntSafe(m.GpuSlots || m.gpuSlots),
+  storage_slots: parseIntSafe(m.StorageSlots || m.storageSlots),
+  m2_slots: parseIntSafe(m.M2Slots || m.m2Slots),
+  raw: m
+}));
+
+export const ramRows = (ramOptions || []).map(r => ({
+  id: r.id || null,
+  name: r.name || r.Name || null,
+  price: parseIntSafe(r.Price || r.price),
+  type: r.Type || r.type || null,
+  frequency_mhz: parseIntSafe(r.Frequency || r.frequency),
+  capacity_gb: parseGB(r.Capacity || r.capacity),
+  raw: r
+}));
+
+export const storageRows = (storageOptions || []).map(s => ({
+  id: s.id || null,
+  name: s.name || s.Name || null,
+  price: parseIntSafe(s.Price || s.price),
+  type: s.Type || s.type || null,
+  interface: s.Interface || s.interface || null,
+  capacity_gb: parseGB(s.Capacity || s.capacity),
+  power_w: parseWatt(s.Power || s.power),
+  raw: s
+}));
+
+export const m2Rows = (m2Options || []).map(s => ({
+  id: s.id || null,
+  name: s.name || s.Name || null,
+  price: parseIntSafe(s.Price || s.price),
+  type: s.Type || s.type || null,
+  interface: s.Interface || s.interface || null,
+  capacity_gb: parseGB(s.Capacity || s.capacity),
+  power_w: parseWatt(s.Power || s.power),
+  raw: s
+}));
+
+export const caseRows = (caseOptions || []).map(c => ({
+  id: c.id || null,
+  name: c.name || c.Name || null,
+  price: parseIntSafe(c.Price || c.price),
+  form_factor: c.FormFactor || c.formFactor || null,
+  color: c.Color || c.color || null,
+  raw: c
+}));
+
+// Usage: import { cpuRows, gpuRows, psuRows } from './PCcomponentsDatabase.js' and bulk-insert into your MySQL tables.
 

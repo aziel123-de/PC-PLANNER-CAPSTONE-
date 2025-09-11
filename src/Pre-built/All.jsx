@@ -258,7 +258,7 @@ const renderStat = (label, value, category) => (
 );
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingTop: 80 }}>
       <div className="grid">
         {builds.map((build) => {
           const perf = animatedValues[build.name] || { category: "" };

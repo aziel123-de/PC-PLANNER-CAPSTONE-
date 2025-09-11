@@ -1,22 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './UserOverview.css';
 import pcImage from './PC.png';
-import profDefault from './profDefault.webp';
-import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, ChevronLeft, ChevronRight, ChevronDown, User, Mail, LogOut } from 'lucide-react';
+import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MdWavingHand } from 'react-icons/md';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import logo from '../../HomepageForm/LOGO.png';
+import LoggedInUserHeader from './loggedInUserHeader';
 
 
 
 
 function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,onBackClick }) {
 // -------------------------- PUT THE DROPDOWN ACCOUNT HERE --------------------------------------
-  const user = {
-    avatar: profDefault,
-    name: '',
-    email: '',
-  };
   const userName = '';
   // data in backend
   const recentBuilds = [];
@@ -38,14 +31,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false); // Track user manual collapse
 
-  // Header/menu/dropdown state and refs (previously missing)
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const hamburgerRef = useRef(null);
-  const headerNavRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
+  // Header is rendered by LoggedInUserHeader component
 
 
   const toggleSidebar = () => {
@@ -94,110 +80,13 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   return (
        <div className="header-parent">
       <div className="header-app">
-        <header className="header-bar">
-          <div className="header-logo-container">
-            <img src={logo} alt="LOGO" className="header-logo" />
-            <h1 className="header-title">PC Planner</h1>
-          </div>
-
-
-          {isSmallScreen && (
-            <button className="hamburger-db" onClick={toggleMenu} ref={hamburgerRef}>
-              {menuOpen ? <FaTimes size={24} color="#fff" /> : <FaBars size={24} color="#fff" />}
-            </button>
-          )}
-
-          <div className={`mobile-nav ${menuOpen ? 'open' : ''}`}>
-            <nav className="header-nav" ref={headerNavRef}>
-              <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>PC Builder</a>
-              <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>Pre-built PCs</a>
-              <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>Components</a>
-              <a href="#" className="header-nav-link" onClick={() => setMenuOpen(false)}>Learn</a>
-
-              {!isSmallScreen && (
-                <div className="header-dropdown" ref={dropdownRef}>
-                  <button className="header-profile-btn" onClick={() => setOpenDropdown(!openDropdown)}>
-                    <div className="profile-box">
-                      <img src={user.avatar} alt="Profile" className="header-profile-img" />
-                      <div className="profile-info">
-                        <span className="profile-name">{user.name}</span>
-                        <span className="profile-email">{user.email}</span>
-                      </div>
-                      <div className={`dropdown-icon ${openDropdown ? 'rotate' : ''}`}>
-                        <ChevronDown size={20} />
-                      </div>
-                    </div>
-                  </button>
-
-                  {openDropdown && (
-                    <div className="header-dropdown-content">
-                      <div className="dropdown-arrow" />
-                      <div className="dropdown-header">
-                        <img src={user.avatar} alt="Profile" className="avatar-img-large" />
-                        <div className="user-info">
-                          <p className="user-name">{user.name}</p>
-                          <p className="user-email">{user.email}</p>
-                        </div>
-                      </div>
-                      <div className="dropdown-body">
-                        <div className="signed-in">
-                          <span>Signed in as</span>
-                        </div>
-                        <div className="user-detail">
-                          <div className="user-line"><User size={14} /> {user.name}</div>
-                          <div className="user-line"><Mail size={12} /> {user.email}</div>
-                        </div>
-                      </div>
-
-                      <div className="dropdown-footer">
-                        <button className="dropdown-btn" onClick={() => { setOpenDropdown(false); onClickSettings(); }}>
-                          <Settings size={14} /> Account Settings
-                        </button>
-                        <button
-                          className="dropdown-btn logout"
-                          onClick={() => {
-                          
-                            setShowConfirm(true); // Show confirmation popup instead of logging out immediately
-                          }}
-                        >
-                          <LogOut size={14} /> Log Out
-                        </button>
-
-                  {showConfirm && (
-                    <div className="signout-modal-overlay">
-                      <div className="signout-modal-box">
-                        <p className="signout-modal-message">Are you sure you want to log out?</p>
-                          <div className="signout-modal-actions">
-                            <button
-                              onClick={() => {
-                                setShowConfirm(false); // Optional: close modal first
-                                onLogout();
-                              }}
-                                className="signout-confirm-btn"
-                            >
-                              Yes
-                            </button>
-                            
-                            <button
-                              onClick={() => setShowConfirm(false)}
-                                className="signout-cancel-btn"
-                            >
-                              Cancel
-                            </button>
-                      </div>
-                  </div>
-              </div>
-)}
-
-                      </div>
-                    </div>
-                    
-                  )}
-                </div>
-              )}
-            </nav>
-          </div>
-        </header>
+        <LoggedInUserHeader
+          isSmallScreen={isSmallScreen}
+          onClickSettings={onClickSettings}
+          onLogout={onLogout}
+          onClickSignIn={onClickSignIn}
+          onClickSignUp={onClickSignUp}
+        />
 
 
 

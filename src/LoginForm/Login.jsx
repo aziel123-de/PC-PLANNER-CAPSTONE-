@@ -3,12 +3,14 @@ import './Login.css';
 import { FaRegEye, FaRegEyeSlash,  FaArrowLeft } from 'react-icons/fa';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../firebase.js';
+import { useNavigate } from 'react-router-dom';
 
 function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
   const [Email, setEmail] = useState('');
   const [Password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   
 
@@ -40,6 +42,10 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
         console.warn('localStorage set failed', e);
       }
       if (typeof onLoginSuccess === 'function') onLoginSuccess(data.user);
+      // navigate to dashboard after successful login
+      try {
+        navigate('/dashboard');
+      } catch (e) {}
     } catch (err) {
       console.error('login error', err);
       setError('Network error');
@@ -58,7 +64,8 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      if (typeof onLoginSuccess === 'function') onLoginSuccess();
+  if (typeof onLoginSuccess === 'function') onLoginSuccess();
+  try { navigate('/dashboard'); } catch (e) {}
     } catch (err) {
       console.error('Google sign-in error', err);
       setError(err.message || 'Google sign-in failed');

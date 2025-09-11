@@ -81,6 +81,97 @@ app.post(`${API_PREFIX}/register`, handleRegister);
 app.post('/login', handleLogin);
 app.post(`${API_PREFIX}/login`, handleLogin);
 
+// update user (username / full_name)
+app.put(`${API_PREFIX}/users/:id`, async (req, res) => {
+  const id = req.params.id;
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return res.status(401).json({ error: 'missing token' });
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (!payload || payload.sub !== id) return res.status(403).json({ error: 'forbidden' });
+  } catch (err) {
+    return res.status(401).json({ error: 'invalid token' });
+  }
+
+  const { full_name, username } = req.body || {};
+  if (!full_name && !username) return res.status(400).json({ error: 'nothing to update' });
+
+  const newName = full_name || username || null;
+  const conn = await pool.getConnection();
+  try {
+    await conn.query('UPDATE users SET username = ? WHERE id = ?', [newName, id]);
+    const [rows] = await conn.query('SELECT id,email,username,createdAt FROM users WHERE id = ?', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'user not found' });
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
+
+// get user by id (requires auth)
+app.get(`${API_PREFIX}/users/:id`, async (req, res) => {
+  const id = req.params.id;
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return res.status(401).json({ error: 'missing token' });
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (!payload || payload.sub !== id) return res.status(403).json({ error: 'forbidden' });
+  } catch (err) {
+    return res.status(401).json({ error: 'invalid token' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT id,email,username,createdAt FROM users WHERE id = ?', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'user not found' });
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
+
+// Serve component tables from MySQL (cpu,gpu,psu,mobo,ram,storage,m2,case)
+app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
+  const type = (req.params.type || '').toString().toLowerCase();
+  const tableMap = {
+    cpu: 'cpu',
+    gpu: 'gpu',
+    psu: 'psu',
+    mobo: 'mobo',
+    ram: 'ram',
+    storage: 'storage',
+    m2: 'm2',
+    case: 'pc_case',
+    pc_case: 'pc_case'
+  };
+  const table = tableMap[type];
+  if (!table) return res.status(404).json({ error: 'unknown component type' });
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(`SELECT * FROM \`${table}\``);
+    // parse raw JSON column when present
+    const parsed = rows.map(r => {
+      if (r && r.raw && typeof r.raw === 'string') {
+        try { r.raw = JSON.parse(r.raw); } catch (e) { /* keep raw string */ }
+      }
+      return r;
+    });
+    return res.json(parsed);
+  } catch (err) {
+    console.error('db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
+
 const port = process.env.PORT || 5050;
 ensureSchema().then(() => {
   app.listen(port, '127.0.0.1', () => console.log('Backend listening on 127.0.0.1:' + port));

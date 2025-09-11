@@ -16,6 +16,7 @@ import Navbar from '../Navigation/Navbar.jsx';
 function ComponentsPage() {
   return (
     <div className="components-page">
+  <div style={{ paddingTop: 80 }} />
       <h1>Understanding PC Components</h1>
       <p className="page-description">Every PC is made up of several key components that 
         work together. Here's what each one does:</p>

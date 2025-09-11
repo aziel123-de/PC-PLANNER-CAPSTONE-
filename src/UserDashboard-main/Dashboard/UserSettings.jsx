@@ -6,6 +6,7 @@ import { FiLogOut } from 'react-icons/fi';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import logo from '../../HomepageForm/LOGO.png';
+import LoggedInUserHeader from './loggedInUserHeader';
 
 function UserSettings({ onBack, onLogout, userId }) {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -14,13 +15,22 @@ function UserSettings({ onBack, onLogout, userId }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
-  const hamburgerRef = useRef(null);
   // Header is rendered globally; no local nav state needed
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    profilePicture: null
+  const [formData, setFormData] = useState(() => {
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        return {
+          fullName: u.full_name || u.username || u.displayName || '',
+          email: u.email || '',
+          profilePicture: null
+        };
+      }
+    } catch (e) {
+      // ignore
+    }
+    return { fullName: '', email: '', profilePicture: null };
   });
 
   // Fetch user data from MySQL database on component mount
@@ -136,12 +146,34 @@ function UserSettings({ onBack, onLogout, userId }) {
       if (response.ok) {
         const updatedUser = await response.json();
         console.log('Profile updated successfully in MySQL:', updatedUser);
-        
+
+        // Update local form state with the returned values (if any)
+        const newFullName = updatedUser.full_name || updatedUser.fullName || formData.fullName;
+        const newEmail = updatedUser.email || formData.email;
+        setFormData((prev) => ({ ...prev, fullName: newFullName, email: newEmail }));
+
+        // Merge changes into localStorage user so header updates immediately
+        try {
+          const rawLocal = localStorage.getItem('user');
+          const localUser = rawLocal ? JSON.parse(rawLocal) : {};
+          const merged = {
+            ...localUser,
+            full_name: newFullName,
+            username: newFullName,
+            displayName: newFullName,
+            email: newEmail
+          };
+          localStorage.setItem('user', JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent('authChanged', { detail: merged }));
+        } catch (e) {
+          console.warn('Failed to update localStorage user:', e);
+        }
+
         // Handle profile picture upload separately if needed
         if (formData.profilePicture) {
           await handleProfilePictureUpload();
         }
-        
+
         alert('Profile updated successfully!');
       } else {
         const error = await response.json();
@@ -191,26 +223,7 @@ function UserSettings({ onBack, onLogout, userId }) {
 
   return (
   <div className="user-settings-wrapper">
-    <header className="top-nav">
-        <div className="logo-title">
-          <img src={logo} alt="LOGO" className="logo" />
-          <h1 className="app-title">PC Planner</h1>
-        </div>
-
-        {isSmallScreen && (
-          <button className="hamburger-menu" onClick={() => setNavOpen((prev) => !prev)} ref={hamburgerRef}>
-            {navOpen ? <FaTimes size={24} color="#fff" /> : <FaBars size={24} color="#fff" />}
-          </button>
-        )}
-
-        {(!isSmallScreen || navOpen) && (
-          <nav className="settings-nav">
-            <a href="#" className="settings-nav-link">PC Builder</a>
-            <a href="#" className="settings-nav-link">Pre-built PCs</a>
-            <a href="#" className="settings-nav-link">Components</a>
-          </nav>
-        )}
-      </header>
+    <LoggedInUserHeader isSmallScreen={window.innerWidth <= 1024} onClickSettings={() => {}} onLogout={onLogout} />
 
       <div className="profile-page-container">
         {/* Sidebar  */}

@@ -1,29 +1,40 @@
 import './PartSelector.css';
 import Select from 'react-select';
 import {
-  moboOptions,
-  cpuOptions,
-  gpuOptions,
-  psuOptions,
-  ramOptions,
-  storageOptions,
-  m2Options,
-  caseOptions
+  moboOptions as moboLocal,
+  cpuOptions as cpuLocal,
+  gpuOptions as gpuLocal,
+  psuOptions as psuLocal,
+  ramOptions as ramLocal,
+  storageOptions as storageLocal,
+  m2Options as m2Local,
+  caseOptions as caseLocal
 } from './PCcomponentsDatabase';
 
 const partOptionsMap = {
-  "Motherboard (MOBO)": moboOptions,
-  "Processor (CPU)": cpuOptions,
-  "Graphics Card (GPU)": gpuOptions,
-  "Power Supply (PSU)": psuOptions,
-  "Memory (RAM)": ramOptions,
-  "Storage": storageOptions,
-  "M.2 SSD": m2Options,
-  "Case": caseOptions,
+  "Motherboard (MOBO)": moboLocal,
+  "Processor (CPU)": cpuLocal,
+  "Graphics Card (GPU)": gpuLocal,
+  "Power Supply (PSU)": psuLocal,
+  "Memory (RAM)": ramLocal,
+  "Storage": storageLocal,
+  "M.2 SSD": m2Local,
+  "Case": caseLocal,
 };
 
-function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO }) {
-  let options = partOptionsMap[part.name] || [];
+function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dataLookup, slotCount, selectedValues, setSelectedValues }) {
+  const resolvedMap = {
+    "Motherboard (MOBO)": dataLookup?.mobo || moboLocal,
+    "Processor (CPU)": dataLookup?.cpu || cpuLocal,
+    "Graphics Card (GPU)": dataLookup?.gpu || gpuLocal,
+    "Power Supply (PSU)": dataLookup?.psu || psuLocal,
+    "Memory (RAM)": dataLookup?.ram || ramLocal,
+    "Storage": dataLookup?.storage || storageLocal,
+    "M.2 SSD": dataLookup?.m2 || m2Local,
+    "Case": dataLookup?.case || caseLocal,
+  };
+
+  let options = resolvedMap[part.name] || [];
 
   // normalize keys from the database (handles mixed capitalization)
   const getFirst = (obj, ...keys) => {
@@ -130,6 +141,45 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO }) {
     label: `${opt.name} (₱${Number(opt.price || 0).toLocaleString()})`,
     data: opt
   }));
+
+  // multi-slot support for RAM / M.2 / Storage
+  const multiTypes = ['Memory (RAM)', 'M.2 SSD', 'Storage'];
+  const isMulti = multiTypes.includes(part.name) && (slotCount > 1 || Array.isArray(selectedValues));
+
+  if (isMulti) {
+    const count = Number(slotCount) || (Array.isArray(selectedValues) ? selectedValues.length : 0);
+    const valuesArr = Array.from({ length: Math.max(0, count) }).map((_, i) => (Array.isArray(selectedValues) ? selectedValues[i] : null));
+
+    const handleChangeAt = (index, selectedOption) => {
+      const newArr = Array.from(valuesArr);
+      newArr[index] = selectedOption ? selectedOption.data : null;
+      if (typeof setSelectedValues === 'function') setSelectedValues(newArr);
+      else if (typeof setSelectedValue === 'function') setSelectedValue(newArr);
+    };
+
+    return (
+      <div className="PartSelectorContainer">
+        <h1>{part.name}</h1>
+        <h4>Select {part.name} for your build</h4>
+        <div className="MultiSlotWrapper">
+          {valuesArr.map((val, idx) => (
+            <div key={idx} className="SlotSelect">
+              <label className="SlotLabel">{part.name} Slot {idx + 1}</label>
+              <Select
+                className="PartSelector"
+                value={val ? { value: val.id, label: `${val.name} (₱${Number(val.price || 0).toLocaleString()})`, data: val } : null}
+                onChange={(opt) => handleChangeAt(idx, opt)}
+                options={reactSelectOptions}
+                isSearchable
+                isClearable
+                placeholder={`-- Select ${part.name} Slot ${idx + 1} --`}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="PartSelectorContainer">

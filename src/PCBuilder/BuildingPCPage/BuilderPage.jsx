@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './BuilderPage.css';
 import PartSelector from '../PCBuilding/PartSelector';
 import BuildSummary from '../PCBuilding/BuildSummary';
@@ -12,6 +12,30 @@ function BuilderPage() {
   const [selectedStorage, setSelectedStorage] = useState([]);
   const [selectedPSU, setSelectedPSU] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [dataLookup, setDataLookup] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      const types = ['cpu','gpu','psu','mobo','ram','storage','m2','case'];
+      const map = {};
+      for (const t of types) {
+        try {
+          const resp = await fetch(`/api/components/${t}`);
+          if (!resp.ok) throw new Error('fetch failed');
+          const json = await resp.json();
+          // normalize key for lookup
+          const key = t === 'case' ? 'case' : t;
+          map[key] = Array.isArray(json) ? json : [];
+        } catch (e) {
+          // ignore; fallback will occur in PartSelector
+        }
+      }
+      if (mounted) setDataLookup(map);
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   // Compose build summary parts as needed for BuildSummary
   const buildSummaryParts = {
@@ -54,7 +78,7 @@ function BuilderPage() {
 
   return (
     <>
-      <main className='PC-Builder-Content'>
+      <main className='PC-Builder-Content' style={{ paddingTop: 80 }}>
         <div className='Note'>
           <h1 className='PC-Note-Title'>Note on Compatibility Availability</h1>
           <h3>
@@ -92,7 +116,7 @@ function BuilderPage() {
                 }
               }}
             />
-            <PartSelector part={{ name: "Processor (CPU)" }} selectedValue={selectedCPU} setSelectedValue={setSelectedCPU} selectedMOBO={selectedMOBO} />
+            <PartSelector part={{ name: "Processor (CPU)" }} selectedValue={selectedCPU} setSelectedValue={setSelectedCPU} selectedMOBO={selectedMOBO} dataLookup={dataLookup} />
             <PartSelector
               part={{ name: "Graphics Card (GPU)" }}
               selectedValue={selectedGPUs[0]}
@@ -101,6 +125,7 @@ function BuilderPage() {
                 updated[0] = value;
                 setSelectedGPUs(updated);
               }}
+              dataLookup={dataLookup}
             />
       {Array.from({ length: Math.max(0, (gpuSlotsCount || 1) - 1) }).map((_, index) => (
               <PartSelector
@@ -112,51 +137,37 @@ function BuilderPage() {
                   updated[index + 1] = value;
                   setSelectedGPUs(updated);
                 }}
+                dataLookup={dataLookup}
               />
             ))}
-      {Array.from({ length: ramSlotsCount || 0 }).map((_, index) => (
-              <PartSelector
-                key={`ram-${index}`}
-                part={{ name: "Memory (RAM)" }}
-                selectedValue={selectedRAMs[index]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedRAMs];
-                  updated[index] = value;
-                  setSelectedRAMs(updated);
-                }}
-                selectedMOBO={selectedMOBO}
-              />
-            ))}
-      {Array.from({ length: m2SlotsCount || 0 }).map((_, index) => (
-              <PartSelector
-                key={`m2-${index}`}
-                part={{ name: "M.2 SSD" }}
-                selectedValue={selectedM2s[index]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedM2s];
-                  updated[index] = value;
-                  setSelectedM2s(updated);
-                }}
-              />
-            ))}
-      {Array.from({ length: storageSlotsCount || 0 }).map((_, index) => (
-              <PartSelector
-                key={`storage-${index}`}
-                part={{ name: "Storage" }}
-                selectedValue={selectedStorage[index]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedStorage];
-                  updated[index] = value;
-                  setSelectedStorage(updated);
-                }}
-              />
-            ))}
-            <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} />
-            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} />
+            <PartSelector
+              part={{ name: "Memory (RAM)" }}
+              slotCount={ramSlotsCount || 0}
+              selectedValues={selectedRAMs}
+              setSelectedValues={setSelectedRAMs}
+              selectedMOBO={selectedMOBO}
+              dataLookup={dataLookup}
+            />
+            <PartSelector
+              part={{ name: "M.2 SSD" }}
+              slotCount={m2SlotsCount || 0}
+              selectedValues={selectedM2s}
+              setSelectedValues={setSelectedM2s}
+              dataLookup={dataLookup}
+            />
+            <PartSelector
+              part={{ name: "Storage" }}
+              slotCount={storageSlotsCount || 0}
+              selectedValues={selectedStorage}
+              setSelectedValues={setSelectedStorage}
+              dataLookup={dataLookup}
+            />
+            <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} />
             <h1>Pheripirals</h1>
           </div>
           <div className="RightColumn">
-            <BuildSummary selectedParts={buildSummaryParts} />
+            <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
           </div>
         </div>
       </main>
