@@ -281,6 +281,13 @@
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
+/* Unknown / no-data state for compatibility badges */
+.compat-unknown {
+  background: #d1d5db; /* gray-300 */
+  color: #374151; /* gray-700 */
+  box-shadow: none;
+}
+
 .compat-card-content {
   padding: 12px 20px 16px;
 }

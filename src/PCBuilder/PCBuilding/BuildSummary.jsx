@@ -145,7 +145,7 @@ function BuildSummary({ selectedParts }) {
   let compatSeverity = 'good'; // 'good' | 'warning' | 'bad'
   if (cpuIndex > 0 && gpuIndex > 0) {
     // Calibrate GPU vs CPU scale so mid-range pairs don’t read GPU-limited too easily
-    const BALANCE_K = 19; // slightly higher to reduce false GPU bottleneck flags
+    const BALANCE_K = 22; // slightly higher to reduce false GPU bottleneck flags
     const ratioAdj = (gpuIndex * BALANCE_K) / cpuIndex; // >1: GPU stronger; <1: CPU stronger
 
     // CPU bottleneck threshold: make it stricter so it triggers less often
@@ -170,7 +170,7 @@ function BuildSummary({ selectedParts }) {
   // Recommendation based on the same ratio: suggest upgrading CPU or GPU when a bottleneck exists
   let upgradeRecommendation = '';
   if (cpuIndex > 0 && gpuIndex > 0) {
-    const BALANCE_K = 19;
+  const BALANCE_K = 22;
     const ratioAdj = (gpuIndex * BALANCE_K) / cpuIndex;
     // Use the same thresholds as the bottleneck assessment to avoid contradictory messages
     if (ratioAdj > 2.0) {
@@ -214,6 +214,7 @@ function BuildSummary({ selectedParts }) {
     return type.includes('psu') || type.includes('power supply') || type.includes('power-supply');
   });
   const psuRaw = psuPart?._raw || psuPart || null;
+  const psuSelected = !!psuPart;
   const psuWatt = psuRaw ? getNumericFrom(psuRaw, 'Watt', 'Wattage', 'wattage', 'Power', 'Capacity', 'RatedPower', 'Output') : 0;
 
   const totalRequiredPower = Math.round((cpuTDP || 0) + (gpuPower || 0));
@@ -274,8 +275,10 @@ function BuildSummary({ selectedParts }) {
             <div className="compat-card-title">
               <span>Performance Balance</span>
             </div>
-            <div className={`compat-badge ${compatSeverity === 'good' ? 'compat-good' : compatSeverity === 'warn' ? 'compat-warn' : 'compat-bad'}`}>
-              {compatSeverity === 'good' ? 'BALANCED' : compatSeverity === 'warn' ? 'WARNING' : 'BOTTLENECK'}
+            <div
+              className={`compat-badge ${selectedCount === 0 ? 'compat-unknown' : (compatSeverity === 'good' ? 'compat-good' : compatSeverity === 'warn' ? 'compat-warn' : 'compat-bad')}`}
+            >
+              {selectedCount === 0 ? 'NO DATA' : (compatSeverity === 'good' ? 'BALANCED' : compatSeverity === 'warn' ? 'WARNING' : 'BOTTLENECK')}
             </div>
           </div>
           <div className="compat-card-content">
@@ -298,15 +301,17 @@ function BuildSummary({ selectedParts }) {
                 <span>Power Supply</span>
               </div>
               <div className="compat-badges">
-                <div className={`compat-badge ${showPowerWarning ? 'compat-bad' : 'compat-good'}`}>
-                  {showPowerWarning ? 'INSUFFICIENT' : 'SUFFICIENT'}
-                </div>
+                <div
+                  className={`compat-badge ${!psuSelected ? 'compat-unknown' : (showPowerWarning ? 'compat-bad' : 'compat-good')}`}
+                >
+                    {!psuSelected ? 'NO DATA' : (showPowerWarning ? 'INSUFFICIENT' : 'SUFFICIENT')}
+                  </div>
                 {showPowerWarning && (
                   <div className={`compat-badge compat-warn compat-secondary`}>
                     {powerCause === 'cpu' ? 'CPU' : powerCause === 'gpu' ? 'GPU' : powerCause === 'both' ? 'CPU+GPU' : 'N/A'}
                   </div>
                 )}
-                {process.env.NODE_ENV !== 'production' && !showPowerWarning && (
+                {process.env.NODE_ENV !== 'production' && psuSelected && !showPowerWarning && (
                   <div className={`compat-badge compat-info compat-secondary`}>
                     INFO
                   </div>
@@ -315,11 +320,13 @@ function BuildSummary({ selectedParts }) {
             </div>
             <div className="compat-card-content">
               <p className="compat-description">
-                {showPowerWarning 
-                  ? powerWarningText
-                  : process.env.NODE_ENV !== 'production' 
-                    ? `Power Check: PSU ${psuWatt || 'N/A'}W vs required ${requiredWithHeadroom}W (CPU ${cpuTDP || 0}W + GPU ${gpuPower || 0}W = ${totalRequiredPower}W). ${psuWatt ? (requiredWithHeadroom > psuWatt ? 'Not enough.' : 'Sufficient.') : 'PSU not selected.'}`
-                    : ''
+                {!psuSelected
+                  ? 'PSU not selected.'
+                  : showPowerWarning
+                    ? powerWarningText
+                    : process.env.NODE_ENV !== 'production'
+                      ? `Power Check: PSU ${psuWatt || 'N/A'}W vs required ${requiredWithHeadroom}W (CPU ${cpuTDP || 0}W + GPU ${gpuPower || 0}W = ${totalRequiredPower}W). ${psuWatt ? (requiredWithHeadroom > psuWatt ? 'Not enough.' : 'Sufficient.') : 'PSU not selected.'}`
+                      : ''
                 }
               </p>
             </div>
