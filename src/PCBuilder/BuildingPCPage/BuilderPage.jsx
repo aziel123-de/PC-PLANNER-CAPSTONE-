@@ -140,46 +140,28 @@ function BuilderPage() {
                 dataLookup={dataLookup}
               />
             ))}
-      {Array.from({ length: ramSlotsCount || 0 }).map((_, index) => (
-              <PartSelector
-                key={`ram-${index}`}
-                part={{ name: "Memory (RAM)" }}
-                selectedValue={selectedRAMs[index]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedRAMs];
-                  updated[index] = value;
-                  setSelectedRAMs(updated);
-                }}
-                selectedMOBO={selectedMOBO}
-                dataLookup={dataLookup}
-              />
-            ))}
-      {Array.from({ length: m2SlotsCount || 0 }).map((_, index) => (
-              <PartSelector
-                key={`m2-${index}`}
-                part={{ name: "M.2 SSD" }}
-                selectedValue={selectedM2s[index]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedM2s];
-                  updated[index] = value;
-                  setSelectedM2s(updated);
-                }}
-                dataLookup={dataLookup}
-              />
-            ))}
-      {Array.from({ length: storageSlotsCount || 0 }).map((_, index) => (
-              <PartSelector
-                key={`storage-${index}`}
-                part={{ name: "Storage" }}
-                selectedValue={selectedStorage[index]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedStorage];
-                  updated[index] = value;
-                  setSelectedStorage(updated);
-                }}
-                dataLookup={dataLookup}
-              />
-            ))}
+            <PartSelector
+              part={{ name: "Memory (RAM)" }}
+              slotCount={ramSlotsCount || 0}
+              selectedValues={selectedRAMs}
+              setSelectedValues={setSelectedRAMs}
+              selectedMOBO={selectedMOBO}
+              dataLookup={dataLookup}
+            />
+            <PartSelector
+              part={{ name: "M.2 SSD" }}
+              slotCount={m2SlotsCount || 0}
+              selectedValues={selectedM2s}
+              setSelectedValues={setSelectedM2s}
+              dataLookup={dataLookup}
+            />
+            <PartSelector
+              part={{ name: "Storage" }}
+              slotCount={storageSlotsCount || 0}
+              selectedValues={selectedStorage}
+              setSelectedValues={setSelectedStorage}
+              dataLookup={dataLookup}
+            />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} />
             <h1>Pheripirals</h1>
