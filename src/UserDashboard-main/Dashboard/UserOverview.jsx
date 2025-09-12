@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import './UserOverview.css';
 import pcImage from './PC.png';
 import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, ChevronLeft, ChevronRight } from 'lucide-react';
+import SavedBuildCard from './SavedBuildCard';
 import { MdWavingHand } from 'react-icons/md';
 import LoggedInUserHeader from './loggedInUserHeader';
 
@@ -63,10 +64,68 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   
 
+  // Load saved builds from backend on mount
   useEffect(() => {
-    setSavedBuilds([]);
-    setBuildHistory([]);
+    let mounted = true;
+    async function loadBuilds() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const resp = await fetch('/api/builds', { headers: { Authorization: `Bearer ${token}` } });
+        if (!resp.ok) throw new Error('fetch builds failed');
+        const json = await resp.json();
+        if (mounted) setSavedBuilds(Array.isArray(json) ? json : []);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to load builds', e.message);
+      }
+    }
+    loadBuilds();
+    return () => { mounted = false; };
   }, []);
+
+  // Build history placeholder (could derive from saved builds in time)
+  useEffect(() => {
+    setBuildHistory([]);
+  }, [savedBuilds]);
+
+  const handleDeleteBuild = async (id) => {
+    const token = localStorage.getItem('token');
+    if (!token) return alert('Please log in');
+    try {
+      const resp = await fetch(`/api/builds/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (!resp.ok) throw new Error('delete failed');
+      setSavedBuilds(b => b.filter(x => x.id !== id));
+    } catch (e) {
+      alert('Delete failed: ' + (e.message || 'unknown'));
+    }
+  };
+
+  const handleLoadBuild = (build) => {
+    if (!build || !build.parts) return;
+    try {
+      localStorage.setItem('loadedBuild', JSON.stringify(build.parts));
+      alert('Build loaded. Go to Builder page to continue.');
+    } catch (e) {
+      alert('Failed to load build into builder');
+    }
+  };
+
+  const handleViewBuild = (build) => {
+    if (!build) return;
+    const data = { ...build, parts: build.parts };
+    const win = window.open('', '_blank', 'noopener');
+    if (win) {
+      win.document.title = `Build: ${build.name || build.id}`;
+      win.document.body.innerHTML = `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+    } else {
+      alert(JSON.stringify(data, null, 2));
+    }
+  };
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
 
   // Hide the global site header while dashboard is visible
   useEffect(() => {
@@ -325,15 +384,20 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <div className="empty-icon">🗃️</div>
       <h3>No Saved Builds</h3>
       <p>You haven't saved any builds yet.</p>
-      <p>Start creating one from the dashboard!</p>
+      <p>Start creating one from the builder!</p>
     </div>
   ) : (
-    savedBuilds.map((build, index) => (
-      <div className="saved-build-box" key={index}>
-        <h3>{build.title}</h3>
-        <p>{build.description}</p>
-      </div>
-    ))
+    <div style={{ maxWidth: 720, width: '100%' }}>
+      {savedBuilds.map(b => (
+        <SavedBuildCard
+          key={b.id}
+            build={b}
+            onDelete={handleDeleteBuild}
+            onLoad={handleLoadBuild}
+            onView={handleViewBuild}
+        />
+      ))}
+    </div>
   )}
 </div>
 

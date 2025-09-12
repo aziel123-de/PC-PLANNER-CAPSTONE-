@@ -16,6 +16,19 @@ app.use(express.json());
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const API_PREFIX = '/api';
 
+// helper to extract user ID from JWT bearer token
+function getUserIdFromRequest(req) {
+  const auth = req.headers.authorization || '';
+  const token = auth.replace(/^Bearer\s+/i, '').trim();
+  if (!token) return null;
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    return payload.sub || payload.id || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function ensureSchema() {
   const conn = await pool.getConnection();
   try {
@@ -122,3 +135,96 @@ app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
     conn.release();
   }
 });
+
+// Saved builds endpoints
+
+app.post(`${API_PREFIX}/builds`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const { name, description, parts, total_price, warnings, has_issues } = req.body || {};
+  if (!name || !parts) return res.status(400).json({ error: 'name and parts required' });
+  const now = new Date();
+  const id = uuidv4();
+  const conn = await pool.getConnection();
+  try {
+    await conn.query(
+      'INSERT INTO saved_builds (id,user_id,name,description,total_price,parts_json,warnings_json,has_issues,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
+      [id, userId, name, description || '', total_price || 0, JSON.stringify(parts), JSON.stringify(warnings || []), has_issues ? 1 : 0, now, now]
+    );
+    return res.status(201).json({ id, name });
+  } catch (err) {
+    console.error('save build db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally { conn.release(); }
+});
+
+app.get(`${API_PREFIX}/builds`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT id,name,description,total_price,warnings_json,has_issues,createdAt,updatedAt,parts_json FROM saved_builds WHERE user_id=? ORDER BY createdAt DESC LIMIT 200', [userId]);
+    const mapped = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      total_price: r.total_price,
+      warnings: safeParse(r.warnings_json, []),
+      has_issues: !!r.has_issues,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      parts: safeParse(r.parts_json, {})
+    }));
+    return res.json(mapped);
+  } catch (err) {
+    console.error('list builds db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally { conn.release(); }
+});
+
+app.get(`${API_PREFIX}/builds/:id`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const { id } = req.params;
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT * FROM saved_builds WHERE id=? AND user_id=? LIMIT 1', [id, userId]);
+    if (!rows.length) return res.status(404).json({ error: 'not found' });
+    const r = rows[0];
+    return res.json({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      total_price: r.total_price,
+      warnings: safeParse(r.warnings_json, []),
+      has_issues: !!r.has_issues,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      parts: safeParse(r.parts_json, {})
+    });
+  } catch (err) {
+    console.error('get build db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally { conn.release(); }
+});
+
+app.delete(`${API_PREFIX}/builds/:id`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const { id } = req.params;
+  const conn = await pool.getConnection();
+  try {
+    const [result] = await conn.query('DELETE FROM saved_builds WHERE id=? AND user_id=?', [id, userId]);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'not found' });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('delete build db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally { conn.release(); }
+});
+
+function safeParse(val, fallback) {
+  if (val == null) return fallback;
+  if (typeof val === 'object') return val;
+  try { return JSON.parse(val); } catch { return fallback; }
+}

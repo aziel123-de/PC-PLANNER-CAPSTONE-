@@ -37,6 +37,28 @@ function BuilderPage() {
     return () => { mounted = false; };
   }, []);
 
+  // Prefill from a previously loaded build saved in localStorage (if present)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('loadedBuild');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      // Expecting keys: mobo, cpu, gpus, rams, m2s, storage, psu, case
+      if (parsed.mobo) setSelectedMOBO(parsed.mobo);
+      if (parsed.cpu) setSelectedCPU(parsed.cpu);
+      if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
+      if (Array.isArray(parsed.rams)) setSelectedRAMs(parsed.rams);
+      if (Array.isArray(parsed.m2s)) setSelectedM2s(parsed.m2s);
+      if (Array.isArray(parsed.storage)) setSelectedStorage(parsed.storage);
+      if (parsed.psu) setSelectedPSU(parsed.psu);
+      if (parsed.case) setSelectedCase(parsed.case);
+      // Clear after applying so it doesn't reapply on next visit
+      localStorage.removeItem('loadedBuild');
+    } catch (e) {
+      // ignore JSON errors
+    }
+  }, []);
+
   // Compose build summary parts as needed for BuildSummary
   const buildSummaryParts = {
     mobo: selectedMOBO,
@@ -75,6 +97,120 @@ function BuilderPage() {
   const gpuSlotsCount = Number(getField(selectedMOBO, 'gpuSlots', 'GpuSlots', 'Gpu_slots') || 1);
   const m2SlotsCount = Number(getField(selectedMOBO, 'm2Slots', 'M2Slots', 'M2_Slots') || 0);
   const storageSlotsCount = Number(getField(selectedMOBO, 'storageSlots', 'StorageSlots', 'Storage_Slots') || 0);
+
+  // Collect items for pricing
+  const collectSelectedItems = () => {
+    const items = [];
+    if (selectedMOBO) items.push(selectedMOBO);
+    if (selectedCPU) items.push(selectedCPU);
+    (selectedGPUs || []).forEach(x => x && items.push(x));
+    (selectedRAMs || []).forEach(x => x && items.push(x));
+    (selectedM2s || []).forEach(x => x && items.push(x));
+    (selectedStorage || []).forEach(x => x && items.push(x));
+    if (selectedPSU) items.push(selectedPSU);
+    if (selectedCase) items.push(selectedCase);
+    return items;
+  };
+
+  const computeTotalPrice = () => {
+    return collectSelectedItems().reduce((sum, it) => {
+      const p = getField(it, 'price', 'Price', 'cost') || 0;
+      const n = Number(p) || 0;
+      return sum + n;
+    }, 0);
+  };
+
+  // Basic warning analysis
+  const analyzeBuild = () => {
+    const warnings = [];
+    const normalize = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // CPU ↔ MOBO socket
+    const cpuSock = getField(selectedCPU, 'socket', 'Socket');
+    const mSock = getField(selectedMOBO, 'socket', 'Socket');
+    if (cpuSock && mSock && normalize(cpuSock) && normalize(mSock) && normalize(cpuSock) !== normalize(mSock)) {
+      warnings.push('CPU socket does not match motherboard');
+    }
+
+    // RAM type mismatch
+    const mRam = normalize(getField(selectedMOBO, 'ram_type', 'ramType', 'Ram_type'));
+    if (mRam) {
+      for (const r of (selectedRAMs || [])) {
+        const rType = normalize(getField(r, 'ram_type', 'ramType', 'Ram_type'));
+        if (r && rType && rType !== mRam) {
+          warnings.push('Memory type incompatible with motherboard');
+          break;
+        }
+      }
+    }
+
+    // GPU slot count
+    const allowedGpu = Number(getField(selectedMOBO, 'gpu_slots', 'gpuSlots', 'Gpu_slots') || getField(selectedMOBO, 'gpuSlots', 'GpuSlots') || 1);
+    const gpuCount = (selectedGPUs || []).filter(Boolean).length;
+    if (gpuCount > allowedGpu) warnings.push('More GPUs than motherboard supports');
+
+    // Power estimation
+    const cpuTdp = Number(getField(selectedCPU, 'max_tdp', 'MaxTDP', 'maxTDP', 'tdp') || 0);
+    const gpuTdp = (selectedGPUs || []).reduce((sum, g) => sum + (Number(getField(g, 'tdp', 'TDP', 'power') || 150) || 0), 0);
+    const other = 50; // misc components buffer
+    const required = cpuTdp + gpuTdp + other + 100; // headroom
+    const psuW = Number(getField(selectedPSU, 'wattage', 'Wattage', 'power', 'rating') || 0);
+    if (psuW && required > psuW) warnings.push(`Estimated PSU insufficient (need ~${required}W vs ${psuW}W)`);
+    if (!psuW && (cpuTdp || gpuTdp)) warnings.push('Missing PSU wattage');
+
+    // Simple bottleneck heuristic
+    if (cpuTdp && gpuCount) {
+      const avgGpu = gpuTdp / gpuCount;
+      if (cpuTdp < 35 && avgGpu > 150) warnings.push('Low-power CPU may bottleneck GPU');
+    }
+
+    return warnings;
+  };
+
+  const buildSnapshot = () => ({
+    mobo: selectedMOBO,
+    cpu: selectedCPU,
+    gpus: (selectedGPUs || []).filter(Boolean),
+    rams: (selectedRAMs || []).filter(Boolean),
+    m2s: (selectedM2s || []).filter(Boolean),
+    storage: (selectedStorage || []).filter(Boolean),
+    psu: selectedPSU,
+    case: selectedCase
+  });
+
+  const handleSaveBuild = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You must be logged in to save a build.');
+      return;
+    }
+    const name = window.prompt('Enter a name for this build');
+    if (!name) return;
+    const description = window.prompt('Optional description') || '';
+    const parts = buildSnapshot();
+    const total_price = computeTotalPrice();
+    const warnings = analyzeBuild();
+    const has_issues = warnings.length > 0;
+    try {
+      const resp = await fetch('/api/builds', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
+      });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || resp.statusText);
+      }
+      const data = await resp.json();
+      alert('Build saved: ' + data.id + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
+    } catch (e) {
+      console.error('Save build failed', e);
+      alert('Save failed: ' + (e.message || 'Unknown error'));
+    }
+  };
 
   return (
     <>
@@ -168,6 +304,9 @@ function BuilderPage() {
             <h1>Pheripirals</h1>
           </div>
           <div className="RightColumn">
+            <div style={{ marginBottom: 12 }}>
+              <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
+            </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
           </div>
         </div>
