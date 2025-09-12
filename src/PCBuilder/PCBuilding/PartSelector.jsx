@@ -1,40 +1,36 @@
 import './PartSelector.css';
 import Select from 'react-select';
-import {
-  moboOptions as moboLocal,
-  cpuOptions as cpuLocal,
-  gpuOptions as gpuLocal,
-  psuOptions as psuLocal,
-  ramOptions as ramLocal,
-  storageOptions as storageLocal,
-  m2Options as m2Local,
-  caseOptions as caseLocal
-} from './PCcomponentsDatabase';
-
-const partOptionsMap = {
-  "Motherboard (MOBO)": moboLocal,
-  "Processor (CPU)": cpuLocal,
-  "Graphics Card (GPU)": gpuLocal,
-  "Power Supply (PSU)": psuLocal,
-  "Memory (RAM)": ramLocal,
-  "Storage": storageLocal,
-  "M.2 SSD": m2Local,
-  "Case": caseLocal,
-};
 
 function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dataLookup, slotCount, selectedValues, setSelectedValues }) {
-  const resolvedMap = {
-    "Motherboard (MOBO)": dataLookup?.mobo || moboLocal,
-    "Processor (CPU)": dataLookup?.cpu || cpuLocal,
-    "Graphics Card (GPU)": dataLookup?.gpu || gpuLocal,
-    "Power Supply (PSU)": dataLookup?.psu || psuLocal,
-    "Memory (RAM)": dataLookup?.ram || ramLocal,
-    "Storage": dataLookup?.storage || storageLocal,
-    "M.2 SSD": dataLookup?.m2 || m2Local,
-    "Case": dataLookup?.case || caseLocal,
+  // Flexible part name resolution (case-insensitive, allow synonyms)
+  const partName = (part?.name || '').toLowerCase();
+  const mapByCanonical = {
+    mobo: dataLookup?.mobo || [],
+    cpu: dataLookup?.cpu || [],
+    gpu: dataLookup?.gpu || [],
+    psu: dataLookup?.psu || [],
+    ram: dataLookup?.ram || [],
+    storage: dataLookup?.storage || [],
+    m2: dataLookup?.m2 || [],
+    case: dataLookup?.case || [],
   };
 
-  let options = resolvedMap[part.name] || [];
+  const resolveArray = () => {
+    // direct exact matches
+    if (mapByCanonical[partName]) return mapByCanonical[partName];
+    // substring logic
+    if (partName.includes('motherboard') || partName.includes('mobo')) return mapByCanonical.mobo;
+    if (partName.includes('processor') || partName.includes('cpu')) return mapByCanonical.cpu;
+    if (partName.includes('graphics') || partName.includes('gpu')) return mapByCanonical.gpu;
+    if (partName.includes('power') || partName.includes('psu')) return mapByCanonical.psu;
+    if (partName.includes('memory') || partName.includes('ram')) return mapByCanonical.ram;
+    if (partName.includes('m.2') || partName.includes('nvme') || partName === 'm2') return mapByCanonical.m2;
+    if (partName.includes('storage') || partName.includes('hdd') || partName.includes('ssd')) return mapByCanonical.storage;
+    if (partName.includes('case')) return mapByCanonical.case;
+    return [];
+  };
+
+  let options = resolveArray();
 
   // normalize keys from the database (handles mixed capitalization)
   const getFirst = (obj, ...keys) => {
@@ -58,9 +54,11 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
       socket: getFirst(opt, 'socket', 'Socket'),
       chipset: getFirst(opt, 'chipset', 'Chipset'),
       ramType: getFirst(opt, 'ramType', 'RamType', 'Ramtype'),
-      formFactor: getFirst(opt, 'formFactor', 'FormFactor'),
+      formFactor: getFirst(opt, 'formFactor', 'FormFactor', 'form_factor'),
       interface: getFirst(opt, 'interface', 'Interface'),
       type: getFirst(opt, 'type', 'Type', 'componentType', 'component'),
+      // snake_case support
+      ram_type: getFirst(opt, 'ram_type'),
       // keep original object for any extra fields
       _raw: opt,
     };
@@ -105,14 +103,16 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
         break;
       case "Memory (RAM)":
         options = options.filter(ram => {
-          const ramTypes = parseRamTypes(ram.ramType || ram.type || ram._raw?.RamType || ram._raw?.Ramtype || ram._raw?.type);
-          const mTypes = parseRamTypes(selectedMOBO.ramType || selectedMOBO.RamType || selectedMOBO._raw?.RamType || selectedMOBO._raw?.ramType);
+          const ramTypes = parseRamTypes(ram.ramType || ram.ram_type || ram.type || ram._raw?.RamType || ram._raw?.Ramtype || ram._raw?.ram_type || ram._raw?.type);
+          const mTypes = parseRamTypes(selectedMOBO.ramType || selectedMOBO.ram_type || selectedMOBO.RamType || selectedMOBO._raw?.RamType || selectedMOBO._raw?.ramType || selectedMOBO._raw?.ram_type);
           if (ramTypes.length > 0 && mTypes.length > 0) {
             return ramTypes.some(rt => mTypes.includes(rt));
           }
           // fallback to loose string compare
-          if ((ram.ramType || ram.type) && selectedMOBO.ramType) {
-            return normalizeStr(ram.ramType || ram.type).includes(normalizeStr(selectedMOBO.ramType)) || normalizeStr(selectedMOBO.ramType).includes(normalizeStr(ram.ramType || ram.type));
+          const ramPrimary = ram.ramType || ram.ram_type || ram.type;
+          const moboPrimary = selectedMOBO.ramType || selectedMOBO.ram_type;
+          if (ramPrimary && moboPrimary) {
+            return normalizeStr(ramPrimary).includes(normalizeStr(moboPrimary)) || normalizeStr(moboPrimary).includes(normalizeStr(ramPrimary));
           }
           return true;
         });
@@ -161,6 +161,9 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
       <div className="PartSelectorContainer">
         <h1>{part.name}</h1>
         <h4>Select {part.name} for your build</h4>
+        {options.length === 0 && (
+          <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
+        )}
         <div className="MultiSlotWrapper">
           {valuesArr.map((val, idx) => (
             <div key={idx} className="SlotSelect">
@@ -185,6 +188,9 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
     <div className="PartSelectorContainer">
       <h1>{part.name}</h1>
       <h4>Select a {part.name} for your build</h4>
+      {options.length === 0 && (
+        <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
+      )}
       <Select
         className="PartSelector"
         value={selectedValue ? {

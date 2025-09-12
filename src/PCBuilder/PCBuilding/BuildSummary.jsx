@@ -213,7 +213,16 @@ function BuildSummary({ selectedParts }) {
 
   // Use multiple common keys for CPU TDP and GPU power, then fallback to pattern scan
   // prefer the standard 'TDP' value (typical thermal design power); fall back to MaxTDP or pattern matches
-  const cpuTDP = cpuRaw ? (getNumericFrom(cpuRaw, 'TDP', 'Tdp', 'MaxTDP', 'ThermalDesignPower', 'PackageTDP', 'PackageTDPWatts') || getNumericByPattern(cpuRaw, ['tdp', 'thermal'])) : 0;
+  // Prefer maximum TDP if available (e.g., "MaxTDP", "max_tdp") and fall back to nominal TDP values
+  const cpuTDP = (() => {
+    if (!cpuRaw) return 0;
+    const maxTdp = getNumericFrom(cpuRaw, 'MaxTDP', 'maxTDP', 'max_tdp', 'maxtdp');
+    if (maxTdp) return maxTdp;
+    const nominal = getNumericFrom(cpuRaw, 'TDP', 'Tdp', 'ThermalDesignPower', 'PackageTDP', 'PackageTDPWatts');
+    if (nominal) return nominal;
+    // pattern scan includes variants; order includes 'maxtdp' so if missed above it still catches
+    return getNumericByPattern(cpuRaw, ['maxtdp', 'tdp', 'thermal']);
+  })();
   const gpuPower = gpuRaw ? (getNumericFrom(gpuRaw, 'PowerDraw', 'TDP', 'BoardPower', 'TypicalBoardPower', 'Power') || getNumericByPattern(gpuRaw, ['power', 'tdp'])) : 0;
 
   // Prefer explicit PSU slot from selectedParts (BuilderPage uses `psu`), otherwise try to find one heuristically

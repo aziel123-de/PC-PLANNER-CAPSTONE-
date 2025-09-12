@@ -115,6 +115,7 @@ function BuilderPage() {
                   }
                 }
               }}
+              dataLookup={dataLookup}
             />
             <PartSelector part={{ name: "Processor (CPU)" }} selectedValue={selectedCPU} setSelectedValue={setSelectedCPU} selectedMOBO={selectedMOBO} dataLookup={dataLookup} />
             <PartSelector

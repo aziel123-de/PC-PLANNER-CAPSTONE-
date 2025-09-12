@@ -23,9 +23,14 @@ export function ComponentsProvider({ children }) {
           const json = await resp.json();
           const key = t === 'case' ? 'case' : t;
           map[key] = Array.isArray(json) ? json : [];
+          // debug log
+          // eslint-disable-next-line no-console
+          console.log(`[ComponentsProvider] fetched ${t}:`, Array.isArray(json) ? json.length : 'N/A');
         } catch (e) {
           // leave empty array for consumers to fallback to local lists
           map[t === 'case' ? 'case' : t] = [];
+          // eslint-disable-next-line no-console
+          console.warn(`[ComponentsProvider] failed fetch for ${t}:`, e.message);
         }
       }
       if (mounted) {
