@@ -95,3 +95,30 @@ app.use((err, req, res, next) => {
   const message = (err && (err.message || err.toString())) || 'Internal server error';
   res.status(500).json({ error: message });
 });
+
+// Components listing endpoint
+app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
+  const { type } = req.params || {};
+  const map = {
+    cpu: 'cpu',
+    gpu: 'gpu',
+    psu: 'psu',
+    mobo: 'mobo',
+    ram: 'ram',
+    storage: 'storage',
+    m2: 'm2',
+    case: 'pc_case'
+  };
+  const table = map[type];
+  if (!table) return res.status(400).json({ error: 'unknown component type' });
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(`SELECT * FROM \`${table}\` ORDER BY id ASC LIMIT 1000`);
+    return res.json(rows.map(r => ({ ...r })));
+  } catch (err) {
+    console.error('components fetch error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
