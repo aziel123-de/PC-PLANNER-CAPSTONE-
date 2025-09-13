@@ -5,7 +5,7 @@ import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, Ch
 import SavedBuildCard from './SavedBuildCard';
 import { MdWavingHand } from 'react-icons/md';
 import LoggedInUserHeader from './loggedInUserHeader';
-
+import SavedBuildModal from './SavedBuildModal';
 
 
 
@@ -31,6 +31,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false); // Track user manual collapse
+  const [viewingBuild, setViewingBuild] = useState(null);
 
   // Header is rendered by LoggedInUserHeader component
 
@@ -113,14 +114,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   const handleViewBuild = (build) => {
     if (!build) return;
-    const data = { ...build, parts: build.parts };
-    const win = window.open('', '_blank', 'noopener');
-    if (win) {
-      win.document.title = `Build: ${build.name || build.id}`;
-      win.document.body.innerHTML = `<pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
-    } else {
-      alert(JSON.stringify(data, null, 2));
-    }
+    setViewingBuild(build);
   };
 
   function escapeHtml(str) {
@@ -391,16 +385,20 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       {savedBuilds.map(b => (
         <SavedBuildCard
           key={b.id}
-            build={b}
-            onDelete={handleDeleteBuild}
-            onLoad={handleLoadBuild}
-            onView={handleViewBuild}
+          build={b}
+          onDelete={handleDeleteBuild}
+          onLoad={handleLoadBuild}
+          onView={handleViewBuild}
         />
       ))}
     </div>
   )}
 </div>
-
+<SavedBuildModal
+      build={viewingBuild}
+      onClose={() => setViewingBuild(null)}
+      onLoad={(b) => { handleLoadBuild(b); setViewingBuild(null); }}
+    />
   </main>
 )}
 
