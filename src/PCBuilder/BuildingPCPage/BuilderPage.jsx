@@ -212,6 +212,48 @@ function BuilderPage() {
     }
   };
 
+  useEffect(() => {
+    if (!selectedMOBO || !selectedCase) return;
+    const normalizeForm = (raw) => {
+      if (!raw) return '';
+      const v = raw.toString().toLowerCase();
+      if (v.includes('mini') && v.includes('itx')) return 'mini-itx';
+      if (v.includes('m-atx') || v.includes('micro-atx') || v.includes('matx') || v.includes('microatx')) return 'matx';
+      if (v.includes('e-atx') || v.includes('eatx')) return 'e-atx';
+      if (v.includes('atx')) return 'atx';
+      return v.replace(/\s+/g,'')
+    };
+    const mFF = normalizeForm(selectedMOBO.formFactor || selectedMOBO.FormFactor || selectedMOBO._raw?.formFactor || selectedMOBO._raw?.FormFactor);
+    const cFFText = selectedCase.formFactor || selectedCase.FormFactor || selectedCase._raw?.formFactor || selectedCase._raw?.FormFactor || '';
+    const cFFNorm = normalizeForm(cFFText);
+
+    const mapAcceptable = (ff) => {
+      switch (ff) {
+        case 'mini-itx': return new Set(['mini-itx']);
+        case 'matx': return new Set(['matx','atx','e-atx']);
+        case 'atx': return new Set(['atx','matx','mini-itx']);
+        case 'e-atx': return new Set(['e-atx','atx','matx','mini-itx']);
+        default: return null; // unknown -> accept
+      }
+    };
+
+    const acceptable = mapAcceptable(mFF);
+    if (!acceptable) return; // unknown mobo form factor -> skip
+
+    // If explicit case form factor is not acceptable, reset
+    if (cFFNorm && !acceptable.has(cFFNorm)) {
+      setSelectedCase(null);
+      return;
+    }
+
+    // Fallback: search text for any mention of acceptable tokens
+    const text = cFFText.toString().toLowerCase();
+    const tokensFound = Array.from(acceptable).some(tok => text.includes(tok));
+    if (!tokensFound) {
+      setSelectedCase(null);
+    }
+  }, [selectedMOBO, selectedCase]);
+
   return (
     <>
       <main className='PC-Builder-Content' style={{ paddingTop: 80 }}>
@@ -300,7 +342,7 @@ function BuilderPage() {
               dataLookup={dataLookup}
             />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
             <h1>Pheripirals</h1>
           </div>
           <div className="RightColumn">
