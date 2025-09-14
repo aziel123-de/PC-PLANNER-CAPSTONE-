@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 /**
  * SavedBuildModal
@@ -30,11 +31,12 @@ export default function SavedBuildModal({ build, onClose, onLoad }) {
     return () => document.removeEventListener('keydown', escHandler);
   }, [escHandler]);
 
-  // Prevent scroll behind modal
+  // Prevent scroll behind modal using centralized lock utility
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    lockScroll();
+    return () => {
+      unlockScroll();
+    };
   }, []);
 
   const formatDate = (d) => {
@@ -112,7 +114,13 @@ export default function SavedBuildModal({ build, onClose, onLoad }) {
 
         <div className="sbm-footer">
           {onLoad && (
-            <button className="sbm-action-btn" onClick={() => onLoad(build)}>Load Into Builder</button>
+            <button
+              className="sbm-action-btn"
+              onClick={() => {
+                // delegate to parent loader (which sets localStorage parts & editing meta)
+                onLoad(build);
+              }}
+            >Edit</button>
           )}
           <button className="sbm-secondary-btn" onClick={onClose}>Close</button>
         </div>

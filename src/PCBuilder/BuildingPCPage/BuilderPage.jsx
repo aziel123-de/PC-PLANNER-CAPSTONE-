@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './BuilderPage.css';
 import PartSelector from '../PCBuilding/PartSelector';
 import BuildSummary from '../PCBuilding/BuildSummary';
+import analyzeBuild from '../PCBuilding/analyzeBuild';
 
 function BuilderPage() {
   const [selectedMOBO, setSelectedMOBO] = useState(null);
@@ -37,6 +38,11 @@ function BuilderPage() {
     return () => { mounted = false; };
   }, []);
 
+  // Track edit mode state
+  const [editingId, setEditingId] = useState(null);
+  const [editingName, setEditingName] = useState(null);
+  const [editingDescription, setEditingDescription] = useState(null);
+
   // Prefill from a previously loaded build saved in localStorage (if present)
   useEffect(() => {
     try {
@@ -53,10 +59,21 @@ function BuilderPage() {
       if (parsed.psu) setSelectedPSU(parsed.psu);
       if (parsed.case) setSelectedCase(parsed.case);
       // Clear after applying so it doesn't reapply on next visit
-      localStorage.removeItem('loadedBuild');
+      // do not clear loadedBuild until after we evaluate editing metadata
     } catch (e) {
       // ignore JSON errors
     }
+    try {
+      const eid = localStorage.getItem('editingBuildId');
+      if (eid) setEditingId(eid);
+      const ename = localStorage.getItem('editingBuildName');
+      if (ename) setEditingName(ename);
+      const edesc = localStorage.getItem('editingBuildDescription');
+      if (edesc) setEditingDescription(edesc);
+    } catch {}
+    // Clear ephemeral items after capture
+    localStorage.removeItem('loadedBuild');
+    // keep editingBuildId so page refresh retains edit mode; clear name/desc only after successful save/update
   }, []);
 
   // Compose build summary parts as needed for BuildSummary
@@ -120,52 +137,7 @@ function BuilderPage() {
     }, 0);
   };
 
-  // Basic warning analysis
-  const analyzeBuild = () => {
-    const warnings = [];
-    const normalize = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    // CPU ↔ MOBO socket
-    const cpuSock = getField(selectedCPU, 'socket', 'Socket');
-    const mSock = getField(selectedMOBO, 'socket', 'Socket');
-    if (cpuSock && mSock && normalize(cpuSock) && normalize(mSock) && normalize(cpuSock) !== normalize(mSock)) {
-      warnings.push('CPU socket does not match motherboard');
-    }
-
-    // RAM type mismatch
-    const mRam = normalize(getField(selectedMOBO, 'ram_type', 'ramType', 'Ram_type'));
-    if (mRam) {
-      for (const r of (selectedRAMs || [])) {
-        const rType = normalize(getField(r, 'ram_type', 'ramType', 'Ram_type'));
-        if (r && rType && rType !== mRam) {
-          warnings.push('Memory type incompatible with motherboard');
-          break;
-        }
-      }
-    }
-
-    // GPU slot count
-    const allowedGpu = Number(getField(selectedMOBO, 'gpu_slots', 'gpuSlots', 'Gpu_slots') || getField(selectedMOBO, 'gpuSlots', 'GpuSlots') || 1);
-    const gpuCount = (selectedGPUs || []).filter(Boolean).length;
-    if (gpuCount > allowedGpu) warnings.push('More GPUs than motherboard supports');
-
-    // Power estimation
-    const cpuTdp = Number(getField(selectedCPU, 'max_tdp', 'MaxTDP', 'maxTDP', 'tdp') || 0);
-    const gpuTdp = (selectedGPUs || []).reduce((sum, g) => sum + (Number(getField(g, 'tdp', 'TDP', 'power') || 150) || 0), 0);
-    const other = 50; // misc components buffer
-    const required = cpuTdp + gpuTdp + other + 100; // headroom
-    const psuW = Number(getField(selectedPSU, 'wattage', 'Wattage', 'power', 'rating') || 0);
-    if (psuW && required > psuW) warnings.push(`Estimated PSU insufficient (need ~${required}W vs ${psuW}W)`);
-    if (!psuW && (cpuTdp || gpuTdp)) warnings.push('Missing PSU wattage');
-
-    // Simple bottleneck heuristic
-    if (cpuTdp && gpuCount) {
-      const avgGpu = gpuTdp / gpuCount;
-      if (cpuTdp < 35 && avgGpu > 150) warnings.push('Low-power CPU may bottleneck GPU');
-    }
-
-    return warnings;
-  };
+  // Build snapshot & analysis will be done via shared analyzeBuild utility when saving.
 
   const buildSnapshot = () => ({
     mobo: selectedMOBO,
@@ -184,16 +156,29 @@ function BuilderPage() {
       alert('You must be logged in to save a build.');
       return;
     }
-    const name = window.prompt('Enter a name for this build');
-    if (!name) return;
-    const description = window.prompt('Optional description') || '';
+    let name = editingName;
+    let description = editingDescription || '';
+    if (!editingId) { // fresh save
+      name = window.prompt('Enter a name for this build', name || '') || name;
+      if (!name) return;
+      description = window.prompt('Optional description', description || '') || description;
+    } else {
+      // allow user to optionally rename while editing
+      const rename = window.prompt('Edit build name (leave unchanged to keep current)', name || '');
+      if (rename) name = rename;
+      const redesc = window.prompt('Edit description (leave blank to keep current)', description || '');
+      if (redesc !== '') description = redesc;
+    }
     const parts = buildSnapshot();
     const total_price = computeTotalPrice();
-    const warnings = analyzeBuild();
-    const has_issues = warnings.length > 0;
+  const analysis = analyzeBuild(parts);
+  const warnings = analysis.warnings || [];
+  const has_issues = analysis.hasIssues;
     try {
-      const resp = await fetch('/api/builds', {
-        method: 'POST',
+      const endpoint = editingId ? `/api/builds/${editingId}` : '/api/builds';
+      const method = editingId ? 'PUT' : 'POST';
+      const resp = await fetch(endpoint, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -205,7 +190,14 @@ function BuilderPage() {
         throw new Error(txt || resp.statusText);
       }
       const data = await resp.json();
-      alert('Build saved: ' + data.id + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
+      if (!editingId && data.id) setEditingId(data.id);
+      setEditingName(name);
+      setEditingDescription(description);
+      // persist editing metadata so refresh keeps context
+      localStorage.setItem('editingBuildId', editingId || data.id);
+      localStorage.setItem('editingBuildName', name || '');
+      localStorage.setItem('editingBuildDescription', description || '');
+      alert((editingId ? 'Build updated: ' : 'Build saved: ') + (data.id || editingId) + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
     } catch (e) {
       console.error('Save build failed', e);
       alert('Save failed: ' + (e.message || 'Unknown error'));
@@ -347,7 +339,7 @@ function BuilderPage() {
           </div>
           <div className="RightColumn">
             <div style={{ marginBottom: 12 }}>
-              <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
+              <button onClick={handleSaveBuild} disabled={!dataLookup}>{editingId ? 'Update Build' : 'Save Build'}</button>
             </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
           </div>

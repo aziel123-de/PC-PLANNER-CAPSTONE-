@@ -1,6 +1,7 @@
 import PreBuilt_Nav from './Pre-built/PreBuilt_Nav.jsx';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { forceUnlockAllScroll } from './utils/scrollLock.js';
 import Login from './LoginForm/Login.jsx';
 import SignUp from './SignUpForm/SignUp.jsx';
 import Header from './HomepageForm/Header.jsx';
@@ -8,6 +9,7 @@ import LoggedInUserHeader from './UserDashboard-main/Dashboard/loggedInUserHeade
 import Section from './HomepageForm/Section.jsx';
 import Footer from './HomepageForm/Footer.jsx';
 import BuilderPage from "./PCBuilder/BuildingPCPage/BuilderPage.jsx";
+import BuilderPageEdit from "./PCBuilderEdit/BuildingPCPage/BuilderPageEdit.jsx";
 import All from "./Pre-built/All.jsx";
 import Gaming from "./Pre-built/Gaming.jsx";
 import Productivity from './Pre-built/Productivity.jsx';
@@ -46,6 +48,11 @@ function App() {
   const showHeader = !hideHeaderOn.includes(location.pathname);
   const isDashboard = location.pathname === '/dashboard';
 
+  // On every route change, ensure body scroll isn't accidentally locked
+  useEffect(() => {
+    forceUnlockAllScroll();
+  }, [location.pathname]);
+
   return (
     <>
       {/* render header except on login/signup; choose logged-in header when token exists */}
@@ -81,6 +88,7 @@ function App() {
 
           {/* PCBUILDER routes */}
           <Route path="/builder" element={<BuilderPage />} />
+          <Route path="/builder/edit" element={<BuilderPageEdit />} />
 
           {/* Prebuilt routes with navigation */}
           <Route path="/prebuilt/" element={<><PreBuilt_Nav /><All /></>} />

@@ -33,8 +33,8 @@ export default function SavedBuildCard({ build, onDelete, onLoad, onView }) {
         )}
       </div>
       <div style={styles.actions}>
-        <button onClick={() => onView && onView(build)} style={styles.button}>View</button>
-        <button onClick={() => onLoad && onLoad(build)} style={styles.button}>Load</button>
+  <button onClick={() => onView && onView(build)} style={styles.button}>View</button>
+  <button onClick={() => onLoad && onLoad(build)} style={styles.button}>Edit</button>
         <button
           onClick={() => {
             if (window.confirm('Delete this saved build?')) onDelete && onDelete(id);

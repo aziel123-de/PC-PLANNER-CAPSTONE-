@@ -223,6 +223,29 @@ app.delete(`${API_PREFIX}/builds/:id`, async (req, res) => {
   } finally { conn.release(); }
 });
 
+// Update existing build
+app.put(`${API_PREFIX}/builds/:id`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const { id } = req.params;
+  const { name, description, parts, total_price, warnings, has_issues } = req.body || {};
+  if (!parts) return res.status(400).json({ error: 'parts required' });
+  const now = new Date();
+  const conn = await pool.getConnection();
+  try {
+    const [existing] = await conn.query('SELECT id FROM saved_builds WHERE id=? AND user_id=? LIMIT 1', [id, userId]);
+    if (!existing.length) return res.status(404).json({ error: 'not found' });
+    await conn.query(
+      'UPDATE saved_builds SET name=COALESCE(?,name), description=COALESCE(?,description), total_price=?, parts_json=?, warnings_json=?, has_issues=?, updatedAt=? WHERE id=? AND user_id=?',
+      [name || null, description || null, total_price || 0, JSON.stringify(parts), JSON.stringify(warnings || []), has_issues ? 1 : 0, now, id, userId]
+    );
+    return res.json({ id, name: name || undefined, updated: true });
+  } catch (err) {
+    console.error('update build db error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'db error' });
+  } finally { conn.release(); }
+});
+
 function safeParse(val, fallback) {
   if (val == null) return fallback;
   if (typeof val === 'object') return val;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './UserOverview.css';
 import pcImage from './PC.png';
 import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -10,6 +11,7 @@ import SavedBuildModal from './SavedBuildModal';
 
 
 function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,onBackClick }) {
+  const navigate = useNavigate();
 // -------------------------- PUT THE DROPDOWN ACCOUNT HERE --------------------------------------
   const userName = '';
   // data in backend
@@ -106,7 +108,10 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     if (!build || !build.parts) return;
     try {
       localStorage.setItem('loadedBuild', JSON.stringify(build.parts));
-      alert('Build loaded. Go to Builder page to continue.');
+      localStorage.setItem('editingBuildId', build.id);
+      if (build.name) localStorage.setItem('editingBuildName', build.name);
+      if (build.description) localStorage.setItem('editingBuildDescription', build.description);
+      navigate('/builder/edit');
     } catch (e) {
       alert('Failed to load build into builder');
     }
