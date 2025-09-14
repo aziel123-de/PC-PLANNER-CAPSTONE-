@@ -231,6 +231,8 @@ function BuilderPage() {
     }
   }, [selectedMOBO, selectedCase]);
 
+  const isLoggedIn = Boolean(localStorage.getItem('token'));
+
   return (
     <>
       <main className='PC-Builder-Content' style={{ paddingTop: 80 }}>
@@ -324,7 +326,11 @@ function BuilderPage() {
           </div>
           <div className="RightColumn">
             <div style={{ marginBottom: 12 }}>
-              <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
+              {isLoggedIn ? (
+                <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
+              ) : (
+                <div style={{ color: 'var(--muted-text, #666)', fontSize: 14 }}>Sign in to save builds</div>
+              )}
             </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
           </div>

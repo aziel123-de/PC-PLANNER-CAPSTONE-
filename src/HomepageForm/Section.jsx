@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import './Section.css';
-import { FaArrowRight, FaBookOpen, FaCheckCircle, FaGlobe } from 'react-icons/fa';
+import { FaArrowRight, FaBookOpen, FaCheckCircle, FaGlobe, FaBolt, FaTools } from 'react-icons/fa';
 import { PiSignInBold } from "react-icons/pi";
 import { FaUserPlus } from "react-icons/fa";
 import PC1 from '../assets/PC1.jpg';
@@ -111,13 +111,13 @@ function Section() {
               <p className="key-features-subtitle">Everything you need to build the perfect PC for your needs</p>
             </div>
 
-            <div className="cards-grid">
+              <div className="cards-grid">
               <div
                 className="card green"
                 style={{ position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}
               >
                 <div className="card-header">
-                  <div className="icon green">✓</div>
+                  <div className="icon green"><FaCheckCircle /></div>
                   <h2 className="card-title">Smart Compatibility</h2>
                 </div>
                 <p className="card-description">
@@ -133,7 +133,7 @@ function Section() {
                 style={{ position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}
               >
                 <div className="card-header">
-                  <div className="icon orange">⚡</div>
+                  <div className="icon orange"><FaBolt /></div>
                   <h2 className="card-title">Performance Insights</h2>
                 </div>
                 <p className="card-description">
@@ -149,7 +149,7 @@ function Section() {
                 style={{ position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}
               >
                 <div className="card-header">
-                  <div className="icon purple">🔧</div>
+                  <div className="icon purple"><FaTools /></div>
                   <h2 className="card-title">Build Optimization</h2>
                 </div>
                 <p className="card-description">

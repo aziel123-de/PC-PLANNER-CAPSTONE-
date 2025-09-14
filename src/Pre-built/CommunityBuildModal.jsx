@@ -102,8 +102,13 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
 
   const loadIntoBuilder = () => {
     if (!data) return;
-    const payload = { parts: data.parts, meta: { source: 'community', buildId: data.id, title: data.title } };
-    localStorage.setItem('loadedBuild', JSON.stringify(payload));
+    try {
+      localStorage.setItem('loadedBuild', JSON.stringify(data.parts || {}));
+      if (data.id) localStorage.setItem('editingBuildId', data.id);
+      if (data.title) localStorage.setItem('editingBuildName', data.title);
+    } catch (e) {
+      console.error('Failed to set loadedBuild', e);
+    }
     window.location.href = '/builder';
     if (onLoaded) onLoaded();
   };
@@ -128,17 +133,43 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
             <section>
               <h3 style={{ margin: '0 0 .6rem', fontSize: '1rem' }}>Parts</h3>
               <div className="parts-grid">
-                {Object.entries(data.parts || {}).map(([k, v]) => (
-                  <div key={k} className="part-tile">
-                    <div className="k">{k}</div>
-                    {v && typeof v === 'object' ? (
-                      <>
-                        <div className="v">{v.name || v.model || v.title || '—'}</div>
-                        {v.price != null && <div className="price">₱{v.price}</div>}
-                      </>
-                    ) : <div className="v" style={{ opacity: .5 }}>Empty</div>}
-                  </div>
-                ))}
+                {Object.entries(data.parts || {}).map(([k, v]) => {
+                  const renderPartValue = (val) => {
+                    if (val == null) return <div className="v" style={{ opacity: .5 }}>Empty</div>;
+                    // Arrays (multiple items like gpus, rams, m2s, storage)
+                    if (Array.isArray(val)) {
+                      if (val.length === 0) return <div className="v" style={{ opacity: .5 }}>Empty</div>;
+                      return (
+                        <div className="part-items">
+                          {val.map((item, idx) => (
+                            <div key={idx} className="part-item-row">
+                              <div className="v">{(item && (item.name || item.model || item.title || item.sku)) || (typeof item === 'string' || typeof item === 'number' ? String(item) : 'Unnamed')}</div>
+                              {item && item.price != null && <div className="price">₱{item.price}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    // Objects (single selected part)
+                    if (typeof val === 'object') {
+                      return (
+                        <>
+                          <div className="v">{val.name || val.model || val.title || '—'}</div>
+                          {val.price != null && <div className="price">₱{val.price}</div>}
+                        </>
+                      );
+                    }
+                    // Fallback primitives
+                    return <div className="v">{String(val)}</div>;
+                  };
+
+                  return (
+                    <div key={k} className="part-tile">
+                      <div className="k">{k}</div>
+                      {renderPartValue(v)}
+                    </div>
+                  );
+                })}
               </div>
             </section>
             <div className="vote-buttons" style={{ display: 'flex', gap: '.6rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>

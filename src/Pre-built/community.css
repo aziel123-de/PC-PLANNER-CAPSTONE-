@@ -106,7 +106,17 @@ button.cb-btn.secondary:hover { background: #f0f5ff; }
 .community-share-form input:focus,
 .community-share-form textarea:focus { outline: none; border-color: var(--cb-primary); box-shadow: var(--cb-focus); }
 
-.community-modal-overlay { backdrop-filter: blur(6px); }
+.community-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,18,30,0.35);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  padding: 1rem; /* ensures small viewports have spacing */
+}
 
 .community-modal {
   background: var(--cb-bg);
@@ -114,6 +124,11 @@ button.cb-btn.secondary:hover { background: #f0f5ff; }
   color: var(--cb-text);
   box-shadow: var(--cb-shadow);
   animation: cbFade .3s ease;
+  width: 100%;
+  max-width: 1080px;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border-radius: 14px;
 }
 @keyframes cbFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -153,6 +168,12 @@ button.cb-btn.secondary:hover { background: #f0f5ff; }
 .part-tile .k { font-weight: 600; font-size: .7rem; letter-spacing: .4px; }
 .part-tile .v { font-size: .65rem; color: var(--cb-text-light); }
 .part-tile .price { font-size: .65rem; font-weight: 600; color: var(--cb-primary); }
+
+/* For parts that contain multiple items (gpus, rams, storage, m2s) */
+.part-items { display: flex; flex-direction: column; gap: .4rem; margin-top: .2rem; }
+.part-item-row { display: flex; justify-content: space-between; gap: .6rem; align-items: center; }
+.part-item-row .v { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.part-item-row .price { flex: 0 0 auto; margin-left: .5rem; }
 
 .comments-box {
   border: 1px solid var(--cb-border);

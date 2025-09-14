@@ -52,8 +52,15 @@ function CommunityList() {
 
   const loadIntoBuilder = (build) => {
     if (!build) return;
-    const payload = { parts: build.parts, meta: { source: 'community', buildId: build.id, title: build.title } };
-    localStorage.setItem('loadedBuild', JSON.stringify(payload));
+    // BuilderPage expects the stored object to be the raw parts object (mobo, cpu, gpus, etc.)
+    try {
+      localStorage.setItem('loadedBuild', JSON.stringify(build.parts || {}));
+      if (build.id) localStorage.setItem('editingBuildId', build.id);
+      if (build.title) localStorage.setItem('editingBuildName', build.title);
+    } catch (e) {
+      console.error('Failed to serialize loaded build', e);
+    }
+    // navigate to builder
     window.location.href = '/builder';
   };
 

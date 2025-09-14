@@ -5,6 +5,7 @@ import pcImage from './PC.png';
 import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, ChevronLeft, ChevronRight } from 'lucide-react';
 import SavedBuildCard from './SavedBuildCard';
 import { MdWavingHand } from 'react-icons/md';
+import { FaTools, FaCheckCircle, FaBoxOpen, FaHistory } from 'react-icons/fa';
 import LoggedInUserHeader from './loggedInUserHeader';
 import SavedBuildModal from './SavedBuildModal';
 import ShareSavedBuildModal from './ShareSavedBuildModal';
@@ -309,7 +310,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   {recentBuilds.length === 0 ? (
     <div className="no-data-box">
-      <div className="no-data-icon">🛠️</div>
+      <div className="no-data-icon"><FaTools /></div>
       <p className="no-data-msg">You haven’t saved any builds yet.</p>
       <p className="no-data-subtext">Start building your custom PC now!</p>
     </div>
@@ -338,7 +339,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   {detectedIssues.length === 0 ? (
     <div className="no-data-box">
-      <div className="no-data-icon">✅</div>
+      <div className="no-data-icon"><FaCheckCircle /></div>
       <p className="no-data-msg">No issues detected yet.</p>
       <p className="no-data-subtext">Your builds are looking good so far.</p>
     </div>
@@ -383,7 +384,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
    <div className="saved-builds-container">
   {savedBuilds.length === 0 ? (
     <div className="saved-build-box empty">
-      <div className="empty-icon">🗃️</div>
+      <div className="empty-icon"><FaBoxOpen /></div>
       <h3>No Saved Builds</h3>
       <p>You haven't saved any builds yet.</p>
       <p>Start creating one from the builder!</p>
@@ -444,7 +445,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
       {buildHistory.length === 0 ? (
         <div className="no-data-box">
-          <div className="no-data-icon">📜</div>
+          <div className="no-data-icon"><FaHistory /></div>
           <p className="no-data-msg">No build history yet.</p>
           <p className="no-data-subtext">Start creating builds to track your progress.</p>
         </div>
