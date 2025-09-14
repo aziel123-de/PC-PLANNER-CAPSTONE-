@@ -7,6 +7,7 @@ import SavedBuildCard from './SavedBuildCard';
 import { MdWavingHand } from 'react-icons/md';
 import LoggedInUserHeader from './loggedInUserHeader';
 import SavedBuildModal from './SavedBuildModal';
+import ShareSavedBuildModal from './ShareSavedBuildModal';
 
 
 
@@ -34,6 +35,8 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false); // Track user manual collapse
   const [viewingBuild, setViewingBuild] = useState(null);
+  const [sharingBuild, setSharingBuild] = useState(null);
+  const [justSharedId, setJustSharedId] = useState(null);
 
   // Header is rendered by LoggedInUserHeader component
 
@@ -394,6 +397,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
           onDelete={handleDeleteBuild}
           onLoad={handleLoadBuild}
           onView={handleViewBuild}
+          onShare={(build) => setSharingBuild(build)}
         />
       ))}
     </div>
@@ -403,6 +407,11 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       build={viewingBuild}
       onClose={() => setViewingBuild(null)}
       onLoad={(b) => { handleLoadBuild(b); setViewingBuild(null); }}
+    />
+    <ShareSavedBuildModal
+      build={sharingBuild}
+      onClose={() => setSharingBuild(null)}
+      onShared={(resp) => { setSharingBuild(null); setJustSharedId(resp?.id); /* could toast */ }}
     />
   </main>
 )}

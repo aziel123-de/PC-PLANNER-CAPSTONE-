@@ -8,7 +8,7 @@ import React from 'react';
  *  - onLoad(build)
  *  - onView(build)
  */
-export default function SavedBuildCard({ build, onDelete, onLoad, onView }) {
+export default function SavedBuildCard({ build, onDelete, onLoad, onView, onShare }) {
   if (!build) return null;
   const { id, name, total_price, createdAt, has_issues, warnings = [] } = build;
   const dateStr = createdAt ? new Date(createdAt).toLocaleString() : '';
@@ -35,6 +35,7 @@ export default function SavedBuildCard({ build, onDelete, onLoad, onView }) {
       <div style={styles.actions}>
   <button onClick={() => onView && onView(build)} style={styles.button}>View</button>
   <button onClick={() => onLoad && onLoad(build)} style={styles.button}>Edit</button>
+  <button onClick={() => onShare && onShare(build)} style={{ ...styles.button, ...styles.shareBtn }}>Share</button>
         <button
           onClick={() => {
             if (window.confirm('Delete this saved build?')) onDelete && onDelete(id);
@@ -69,4 +70,5 @@ const styles = {
   actions: { display: 'flex', flexDirection: 'column', gap: 8 },
   button: { padding: '6px 10px', cursor: 'pointer', fontSize: 13 },
   deleteBtn: { background: '#fff', border: '1px solid #e0e0e0' }
+  ,shareBtn: { background: '#1d5bff', color: '#fff', border: '1px solid #1d5bff' }
 };

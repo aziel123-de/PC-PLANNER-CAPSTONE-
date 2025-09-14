@@ -38,10 +38,10 @@ function BuilderPage() {
     return () => { mounted = false; };
   }, []);
 
-  // Track edit mode state
-  const [editingId, setEditingId] = useState(null);
-  const [editingName, setEditingName] = useState(null);
-  const [editingDescription, setEditingDescription] = useState(null);
+  // We intentionally remove edit/update mode: BuilderPage is for creating new builds only.
+  // Retain name/description locally so user doesn't have to retype if they save multiple variants.
+  const [tempName, setTempName] = useState('');
+  const [tempDescription, setTempDescription] = useState('');
 
   // Prefill from a previously loaded build saved in localStorage (if present)
   useEffect(() => {
@@ -63,17 +63,11 @@ function BuilderPage() {
     } catch (e) {
       // ignore JSON errors
     }
-    try {
-      const eid = localStorage.getItem('editingBuildId');
-      if (eid) setEditingId(eid);
-      const ename = localStorage.getItem('editingBuildName');
-      if (ename) setEditingName(ename);
-      const edesc = localStorage.getItem('editingBuildDescription');
-      if (edesc) setEditingDescription(edesc);
-    } catch {}
-    // Clear ephemeral items after capture
+    // Clear ephemeral items after capture (editing metadata no longer used)
     localStorage.removeItem('loadedBuild');
-    // keep editingBuildId so page refresh retains edit mode; clear name/desc only after successful save/update
+    localStorage.removeItem('editingBuildId');
+    localStorage.removeItem('editingBuildName');
+    localStorage.removeItem('editingBuildDescription');
   }, []);
 
   // Compose build summary parts as needed for BuildSummary
@@ -156,29 +150,25 @@ function BuilderPage() {
       alert('You must be logged in to save a build.');
       return;
     }
-    let name = editingName;
-    let description = editingDescription || '';
-    if (!editingId) { // fresh save
-      name = window.prompt('Enter a name for this build', name || '') || name;
-      if (!name) return;
-      description = window.prompt('Optional description', description || '') || description;
-    } else {
-      // allow user to optionally rename while editing
-      const rename = window.prompt('Edit build name (leave unchanged to keep current)', name || '');
-      if (rename) name = rename;
-      const redesc = window.prompt('Edit description (leave blank to keep current)', description || '');
-      if (redesc !== '') description = redesc;
+    let name = tempName;
+    let description = tempDescription;
+    // Always prompt if no name yet
+    if (!name) {
+      name = window.prompt('Enter a name for this build', name || '') || '';
+      if (!name) return; // user cancelled
+    }
+    // Optional description (only prompt first time or if user clears manually)
+    if (!description) {
+      description = window.prompt('Optional description', description || '') || '';
     }
     const parts = buildSnapshot();
     const total_price = computeTotalPrice();
-  const analysis = analyzeBuild(parts);
-  const warnings = analysis.warnings || [];
-  const has_issues = analysis.hasIssues;
+    const analysis = analyzeBuild(parts);
+    const warnings = analysis.warnings || [];
+    const has_issues = analysis.hasIssues;
     try {
-      const endpoint = editingId ? `/api/builds/${editingId}` : '/api/builds';
-      const method = editingId ? 'PUT' : 'POST';
-      const resp = await fetch(endpoint, {
-        method,
+      const resp = await fetch('/api/builds', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -190,14 +180,9 @@ function BuilderPage() {
         throw new Error(txt || resp.statusText);
       }
       const data = await resp.json();
-      if (!editingId && data.id) setEditingId(data.id);
-      setEditingName(name);
-      setEditingDescription(description);
-      // persist editing metadata so refresh keeps context
-      localStorage.setItem('editingBuildId', editingId || data.id);
-      localStorage.setItem('editingBuildName', name || '');
-      localStorage.setItem('editingBuildDescription', description || '');
-      alert((editingId ? 'Build updated: ' : 'Build saved: ') + (data.id || editingId) + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
+      setTempName(name);
+      setTempDescription(description);
+      alert('Build saved: ' + (data.id || '(id unknown)') + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
     } catch (e) {
       console.error('Save build failed', e);
       alert('Save failed: ' + (e.message || 'Unknown error'));
@@ -339,7 +324,7 @@ function BuilderPage() {
           </div>
           <div className="RightColumn">
             <div style={{ marginBottom: 12 }}>
-              <button onClick={handleSaveBuild} disabled={!dataLookup}>{editingId ? 'Update Build' : 'Save Build'}</button>
+              <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
             </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
           </div>
