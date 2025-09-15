@@ -235,9 +235,9 @@ function BuilderPage() {
 
   return (
     <>
-      <main className='PC-Builder-Content' style={{ paddingTop: 80 }}>
+      <main className='PC-Builder-Content' style={{ paddingTop: 20 }}>
         <div className='Note'>
-          <h1 className='PC-Note-Title'>Note on Compatibility Availability</h1>
+          <h1 className='PC-Note-Title'> ⚠️Note on Compatibility Availability</h1>
           <h3>
             PC Planner focuses on components readily available in the Philippine market.
             Some older components or certain Chinese brands may not be included due to
@@ -329,7 +329,6 @@ function BuilderPage() {
               {isLoggedIn ? (
                 <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
               ) : (
-                <div style={{ color: 'var(--muted-text, #666)', fontSize: 14 }}>Sign in to save builds</div>
               )}
             </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
