@@ -7,6 +7,7 @@ function Footer(){
         <footer className="site-footer">
   <div className="footer-container">
     <p className="footer-text">&copy; {new Date().getFullYear()} PC Planner. All rights reserved.</p>
+    <p className="developers-text">Developed by: Maligaya, Manuel, Sadangsal, Verecio</p>
     <div className="footer-links">
       <a href="#">Privacy Policy</a>
       <a href="#">Terms of Service</a>
