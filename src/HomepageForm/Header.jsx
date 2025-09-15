@@ -274,9 +274,7 @@ function Header() {
               <button className="sign-in" onClick={() => { closeMenu(); navigate('/login'); }}>
                 Sign In <PiSignInBold style={{ marginLeft: 5, verticalAlign: 'middle' }} />
               </button>
-              <button className="sign-up" onClick={() => { closeMenu(); navigate('/signup'); }}>
-                <FaUserPlus style={{ marginRight: 6 }} /> Sign Up
-              </button>
+             
             </>
           )}
         </div>

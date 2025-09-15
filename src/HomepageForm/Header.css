@@ -33,17 +33,22 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  padding: 0 0 0.5rem 0; /* No left/right padding */
+  padding: 1rem 1rem;
   background-color: #0e1a40;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: static;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
-  z-index: 999;
+  z-index: 1002; /* Higher than slide-down menu */
   box-sizing: border-box;
+  min-height: 50px;
+  margin-bottom: 2rem;
 }
 /* Logo */
 .logo {
-  height: 40px;
+  height: 35px;
   width: auto;
   display: inline-block;
 }
@@ -70,7 +75,7 @@
   font-size: 1.8rem;
   color: white;
   cursor: pointer;
-  z-index: 1001; /* Increased z-index */
+  z-index: 1003; /* Higher than header */
   background-color: transparent;
   border: none;
   position: relative; 
@@ -121,16 +126,21 @@
   text-decoration: none;
   color: #ffffff;
   font-weight: 500;
-  padding: 0.5rem 0;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   margin-top: 0rem;
 }
 
-
-/* Hover color */
+/* Hover states */
 .nav-link:hover {
   color: #00aeff;
+
 }
+
+/* Active states - when user is on current page */
+
+
+
+
 
 /* Overlay */
 .overlay {
@@ -140,7 +150,7 @@
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 997; /* Lower than slide-down menu */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -164,11 +174,11 @@
   background-color: #0e1a40;
   transform: translateX(100%);
   transition: transform 0.3s ease;
-  z-index: 1000;
+  z-index: 998; /* Lower than header to appear behind */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 4rem 1rem 2rem 1rem;
+  justify-content: flex-start;
+  padding: 90px 1rem 2rem 1rem; /* Top padding to account for header */
   box-sizing: border-box;
   overflow-y: auto;
 }
@@ -184,6 +194,7 @@
   gap: 0.75rem;
   margin-top: auto;
   padding-top: 1rem;
+  padding-bottom: 2rem;
 }
 
 .menu-buttons .sign-in,
@@ -203,7 +214,9 @@ body {
   flex-direction: column;
   gap: 0.5rem; /* Reduced gap for better spacing */
   animation: fadeIn 0.4s ease forwards;
-   margin-right: 1rem;
+  margin-right: 1rem;
+  flex: 1; /* Take up available space */
+  margin-top: 2rem;
 }
 
 .navM-link {
@@ -266,15 +279,62 @@ body {
 }
 
 .body-container {
-  padding-top: clamp(70px, 12vh, 90px); /* Responsive top padding */
+  padding-top: clamp(70px, 10vh, 90px); /* Reduced responsive top padding for smaller header */
+}
+
+/* Main content spacing for fixed header */
+.main-content {
+  padding-top: 75px !important; /* Reduced padding for smaller header */
+  min-height: calc(100vh - 75px); /* Full viewport minus header */
+}
+
+/* General body spacing for fixed header */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Three-sections container positioning for fixed header */
+.three-sections {
+  margin-top: 0 !important; /* Reset existing margin */
+  padding-top: 0 !important; /* No additional padding needed since main-content handles it */
+}
+
+/* Hero section positioning for fixed header */
+.hero {
+  margin-top: 0 !important; /* Reset existing margin */
+  padding-top: 1.5rem !important; /* Add proper spacing below smaller header */
+}
+
+.hero-overlay {
+  position: absolute !important;
+  top: 0 !important; /* Ensure overlay covers the hero properly */
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
 }
 
 /* Mobile-First Responsive Design */
 /* Small Mobile Devices (320px - 480px) */
 @media (max-width: 480px) {
+  .main-content {
+    padding-top: 65px !important; /* Adjust for smaller mobile header */
+  }
+
+  .hero {
+    padding-top: 1rem !important; /* Smaller padding for mobile hero */
+    min-height: 400px !important; /* Adjust hero height for mobile */
+  }
+
   .header {
-    padding: 0.75rem 1rem;
-    min-height: 60px; /* Ensure minimum height */
+    position: fixed; /* Ensure header stays fixed on mobile */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem 1rem;
+    min-height: 50px; /* Reduced header height */
+    z-index: 1002; /* Ensure header stays on top */
   }
 
   .logo {
@@ -292,8 +352,8 @@ body {
 
   .slide-down-menu {
     width: 100vw;
-    padding: 1rem;
-    padding-top: 4rem;
+    padding: 80px 1rem 2rem 1rem; /* Top padding for header space */
+    z-index: 998; /* Behind header */
   }
 
   .navM-link {
@@ -306,14 +366,28 @@ body {
   .sign-up {
     margin-right: 0.5rem;
     padding: 0.5rem 0.75rem;
-    min-width: 70px; /* Ensure minimum button width */
+    min-width: 60px; /* Ensure minimum button width */
+  }
+
+  .hamburger {
+    z-index: 1003; /* Above header */
   }
 }
 
 /* Medium Mobile Devices (481px - 768px) */
 @media (min-width: 481px) and (max-width: 768px) {
+  .main-content {
+    padding-top: 70px !important; /* Medium padding for medium mobile */
+  }
+
+  .hero {
+    padding-top: 1.25rem !important; /* Medium padding for medium mobile hero */
+    min-height: 450px !important; /* Adjust hero height for medium mobile */
+  }
+
   .hamburger {
     display: block;
+    z-index: 1003; /* Above header */
   }
 
   .desktop-nav {
@@ -322,18 +396,35 @@ body {
 
   .slide-down-menu {
     width: min(320px, 75vw);
-   
+    padding: 90px 1rem 2rem 1rem; /* Top padding for header */
+    z-index: 998; /* Behind header */
   }
 
   .header {
-    padding: 1rem 1.5rem;
+    position: fixed; /* Ensure header stays fixed on medium mobile */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem 1.5rem;
+    min-height: 50px;
+    z-index: 1002; /* Above slide menu */
   }
 }
 
 /* Tablet Devices (769px - 900px) */
 @media (min-width: 769px) and (max-width: 900px) {
+  .main-content {
+    padding-top: 75px !important; /* Slightly larger padding for tablet */
+  }
+
+  .hero {
+    padding-top: 1.5rem !important; /* Tablet padding for hero */
+    min-height: 480px !important; /* Adjust height for tablet */
+  }
+
   .hamburger {
     display: block !important;
+    z-index: 1003; /* Above header */
   }
 
   .desktop-nav {
@@ -342,15 +433,36 @@ body {
 
   .slide-down-menu {
     display: flex !important;
+    padding: 90px 1rem 2rem 1rem; /* Top padding for header */
+    z-index: 998; /* Behind header */
   }
 
   .slide-down-menu.show {
     transform: translateX(0) !important;
   }
+
+  .header {
+    position: fixed; /* Ensure header stays fixed on tablet */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem 1.5rem;
+    min-height: 50px;
+    z-index: 1002; /* Above slide menu */
+  }
 }
 
 /* Desktop and Large Screens (901px+) */
 @media (min-width: 901px) {
+  .main-content {
+    padding-top: 80px !important; /* Desktop padding for reduced header */
+  }
+
+  .hero {
+    padding-top: 1.5rem !important; /* Desktop padding for hero */
+    min-height: 500px !important; /* Standard desktop hero height */
+  }
+
   .hamburger {
     display: none !important;
   }
@@ -372,7 +484,13 @@ body {
   }
 
   .header {
-    padding: 1.25rem clamp(1rem, 3vw, 3rem);
+    position: fixed; /* Ensure header stays fixed on desktop */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem clamp(1rem, 2vw, 2rem);
+    min-height: 50px;
+    z-index: 1002; /* Ensure header is always on top */
   }
 }
 
@@ -423,13 +541,34 @@ body {
 /* Landscape Orientation on Mobile */
 @media (max-width: 768px) and (orientation: landscape) {
   .slide-down-menu {
-    padding-top: 3rem;
+    padding-top: 80px; /* Account for header height */
     height: 100vh;
+    z-index: 998; /* Behind header */
   }
 
   .navM-link {
     padding: 0.5rem 0.75rem;
     margin: 0.1rem 0;
+  }
+
+  .header {
+    z-index: 1002; /* Ensure header is on top */
+  }
+
+  .hamburger {
+    z-index: 1003; /* Above header */
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

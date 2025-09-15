@@ -131,18 +131,18 @@ html, body {
 
 .main-content {
   width: 100%;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+  margin-top: 0;
+  padding-top: 80px;
 }
 
 .three-sections {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .hero {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+  margin-top: 0;
+  padding-top: 2rem;
 }
 
 .three-sections {
@@ -166,7 +166,7 @@ html, body {
   position: relative;
   z-index: 1;
   overflow: hidden;
-  margin-top: 4rem;
+  margin-top: 0;
   transition: background-image 0.5s ease-in-out;
 }
 
@@ -781,6 +781,10 @@ html, body {
 
 /* Devices up to 900px (Tablets and smaller) */
 @media screen and (max-width: 900px) {
+  .main-content {
+    padding-top: 75px;
+  }
+
   .hamburger {
     display: block;
   }
@@ -792,7 +796,7 @@ html, body {
   .hero {
     flex-direction: column;
     text-align: center;
-    padding: clamp(1rem, 4vw, 2rem);
+    padding: clamp(1.5rem, 4vw, 2rem);
     min-height: 400px;
   }
 
@@ -884,6 +888,14 @@ html, body {
 
 /* Devices up to 500px */
 @media screen and (max-width: 500px) {
+  .main-content {
+    padding-top: 50px;
+  }
+
+  .hero {
+    padding-top: 1.5rem;
+  }
+
   .logo {
     width: clamp(35px, 8vw, 45px);
     height: clamp(35px, 8vw, 45px);
@@ -914,8 +926,6 @@ html, body {
     font-size: clamp(0.8rem, 2vw, 1.2rem);
     line-height: clamp(16px, 2.5vw, 20px);
     margin-left: 1.5rem;
-    
-    
   }
 
  .hero-buttons {

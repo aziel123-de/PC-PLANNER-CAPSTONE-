@@ -31,7 +31,7 @@ function Section() {
   const isLoggedIn = !!rawToken && rawToken !== 'null' && rawToken !== 'undefined';
 
   return (
-    <div className="main-content" style={{ paddingTop: 100 }}>
+    <div className="main-content-homepage">
       <main className="three-sections">
 
         {/* Hero Section */}
