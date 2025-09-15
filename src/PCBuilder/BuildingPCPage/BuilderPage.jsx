@@ -329,6 +329,10 @@ function BuilderPage() {
               {isLoggedIn ? (
                 <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
               ) : (
+                <div>
+                  
+                  <em>Log in to save your build.</em>
+                </div>
               )}
             </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
