@@ -14,6 +14,7 @@ import ShareSavedBuildModal from './ShareSavedBuildModal';
 
 function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,onBackClick }) {
   const navigate = useNavigate();
+  const location = window.location || {};
 // -------------------------- PUT THE DROPDOWN ACCOUNT HERE --------------------------------------
   const userName = '';
   // data in backend
@@ -90,6 +91,15 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     loadBuilds();
     return () => { mounted = false; };
   }, []);
+
+  // Respect section query param (e.g. /dashboard?section=saved)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const section = params.get('section');
+      if (section) setActiveSection(section);
+    } catch (e) {}
+  }, [window.location.search]);
 
   // Build history placeholder (could derive from saved builds in time)
   useEffect(() => {
