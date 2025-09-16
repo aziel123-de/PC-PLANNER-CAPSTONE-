@@ -339,6 +339,11 @@ function BuilderPage() {
               )}
             </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
+            {isLoggedIn && (
+              <button className="save-build-btn-builderpage" onClick={handleSaveBuild} disabled={!dataLookup}>
+                Save Build
+              </button>
+            )}
           </div>
         </div>
       </main>
