@@ -88,7 +88,7 @@ function CommunityList() {
         <div className="community-header">
           <div className="header-content">
             <div className="header-text">
-              <h2>🚀 Discover Amazing Builds</h2>
+              <h2>💡 Discover Amazing Builds</h2>
               <p>Explore cutting-edge PC configurations from our community</p>
             </div>
             <div className="header-actions">
