@@ -325,25 +325,12 @@ function BuilderPage() {
             <h1>Peripherals</h1>
           </div>
           <div className="RightColumn">
-            <div style={{ marginBottom: 12 }}>
-              {isLoggedIn ? (
-               
-                <button 
-                  onClick={handleSaveBuild} 
-                  disabled={!dataLookup} 
-                  className="save-build-btn-builderpage"
-                >
-                    Save Build
-                </button>
-
-              ) : (
-                <div>
-                  
-                  <p className='pcBuilderNotetoSign'>Log in to save your build.</p>
-                </div>
-              )}
-            </div>
-            <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
+            <BuildSummary 
+              selectedParts={buildSummaryParts} 
+              dataLookup={dataLookup}
+              onSaveBuild={handleSaveBuild}
+              isLoggedIn={isLoggedIn}
+            />
           </div>
         </div>
       </main>

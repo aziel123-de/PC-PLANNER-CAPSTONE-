@@ -3,7 +3,7 @@ import ComponentSpecs from './ComponentSpecs';
 import React from 'react';
 import analyzeBuild from './analyzeBuild';
 
-function BuildSummary({ selectedParts }) {
+function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
   // Convert selectedParts object to a flat array of all selected parts (filter out null/undefined)
   const allParts = Object.values(selectedParts).flat().filter(Boolean).map(p => p._raw ? p : p);
   const TOTAL_PART_COUNT = 10; // configurable expected parts count
@@ -125,6 +125,23 @@ function BuildSummary({ selectedParts }) {
                 }
               </p>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Save Build Button */}
+      <div style={{ marginTop: 20 }}>
+        {isLoggedIn ? (
+          <button 
+            onClick={onSaveBuild} 
+            disabled={!dataLookup} 
+            className="save-build-btn-builderpage"
+          >
+            Save Build
+          </button>
+        ) : (
+          <div>
+            <p className='pcBuilderNotetoSign'>Log in to save your build.</p>
           </div>
         )}
       </div>
