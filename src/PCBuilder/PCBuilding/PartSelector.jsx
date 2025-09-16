@@ -78,7 +78,6 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
       const sb = normalizeId(b);
       if (!sa || !sb) return false;
       if (sa === sb) return true;
-      // allow loose matches where one contains the other (e.g., 'lga1700' vs 'lga1700a')
       if (sa.includes(sb) || sb.includes(sa)) return true;
       return false;
     };
@@ -88,27 +87,68 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
       return s.toString().split(/[,;&\\/]|\band\b|&/i).map(x => x.replace(/[^a-z0-9]/gi, '').toLowerCase()).filter(Boolean);
     };
 
+    // Helper: form factor normalization (adds handling for ambiguous 'mini-atx' -> micro-atx)
+    const normalizeFormFactor = (raw) => {
+      if (!raw) return '';
+      const v = raw.toString().toLowerCase();
+      if (/mini\s*-?itx|mitx/.test(v)) return 'mini-itx';
+      if (/e\s*-?atx|eatx/.test(v)) return 'e-atx';
+      if (/micro\s*-?atx|m\s*-?atx|matx|microatx|mini\s*-?atx/.test(v)) return 'matx'; // treat 'mini-atx' as micro-atx (dataset quirk)
+      if (/\batx\b/.test(v) || v.startsWith('atx')) return 'atx';
+      return v.replace(/\s+/g,'');
+    };
+
+    const moboFF = normalizeFormFactor(selectedMOBO.formFactor || selectedMOBO.FormFactor || selectedMOBO._raw?.formFactor || selectedMOBO._raw?.FormFactor);
+
+    // Define what a case supports by parsing all advertised form factors and applying hierarchy
+    // Hierarchy (small -> large): mini-itx (1), matx (2), atx (3), e-atx (4)
+    const FF_RANK = { 'mini-itx': 1, 'matx': 2, 'atx': 3, 'e-atx': 4 };
+    const parseCaseSupported = (raw) => {
+      const text = (raw || '').toString().toLowerCase();
+      const supports = new Set();
+      if (/e\s*-?atx|eatx/.test(text)) supports.add('e-atx');
+      if (/micro\s*-?atx|m\s*-?atx|matx|microatx|mini\s*-?atx/.test(text)) supports.add('matx');
+      if (/mini\s*-?itx|mitx/.test(text)) supports.add('mini-itx');
+      // Detect pure ATX (avoid counting inside e-atx or matx by negative lookbehind not widely supported -> manual check)
+      if ((/(^|[^a-z])atx([^a-z]|$)/.test(text)) && !supports.has('e-atx')) supports.add('atx');
+      return supports;
+    };
+    const caseSupportsMobo = (caseObj) => {
+      if (!moboFF) return true;
+      const raw = caseObj.formFactor || caseObj.FormFactor || caseObj._raw?.formFactor || caseObj._raw?.FormFactor || '';
+      const supports = parseCaseSupported(raw);
+      // If nothing parsed, fall back to normalized single value
+      if (supports.size === 0) {
+        const single = normalizeFormFactor(raw);
+        if (single) supports.add(single);
+      }
+      const mRank = FF_RANK[moboFF] || 0;
+      if (moboFF === 'e-atx') return supports.has('e-atx');
+      if (moboFF === 'atx') return supports.has('atx') || supports.has('e-atx');
+      if (moboFF === 'matx') return ['matx','atx','e-atx'].some(f => supports.has(f));
+      if (moboFF === 'mini-itx') return ['mini-itx','matx','atx','e-atx'].some(f => supports.has(f));
+      // Unknown fallback
+      return true;
+    };
+
     switch (part.name) {
       case "Processor (CPU)":
         options = options.filter(cpu => {
           const cpuSocket = cpu.socket || cpu._raw?.Socket || cpu._raw?.socket;
           const mSocket = selectedMOBO.socket || selectedMOBO.Socket || selectedMOBO._raw?.Socket || selectedMOBO._raw?.socket;
-          // if motherboard socket is present, require CPU socket to be present and match
           if (mSocket) {
             return cpuSocket ? socketMatch(cpuSocket, mSocket) : false;
           }
-          // if no motherboard socket known, keep cpu options
           return true;
         });
         break;
       case "Memory (RAM)":
         options = options.filter(ram => {
           const ramTypes = parseRamTypes(ram.ramType || ram.ram_type || ram.type || ram._raw?.RamType || ram._raw?.Ramtype || ram._raw?.ram_type || ram._raw?.type);
-          const mTypes = parseRamTypes(selectedMOBO.ramType || selectedMOBO.ram_type || selectedMOBO.RamType || selectedMOBO._raw?.RamType || selectedMOBO._raw?.ramType || selectedMOBO._raw?.ram_type);
+            const mTypes = parseRamTypes(selectedMOBO.ramType || selectedMOBO.ram_type || selectedMOBO.RamType || selectedMOBO._raw?.RamType || selectedMOBO._raw?.ramType || selectedMOBO._raw?.ram_type);
           if (ramTypes.length > 0 && mTypes.length > 0) {
             return ramTypes.some(rt => mTypes.includes(rt));
           }
-          // fallback to loose string compare
           const ramPrimary = ram.ramType || ram.ram_type || ram.type;
           const moboPrimary = selectedMOBO.ramType || selectedMOBO.ram_type;
           if (ramPrimary && moboPrimary) {
@@ -124,11 +164,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
         options = options.filter(m2 => (m2.interface || '').toString().toLowerCase() === "nvme");
         break;
       case "Case":
-        options = options.filter(c => {
-          const ff = c.formFactor || '';
-          const target = selectedMOBO.formFactor || selectedMOBO.FormFactor || '';
-          return String(ff).toLowerCase().includes(String(target).toLowerCase());
-        });
+        options = options.filter(c => caseSupportsMobo(c));
         break;
       default:
         break;

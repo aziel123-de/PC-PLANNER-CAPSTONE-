@@ -1,14 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './UserOverview.css';
 import pcImage from './PC.png';
 import { BarChart3, Eye, Save, History, Settings, Cpu, Clock3, TriangleAlert, ChevronLeft, ChevronRight } from 'lucide-react';
+import SavedBuildCard from './SavedBuildCard';
 import { MdWavingHand } from 'react-icons/md';
+import { FaTools, FaCheckCircle, FaBoxOpen, FaHistory } from 'react-icons/fa';
 import LoggedInUserHeader from './loggedInUserHeader';
-
+import SavedBuildModal from './SavedBuildModal';
+import ShareSavedBuildModal from './ShareSavedBuildModal';
 
 
 
 function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,onBackClick }) {
+  const navigate = useNavigate();
+  const location = window.location || {};
 // -------------------------- PUT THE DROPDOWN ACCOUNT HERE --------------------------------------
   const userName = '';
   // data in backend
@@ -30,6 +36,9 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false); // Track user manual collapse
+  const [viewingBuild, setViewingBuild] = useState(null);
+  const [sharingBuild, setSharingBuild] = useState(null);
+  const [justSharedId, setJustSharedId] = useState(null);
 
   // Header is rendered by LoggedInUserHeader component
 
@@ -63,10 +72,73 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   
 
+  // Load saved builds from backend on mount
   useEffect(() => {
-    setSavedBuilds([]);
-    setBuildHistory([]);
+    let mounted = true;
+    async function loadBuilds() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const resp = await fetch('/api/builds', { headers: { Authorization: `Bearer ${token}` } });
+        if (!resp.ok) throw new Error('fetch builds failed');
+        const json = await resp.json();
+        if (mounted) setSavedBuilds(Array.isArray(json) ? json : []);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to load builds', e.message);
+      }
+    }
+    loadBuilds();
+    return () => { mounted = false; };
   }, []);
+
+  // Respect section query param (e.g. /dashboard?section=saved)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const section = params.get('section');
+      if (section) setActiveSection(section);
+    } catch (e) {}
+  }, [window.location.search]);
+
+  // Build history placeholder (could derive from saved builds in time)
+  useEffect(() => {
+    setBuildHistory([]);
+  }, [savedBuilds]);
+
+  const handleDeleteBuild = async (id) => {
+    const token = localStorage.getItem('token');
+    if (!token) return alert('Please log in');
+    try {
+      const resp = await fetch(`/api/builds/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (!resp.ok) throw new Error('delete failed');
+      setSavedBuilds(b => b.filter(x => x.id !== id));
+    } catch (e) {
+      alert('Delete failed: ' + (e.message || 'unknown'));
+    }
+  };
+
+  const handleLoadBuild = (build) => {
+    if (!build || !build.parts) return;
+    try {
+      localStorage.setItem('loadedBuild', JSON.stringify(build.parts));
+      localStorage.setItem('editingBuildId', build.id);
+      if (build.name) localStorage.setItem('editingBuildName', build.name);
+      if (build.description) localStorage.setItem('editingBuildDescription', build.description);
+      navigate('/builder/edit');
+    } catch (e) {
+      alert('Failed to load build into builder');
+    }
+  };
+
+  const handleViewBuild = (build) => {
+    if (!build) return;
+    setViewingBuild(build);
+  };
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
 
   // Hide the global site header while dashboard is visible
   useEffect(() => {
@@ -248,7 +320,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   {recentBuilds.length === 0 ? (
     <div className="no-data-box">
-      <div className="no-data-icon">🛠️</div>
+      <div className="no-data-icon"><FaTools /></div>
       <p className="no-data-msg">You haven’t saved any builds yet.</p>
       <p className="no-data-subtext">Start building your custom PC now!</p>
     </div>
@@ -277,7 +349,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   {detectedIssues.length === 0 ? (
     <div className="no-data-box">
-      <div className="no-data-icon">✅</div>
+      <div className="no-data-icon"><FaCheckCircle /></div>
       <p className="no-data-msg">No issues detected yet.</p>
       <p className="no-data-subtext">Your builds are looking good so far.</p>
     </div>
@@ -322,21 +394,36 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
    <div className="saved-builds-container">
   {savedBuilds.length === 0 ? (
     <div className="saved-build-box empty">
-      <div className="empty-icon">🗃️</div>
+      <div className="empty-icon"><FaBoxOpen /></div>
       <h3>No Saved Builds</h3>
       <p>You haven't saved any builds yet.</p>
-      <p>Start creating one from the dashboard!</p>
+      <p>Start creating one from the builder!</p>
     </div>
   ) : (
-    savedBuilds.map((build, index) => (
-      <div className="saved-build-box" key={index}>
-        <h3>{build.title}</h3>
-        <p>{build.description}</p>
-      </div>
-    ))
+    <div style={{ maxWidth: 720, width: '100%' }}>
+      {savedBuilds.map(b => (
+        <SavedBuildCard
+          key={b.id}
+          build={b}
+          onDelete={handleDeleteBuild}
+          onLoad={handleLoadBuild}
+          onView={handleViewBuild}
+          onShare={(build) => setSharingBuild(build)}
+        />
+      ))}
+    </div>
   )}
 </div>
-
+<SavedBuildModal
+      build={viewingBuild}
+      onClose={() => setViewingBuild(null)}
+      onLoad={(b) => { handleLoadBuild(b); setViewingBuild(null); }}
+    />
+    <ShareSavedBuildModal
+      build={sharingBuild}
+      onClose={() => setSharingBuild(null)}
+      onShared={(resp) => { setSharingBuild(null); setJustSharedId(resp?.id); /* could toast */ }}
+    />
   </main>
 )}
 
@@ -368,7 +455,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
       {buildHistory.length === 0 ? (
         <div className="no-data-box">
-          <div className="no-data-icon">📜</div>
+          <div className="no-data-icon"><FaHistory /></div>
           <p className="no-data-msg">No build history yet.</p>
           <p className="no-data-subtext">Start creating builds to track your progress.</p>
         </div>

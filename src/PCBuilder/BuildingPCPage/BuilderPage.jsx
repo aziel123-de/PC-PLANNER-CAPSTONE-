@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './BuilderPage.css';
 import PartSelector from '../PCBuilding/PartSelector';
 import BuildSummary from '../PCBuilding/BuildSummary';
+import analyzeBuild from '../PCBuilding/analyzeBuild';
 
 function BuilderPage() {
   const [selectedMOBO, setSelectedMOBO] = useState(null);
@@ -35,6 +36,38 @@ function BuilderPage() {
     }
     load();
     return () => { mounted = false; };
+  }, []);
+
+  // We intentionally remove edit/update mode: BuilderPage is for creating new builds only.
+  // Retain name/description locally so user doesn't have to retype if they save multiple variants.
+  const [tempName, setTempName] = useState('');
+  const [tempDescription, setTempDescription] = useState('');
+
+  // Prefill from a previously loaded build saved in localStorage (if present)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('loadedBuild');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      // Expecting keys: mobo, cpu, gpus, rams, m2s, storage, psu, case
+      if (parsed.mobo) setSelectedMOBO(parsed.mobo);
+      if (parsed.cpu) setSelectedCPU(parsed.cpu);
+      if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
+      if (Array.isArray(parsed.rams)) setSelectedRAMs(parsed.rams);
+      if (Array.isArray(parsed.m2s)) setSelectedM2s(parsed.m2s);
+      if (Array.isArray(parsed.storage)) setSelectedStorage(parsed.storage);
+      if (parsed.psu) setSelectedPSU(parsed.psu);
+      if (parsed.case) setSelectedCase(parsed.case);
+      // Clear after applying so it doesn't reapply on next visit
+      // do not clear loadedBuild until after we evaluate editing metadata
+    } catch (e) {
+      // ignore JSON errors
+    }
+    // Clear ephemeral items after capture (editing metadata no longer used)
+    localStorage.removeItem('loadedBuild');
+    localStorage.removeItem('editingBuildId');
+    localStorage.removeItem('editingBuildName');
+    localStorage.removeItem('editingBuildDescription');
   }, []);
 
   // Compose build summary parts as needed for BuildSummary
@@ -75,6 +108,130 @@ function BuilderPage() {
   const gpuSlotsCount = Number(getField(selectedMOBO, 'gpuSlots', 'GpuSlots', 'Gpu_slots') || 1);
   const m2SlotsCount = Number(getField(selectedMOBO, 'm2Slots', 'M2Slots', 'M2_Slots') || 0);
   const storageSlotsCount = Number(getField(selectedMOBO, 'storageSlots', 'StorageSlots', 'Storage_Slots') || 0);
+
+  // Collect items for pricing
+  const collectSelectedItems = () => {
+    const items = [];
+    if (selectedMOBO) items.push(selectedMOBO);
+    if (selectedCPU) items.push(selectedCPU);
+    (selectedGPUs || []).forEach(x => x && items.push(x));
+    (selectedRAMs || []).forEach(x => x && items.push(x));
+    (selectedM2s || []).forEach(x => x && items.push(x));
+    (selectedStorage || []).forEach(x => x && items.push(x));
+    if (selectedPSU) items.push(selectedPSU);
+    if (selectedCase) items.push(selectedCase);
+    return items;
+  };
+
+  const computeTotalPrice = () => {
+    return collectSelectedItems().reduce((sum, it) => {
+      const p = getField(it, 'price', 'Price', 'cost') || 0;
+      const n = Number(p) || 0;
+      return sum + n;
+    }, 0);
+  };
+
+  // Build snapshot & analysis will be done via shared analyzeBuild utility when saving.
+
+  const buildSnapshot = () => ({
+    mobo: selectedMOBO,
+    cpu: selectedCPU,
+    gpus: (selectedGPUs || []).filter(Boolean),
+    rams: (selectedRAMs || []).filter(Boolean),
+    m2s: (selectedM2s || []).filter(Boolean),
+    storage: (selectedStorage || []).filter(Boolean),
+    psu: selectedPSU,
+    case: selectedCase
+  });
+
+  const handleSaveBuild = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You must be logged in to save a build.');
+      return;
+    }
+    let name = tempName;
+    let description = tempDescription;
+    // Always prompt if no name yet
+    if (!name) {
+      name = window.prompt('Enter a name for this build', name || '') || '';
+      if (!name) return; // user cancelled
+    }
+    // Optional description (only prompt first time or if user clears manually)
+    if (!description) {
+      description = window.prompt('Optional description', description || '') || '';
+    }
+    const parts = buildSnapshot();
+    const total_price = computeTotalPrice();
+    const analysis = analyzeBuild(parts);
+    const warnings = analysis.warnings || [];
+    const has_issues = analysis.hasIssues;
+    try {
+      const resp = await fetch('/api/builds', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
+      });
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(txt || resp.statusText);
+      }
+      const data = await resp.json();
+      setTempName(name);
+      setTempDescription(description);
+      alert('Build saved: ' + (data.id || '(id unknown)') + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
+    } catch (e) {
+      console.error('Save build failed', e);
+      alert('Save failed: ' + (e.message || 'Unknown error'));
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedMOBO || !selectedCase) return;
+    const normalizeForm = (raw) => {
+      if (!raw) return '';
+      const v = raw.toString().toLowerCase();
+      if (v.includes('mini') && v.includes('itx')) return 'mini-itx';
+      if (v.includes('m-atx') || v.includes('micro-atx') || v.includes('matx') || v.includes('microatx')) return 'matx';
+      if (v.includes('e-atx') || v.includes('eatx')) return 'e-atx';
+      if (v.includes('atx')) return 'atx';
+      return v.replace(/\s+/g,'')
+    };
+    const mFF = normalizeForm(selectedMOBO.formFactor || selectedMOBO.FormFactor || selectedMOBO._raw?.formFactor || selectedMOBO._raw?.FormFactor);
+    const cFFText = selectedCase.formFactor || selectedCase.FormFactor || selectedCase._raw?.formFactor || selectedCase._raw?.FormFactor || '';
+    const cFFNorm = normalizeForm(cFFText);
+
+    const mapAcceptable = (ff) => {
+      switch (ff) {
+        case 'mini-itx': return new Set(['mini-itx']);
+        case 'matx': return new Set(['matx','atx','e-atx']);
+        case 'atx': return new Set(['atx','matx','mini-itx']);
+        case 'e-atx': return new Set(['e-atx','atx','matx','mini-itx']);
+        default: return null; // unknown -> accept
+      }
+    };
+
+    const acceptable = mapAcceptable(mFF);
+    if (!acceptable) return; // unknown mobo form factor -> skip
+
+    // If explicit case form factor is not acceptable, reset
+    if (cFFNorm && !acceptable.has(cFFNorm)) {
+      setSelectedCase(null);
+      return;
+    }
+
+    // Fallback: search text for any mention of acceptable tokens
+    const text = cFFText.toString().toLowerCase();
+    const tokensFound = Array.from(acceptable).some(tok => text.includes(tok));
+    if (!tokensFound) {
+      setSelectedCase(null);
+    }
+  }, [selectedMOBO, selectedCase]);
+
+  const isLoggedIn = Boolean(localStorage.getItem('token'));
 
   return (
     <>
@@ -164,10 +321,17 @@ function BuilderPage() {
               dataLookup={dataLookup}
             />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
             <h1>Pheripirals</h1>
           </div>
           <div className="RightColumn">
+            <div style={{ marginBottom: 12 }}>
+              {isLoggedIn ? (
+                <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
+              ) : (
+                <div style={{ color: 'var(--muted-text, #666)', fontSize: 14 }}>Sign in to save builds</div>
+              )}
+            </div>
             <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} />
           </div>
         </div>

@@ -1,6 +1,6 @@
-import PreBuilt_Nav from './Pre-built/PreBuilt_Nav.jsx';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { forceUnlockAllScroll } from './utils/scrollLock.js';
 import Login from './LoginForm/Login.jsx';
 import SignUp from './SignUpForm/SignUp.jsx';
 import Header from './HomepageForm/Header.jsx';
@@ -8,10 +8,8 @@ import LoggedInUserHeader from './UserDashboard-main/Dashboard/loggedInUserHeade
 import Section from './HomepageForm/Section.jsx';
 import Footer from './HomepageForm/Footer.jsx';
 import BuilderPage from "./PCBuilder/BuildingPCPage/BuilderPage.jsx";
-import All from "./Pre-built/All.jsx";
-import Gaming from "./Pre-built/Gaming.jsx";
-import Productivity from './Pre-built/Productivity.jsx';
-import GeneralUse from './Pre-built/GeneralUse.jsx';
+import BuilderPageEdit from "./PCBuilderEdit/BuildingPCPage/BuilderPageEdit.jsx";
+// Legacy Pre-built components removed; community builds now replace them
 import ComponentPage from './Components/ComponentPage.jsx';
 import LearnPage from "./Learn/Navigation/LearnPage.jsx";
 import ComponentsPage from './Learn/Navigation/ComponentsPage.jsx';
@@ -20,6 +18,8 @@ import BottlenecksPage from './Learn/Navigation/BottlenecksPage.jsx';
 import BudgettipsPage from './Learn/Navigation/BudgettipsPage.jsx';
 import UserOverview from './UserDashboard-main/Dashboard/UserOverview.jsx';
 import UserSettings from './UserDashboard-main/Dashboard/UserSettings.jsx';
+import CommunityList from './Pre-built/CommunityList';
+import CommunityBuildModal from './Pre-built/CommunityBuildModal';
 
 // removed Dashboard (UserOverview/UserSettings) imports and routes
 
@@ -45,6 +45,11 @@ function App() {
 
   const showHeader = !hideHeaderOn.includes(location.pathname);
   const isDashboard = location.pathname === '/dashboard';
+
+  // On every route change, ensure body scroll isn't accidentally locked
+  useEffect(() => {
+    forceUnlockAllScroll();
+  }, [location.pathname]);
 
   return (
     <>
@@ -81,13 +86,15 @@ function App() {
 
           {/* PCBUILDER routes */}
           <Route path="/builder" element={<BuilderPage />} />
+          <Route path="/builder/edit" element={<BuilderPageEdit />} />
 
-          {/* Prebuilt routes with navigation */}
-          <Route path="/prebuilt/" element={<><PreBuilt_Nav /><All /></>} />
-          <Route path="/prebuilt/all" element={<><PreBuilt_Nav /><All /></>} />
-          <Route path="/prebuilt/gaming" element={<><PreBuilt_Nav /><Gaming /></>} />
-          <Route path="/prebuilt/productivity" element={<><PreBuilt_Nav /><Productivity /></>} />
-          <Route path="/prebuilt/generaluse" element={<><PreBuilt_Nav /><GeneralUse /></>} />
+          {/* Prebuilt legacy paths now redirect/show CommunityList */}
+          <Route path="/prebuilt" element={<CommunityList />} />
+          <Route path="/prebuilt/" element={<CommunityList />} />
+          <Route path="/prebuilt/all" element={<CommunityList />} />
+          <Route path="/prebuilt/gaming" element={<CommunityList />} />
+          <Route path="/prebuilt/productivity" element={<CommunityList />} />
+          <Route path="/prebuilt/generaluse" element={<CommunityList />} />
 
           <Route path="/components" element={<ComponentPage />} />
           <Route path="/learn" element={<LearnPage />} />
@@ -99,6 +106,7 @@ function App() {
           {/* Dashboard routes */}
           <Route path="/dashboard" element={<DashboardWrapper />} />
           <Route path="/settings" element={<SettingsWrapper />} />
+          <Route path="/community" element={<CommunityList />} />
         </Routes>
       </main>
       </div>
