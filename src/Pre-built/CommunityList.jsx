@@ -84,32 +84,94 @@ function CommunityList() {
   return (
     <div className="community-builds-wrapper" style={{ padding: '1.25rem 1rem 3rem', maxWidth: 1220, margin: '0 auto' }}>
       <h1 style={{ margin: '0 0 1.25rem', fontSize: '1.9rem' }}>🌎Community Builds</h1>
-      <section className="community-panel" style={{ marginTop: '0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Latest Builds</h2>
-          <button className="cb-btn secondary" disabled={loading} onClick={() => setRefreshIndex(i => i + 1)}>
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </button>
-        </div>
-        {error && <div style={{ color: '#c62828', marginTop: '.75rem', fontSize: '.8rem' }}>{error}</div>}
-        {loading && !builds.length && <div style={{ marginTop: '.9rem', fontSize: '.8rem' }}>Loading builds...</div>}
-        <div className="community-builds-grid" style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', marginTop: '1.1rem' }}>
-          {builds.map(b => (
-            <div key={b.id} className="community-build-card">
-              <div className="cb-title">{b.title}</div>
-              <div className="cb-meta">By {b.username || 'Unknown'} · Score {(b.up_votes||0)-(b.down_votes||0)} · ₱{b.total_price}</div>
-              <div className="cb-description">{(b.description||'').slice(0,140)}{b.description && b.description.length>140 ? '…' : ''}</div>
-              <div className="cb-btn-row" style={{ gap: '.4rem' }}>
-                <button className="cb-btn secondary" onClick={() => openModal(b.id)} style={{ flex: 1 }}>View</button>
-                <button className="cb-btn" onClick={() => loadIntoBuilder(b)} style={{ flex: 1 }}>Load</button>
-                {currentUserId && currentUserId === b.user_id && (
-                  <button className="cb-btn danger" onClick={() => handleDelete(b.id)} style={{ flex: 0.6, background: '#d32f2f' }}>Delete</button>
-                )}
-              </div>
+      <section className="community-panel">
+        <div className="community-header">
+          <div className="header-content">
+            <div className="header-text">
+              <h2>🚀 Discover Amazing Builds</h2>
+              <p>Explore cutting-edge PC configurations from our community</p>
             </div>
-          ))}
-          {!loading && builds.length === 0 && !error && <div style={{ fontSize: '.8rem', opacity: .7 }}>No community builds yet.</div>}
+            <div className="header-actions">
+              <div className="stats-badge">
+                <span className="stats-number">{builds.length}</span>
+                <span className="stats-label">Builds</span>
+              </div>
+              <button className="refresh-btn" disabled={loading} onClick={() => setRefreshIndex(i => i + 1)}>
+                <span className="refresh-icon">↻</span>
+                {loading ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
+          </div>
         </div>
+
+        {error && (
+          <div className="error-banner">
+            <span className="error-icon">⚠️</span>
+            {error}
+          </div>
+        )}
+
+        {loading && !builds.length ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading amazing builds...</p>
+          </div>
+        ) : (
+          <div className="builds-showcase">
+            {builds.map(b => (
+              <div key={b.id} className="build-card">
+                <div className="card-header">
+                  <div className="build-title">{b.title}</div>
+                  <div className="build-score">
+                    <span className="score-icon">⭐</span>
+                    <span>{(b.up_votes||0)-(b.down_votes||0)}</span>
+                  </div>
+                </div>
+                
+                <div className="build-meta">
+                  <div className="creator">
+                    <span className="creator-icon">👤</span>
+                    <span>{b.username || 'Anonymous'}</span>
+                  </div>
+                  <div className="price-tag">
+                    <span className="currency">₱</span>
+                    <span className="amount">{b.total_price?.toLocaleString() || '0'}</span>
+                  </div>
+                </div>
+
+                <div className="build-description">
+                  {(b.description||'No description available').slice(0,120)}
+                  {b.description && b.description.length > 120 ? '...' : ''}
+                </div>
+
+                <div className="card-actions">
+                  <button className="action-btn view-btn" onClick={() => openModal(b.id)}>
+                    <span className="btn-icon">👁️</span>
+                    View Details
+                  </button>
+                  <button className="action-btn load-btn" onClick={() => loadIntoBuilder(b)}>
+                    <span className="btn-icon">⚡</span>
+                    Load Build
+                  </button>
+                  {currentUserId && currentUserId === b.user_id && (
+                    <button className="action-btn delete-btn" onClick={() => handleDelete(b.id)}>
+                      <span className="btn-icon">🗑️</span>
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {!loading && builds.length === 0 && !error && (
+              <div className="empty-state">
+                <div className="empty-icon">🔧</div>
+                <h3>No builds shared yet</h3>
+                <p>Be the first to share your amazing PC build with the community!</p>
+              </div>
+            )}
+          </div>
+        )}
       </section>
       {modalBuildId && (
         <CommunityBuildModal
