@@ -322,16 +322,19 @@ function BuilderPage() {
             />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
-            <h1>Pheripirals</h1>
+            <h1>Peripherals</h1>
           </div>
           <div className="RightColumn">
             <div style={{ marginBottom: 12 }}>
               {isLoggedIn ? (
-                <button onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
+                <button className="save-build-btn-builderpage" onClick={handleSaveBuild} disabled={!dataLookup}>Save Build</button>
               ) : (
-                <div>
-                  
-                  <em>Log in to save your build.</em>
+                <div className="pcBuilderNotetoSign">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  Log in to save your build
                 </div>
               )}
             </div>
