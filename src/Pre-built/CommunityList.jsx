@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './community.css';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import CommunityBuildModal from './CommunityBuildModal';
+import { FaUser } from 'react-icons/fa';
 
 /* Assumptions:
    - Auth token stored in localStorage under 'token'
@@ -83,13 +84,14 @@ function CommunityList() {
 
   return (
     <div className="community-builds-wrapper" style={{ padding: '1.25rem 1rem 3rem', maxWidth: 1220, margin: '0 auto' }}>
-      <h1 style={{ margin: '0 0 1.25rem', fontSize: '1.9rem' }}>🌎Community Builds</h1>
+
+
       <section className="community-panel">
         <div className="community-header">
           <div className="header-content">
             <div className="header-text">
-              <h2>💡 Discover Amazing Builds</h2>
-              <p>Explore cutting-edge PC configurations from our community</p>
+              <h2 className='title-header-prebuild'>🌎PC Planner Community Builds</h2>
+              <p className='subtitle-header-prebuilt'>Discover Great PC Builds from our Community</p>
             </div>
             <div className="header-actions">
               <div className="stats-badge">
@@ -121,7 +123,7 @@ function CommunityList() {
             {builds.map(b => (
               <div key={b.id} className="build-card">
                 <div className="card-header">
-                  <div className="build-title">{b.title}</div>
+                  <div className="build-title">🖥️{b.title}</div>
                   <div className="build-score">
                     <span className="score-icon">⭐</span>
                     <span>{(b.up_votes||0)-(b.down_votes||0)}</span>
@@ -130,7 +132,7 @@ function CommunityList() {
                 
                 <div className="build-meta">
                   <div className="creator">
-                    <span className="creator-icon">👤</span>
+                    <span className="creator-icon"><FaUser /></span>
                     <span>{b.username || 'Anonymous'}</span>
                   </div>
                   <div className="price-tag">
@@ -150,7 +152,7 @@ function CommunityList() {
                     View Details
                   </button>
                   <button className="action-btn load-btn" onClick={() => loadIntoBuilder(b)}>
-                    <span className="btn-icon">⚡</span>
+                    <span className="btn-icon">⏳</span>
                     Load Build
                   </button>
                   {currentUserId && currentUserId === b.user_id && (

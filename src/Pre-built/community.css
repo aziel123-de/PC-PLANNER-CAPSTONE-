@@ -52,9 +52,56 @@
   0%, 100% { background-position: 200% 0; }
   50% { background-position: -200% 0; }
 }
+/* Reddit-inspired Community Title */
+.community-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  margin: 0 0 1.25rem;
+  background: #b7d6ff;
+  border-bottom: 1px solid #edeff1;
+  border-radius: 5px;
+  
+}
+
+.subreddit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-circle {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #d9a592 0%, #ff6314 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(255, 69, 0, 0.2);
+}
+
+.community-symbol {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.title-text {
+  font-size: 25px;
+  font-weight: 600;
+  color: #1c1c1c;
+  margin: 0;
+  letter-spacing: 0;
+  line-height: 1.2;
+ 
+}
 
 .community-header {
-  background: linear-gradient(135deg, #1d5bff 0%, #0f4adb 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
   padding: 2rem 1.5rem;
   position: relative;
@@ -72,6 +119,9 @@
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
+.subtitle-header-prebuilt{
+  margin-left: 3rem;
+}
 
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -88,7 +138,7 @@
 }
 
 .header-text h2 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.5rem 1;
   font-size: 1.8rem;
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -99,6 +149,8 @@
   font-size: 1rem;
   opacity: 0.9;
   font-weight: 400;
+  margin-left: 2.5rem;
+  margin-top: 0.5rem;
 }
 
 .header-actions {
@@ -122,6 +174,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
+  
 }
 
 .stats-label {
@@ -134,8 +187,8 @@
 }
 
 .refresh-btn {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
+  background: rgba(233, 61, 61, 0.76);
+ 
   border: 1px solid rgba(255,255,255,0.2);
   color: white;
   border-radius: 10px;
@@ -150,7 +203,7 @@
 }
 
 .refresh-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.25);
+  background: rgba(196, 2, 2, 0.979);
   transform: translateY(-2px);
 }
 
@@ -274,7 +327,7 @@
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: white;
   padding: 0.5rem 0.75rem;
-  border-radius: 20px;
+  border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 600;
   display: flex;
@@ -364,7 +417,7 @@
 }
 
 .view-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #053e99 0%, #4f46e5 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
@@ -399,6 +452,7 @@
 
 .btn-icon {
   font-size: 1rem;
+  
 }
 
 .empty-state {
