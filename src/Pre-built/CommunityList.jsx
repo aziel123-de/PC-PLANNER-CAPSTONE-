@@ -83,7 +83,7 @@ function CommunityList() {
 
   return (
     <div className="community-builds-wrapper" style={{ padding: '1.25rem 1rem 3rem', maxWidth: 1220, margin: '0 auto' }}>
-      <h1 style={{ margin: '0 0 1.25rem', fontSize: '1.9rem' }}>Community Builds</h1>
+      <h1 style={{ margin: '0 0 1.25rem', fontSize: '1.9rem' }}>🌎Community Builds</h1>
       <section className="community-panel" style={{ marginTop: '0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Latest Builds</h2>
