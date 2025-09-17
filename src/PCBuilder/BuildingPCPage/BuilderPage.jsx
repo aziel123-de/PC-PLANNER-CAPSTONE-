@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './BuilderPage.css';
 import PartSelector from '../PCBuilding/PartSelector';
 import BuildSummary from '../PCBuilding/BuildSummary';
+import SaveBuildModal from '../PCBuilding/SaveBuildModal';
+import BuildNameModal from '../PCBuilding/BuildNameModal';
 import analyzeBuild from '../PCBuilding/analyzeBuild';
 
 function BuilderPage() {
@@ -42,6 +44,18 @@ function BuilderPage() {
   // Retain name/description locally so user doesn't have to retype if they save multiple variants.
   const [tempName, setTempName] = useState('');
   const [tempDescription, setTempDescription] = useState('');
+
+  // Modal state for save build results
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveModalData, setSaveModalData] = useState({
+    buildId: '',
+    buildName: '',
+    hasIssues: false,
+    warnings: []
+  });
+
+  // Modal state for build name input
+  const [showNameModal, setShowNameModal] = useState(false);
 
   // Prefill from a previously loaded build saved in localStorage (if present)
   useEffect(() => {
@@ -150,43 +164,64 @@ function BuilderPage() {
       alert('You must be logged in to save a build.');
       return;
     }
-    let name = tempName;
-    let description = tempDescription;
-    // Always prompt if no name yet
-    if (!name) {
-      name = window.prompt('Enter a name for this build', name || '') || '';
-      if (!name) return; // user cancelled
+
+    // If we don't have a name, show the name modal
+    if (!tempName) {
+      setShowNameModal(true);
+      return;
     }
-    // Optional description (only prompt first time or if user clears manually)
-    if (!description) {
-      description = window.prompt('Optional description', description || '') || '';
-    }
+
+    // If we have a name, proceed with saving
+    await performSaveBuild(tempName, tempDescription);
+  };
+
+  const performSaveBuild = async (name, description) => {
     const parts = buildSnapshot();
     const total_price = computeTotalPrice();
     const analysis = analyzeBuild(parts);
     const warnings = analysis.warnings || [];
     const has_issues = analysis.hasIssues;
+    
     try {
       const resp = await fetch('/api/builds', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
       });
+      
       if (!resp.ok) {
         const txt = await resp.text();
         throw new Error(txt || resp.statusText);
       }
+      
       const data = await resp.json();
       setTempName(name);
       setTempDescription(description);
-      alert('Build saved: ' + (data.id || '(id unknown)') + (has_issues ? '\nWarnings: ' + warnings.join('; ') : '\nNo issues detected'));
+      
+      // Show success modal
+      setSaveModalData({
+        buildId: data.id || '(id unknown)',
+        buildName: name,
+        hasIssues: has_issues,
+        warnings: warnings
+      });
+      setShowSaveModal(true);
     } catch (e) {
       console.error('Save build failed', e);
       alert('Save failed: ' + (e.message || 'Unknown error'));
     }
+  };
+
+  const handleNameModalSave = async (name, description) => {
+    setShowNameModal(false);
+    await performSaveBuild(name, description);
+  };
+
+  const handleNameModalClose = () => {
+    setShowNameModal(false);
   };
 
   useEffect(() => {
@@ -334,6 +369,25 @@ function BuilderPage() {
           </div>
         </div>
       </main>
+      
+      {/* Build Name Input Modal */}
+      <BuildNameModal
+        isOpen={showNameModal}
+        onClose={handleNameModalClose}
+        onSave={handleNameModalSave}
+        initialName={tempName}
+        initialDescription={tempDescription}
+      />
+
+      {/* Save Build Modal */}
+      <SaveBuildModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        buildId={saveModalData.buildId}
+        buildName={saveModalData.buildName}
+        hasIssues={saveModalData.hasIssues}
+        warnings={saveModalData.warnings}
+      />
     </>
   );
 }

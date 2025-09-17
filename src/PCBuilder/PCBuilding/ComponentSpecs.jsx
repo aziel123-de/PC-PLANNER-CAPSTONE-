@@ -1,3 +1,5 @@
+import './ComponentSpecs.css';
+
 function ComponentSpecs({ part }) {
   if (!part) return null;
 
@@ -150,10 +152,11 @@ function ComponentSpecs({ part }) {
       <h1>{titleType}</h1>
       <h2>{titleName}</h2>
       <p>₱{titlePrice.toLocaleString()}</p>
-      <ul>
+      <ul className="specs-list">
         {entries.map(([label, value]) => (
-          <li key={label}>
-            <strong>{label}:</strong> {value}
+          <li key={label} className="specs-item">
+            <span className="specs-label">{label}:</span>
+            <span className="specs-value">{value}</span>
           </li>
         ))}
       </ul>

@@ -1,0 +1,91 @@
+/* ComponentSpecs.css */
+.ComponentSpecsContainer {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ComponentSpecsContainer h1 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ComponentSpecsContainer h2 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.ComponentSpecsContainer p {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.specs-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.specs-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 12px;
+}
+
+.specs-item:last-child {
+  border-bottom: none;
+}
+
+.specs-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 13px;
+  min-width: 80px;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+.specs-value {
+  font-weight: 400;
+  color: #6b7280;
+  font-size: 13px;
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .ComponentSpecsContainer {
+    padding: 12px;
+  }
+  
+  .specs-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+  
+  .specs-label,
+  .specs-value {
+    text-align: left;
+  }
+  
+  .specs-label {
+    min-width: auto;
+  }
+}

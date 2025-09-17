@@ -133,6 +133,7 @@ function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
       <div style={{ marginTop: 20 }}>
         {isLoggedIn ? (
           <button 
+            id="save-build-btn-builderpage"
             onClick={onSaveBuild} 
             disabled={!dataLookup} 
             className="save-build-btn-builderpage"

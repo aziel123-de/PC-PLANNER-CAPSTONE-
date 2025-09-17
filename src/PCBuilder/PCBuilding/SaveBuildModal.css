@@ -1,0 +1,268 @@
+/* SaveBuildModal.css */
+.save-build-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.save-build-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.save-build-modal-header {
+  position: relative;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.save-build-modal-icon {
+  flex-shrink: 0;
+}
+
+.success-icon,
+.warning-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.save-build-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  flex: 1;
+}
+
+.save-build-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.save-build-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.save-build-modal-content {
+  padding: 16px 20px;
+}
+
+.success-message {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.success-text {
+  margin: 0;
+  font-size: 14px;
+  color: #059669;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 12px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+}
+
+.build-id-section {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.build-id-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 13px;
+}
+
+.build-id-value {
+  font-family: 'Courier New', monospace;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.warnings-section {
+  margin-top: 12px;
+}
+
+.warnings-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.warnings-title::before {
+  content: "⚠️";
+  font-size: 18px;
+}
+
+.warnings-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.warning-item {
+  background-color: #fef2f2;
+  border-left: 3px solid #f87171;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 0 4px 4px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #7f1d1d;
+}
+
+.warning-item:last-child {
+  margin-bottom: 0;
+}
+
+.no-issues-section {
+  text-align: center;
+  padding: 12px 0;
+}
+
+.no-issues-text {
+  margin: 0;
+  font-size: 14px;
+  color: #059669;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.no-issues-text::before {
+  content: "🎉";
+  font-size: 20px;
+}
+
+.save-build-modal-footer {
+  padding: 12px 20px 16px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #e5e7eb;
+}
+
+.save-build-modal-ok-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 70px;
+}
+
+.save-build-modal-ok-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.save-build-modal-ok-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .save-build-modal-backdrop {
+    padding: 16px;
+  }
+  
+  .save-build-modal {
+    max-width: 100%;
+  }
+  
+  .save-build-modal-header {
+    padding: 20px 20px 16px;
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .save-build-modal-close {
+    top: 12px;
+    right: 12px;
+  }
+  
+  .save-build-modal-content {
+    padding: 16px 20px;
+  }
+  
+  .save-build-modal-footer {
+    padding: 16px 20px 20px;
+  }
+  
+  .build-id-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .build-id-value {
+    align-self: stretch;
+    text-align: center;
+  }
+}
