@@ -121,44 +121,54 @@ function CommunityList() {
         ) : (
           <div className="builds-showcase">
             {builds.map(b => (
-              <div key={b.id} className="build-card">
-                <div className="card-header">
-                  <div className="build-title">🖥️{b.title}</div>
-                  <div className="build-score">
-                    <span className="score-icon">⭐</span>
-                    <span>{(b.up_votes||0)-(b.down_votes||0)}</span>
-                  </div>
-                </div>
+              <div key={b.id} className="modern-build-card">
+                <div className="card-gradient-border"></div>
                 
-                <div className="build-meta">
-                  <div className="creator">
-                    <span className="creator-icon"><FaUser /></span>
-                    <span>{b.username || 'Anonymous'}</span>
+                <div className="card-header-modern">
+                  <div className="build-title-container">
+                    <div className="build-icon">🖥️</div>
+                    <h3 className="build-title-modern">{b.title}</h3>
                   </div>
-                  <div className="price-tag">
-                    <span className="currency">₱</span>
-                    <span className="amount">{b.total_price?.toLocaleString() || '0'}</span>
+                  <div className="vote-badge">
+                    <span className="vote-count">{(b.up_votes||0)-(b.down_votes||0)}</span>
+                    <span className="vote-label">votes</span>
                   </div>
                 </div>
 
-                <div className="build-description">
-                  {(b.description||'No description available').slice(0,120)}
-                  {b.description && b.description.length > 120 ? '...' : ''}
+                <div className="build-metadata">
+                  <div className="creator-info">
+                    <div className="creator-avatar">
+                      <FaUser />
+                    </div>
+                    <div className="creator-details">
+                      <span className="creator-name">{b.username || 'Anonymous'}</span>
+                      <span className="creator-label">Builder</span>
+                    </div>
+                  </div>
+                  
+                  <div className="price-display">
+                    <div className="price-amount">₱{b.total_price?.toLocaleString() || '0'}</div>
+                    <div className="price-label">Total Cost</div>
+                  </div>
                 </div>
 
-                <div className="card-actions">
-                  <button className="action-btn view-btn" onClick={() => openModal(b.id)}>
-                    <span className="btn-icon">👁️</span>
-                    View Details
+                <div className="build-description-modern">
+                  <p>{(b.description||'No description available').slice(0,140)}{b.description && b.description.length > 140 ? '...' : ''}</p>
+                </div>
+
+                <div className="card-actions-modern">
+                  <button className="modern-btn primary-btn" onClick={() => openModal(b.id)}>
+                  
+                    <span>View Details</span>
                   </button>
-                  <button className="action-btn load-btn" onClick={() => loadIntoBuilder(b)}>
-                    <span className="btn-icon">⏳</span>
-                    Load Build
+                  <button className="modern-btn secondary-btn" onClick={() => loadIntoBuilder(b)}>
+                    
+                    <span>Load Build</span>
                   </button>
                   {currentUserId && currentUserId === b.user_id && (
-                    <button className="action-btn delete-btn" onClick={() => handleDelete(b.id)}>
+                    <button className="modern-btn danger-btn" onClick={() => handleDelete(b.id)}>
                       <span className="btn-icon">🗑️</span>
-                      Delete
+                      <span>Delete</span>
                     </button>
                   )}
                 </div>
