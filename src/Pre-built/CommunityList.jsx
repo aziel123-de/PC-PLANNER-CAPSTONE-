@@ -126,7 +126,7 @@ function CommunityList() {
                 
                 <div className="card-header-modern">
                   <div className="build-title-container">
-                    <div className="build-icon">🖥️</div>
+                   
                     <h3 className="build-title-modern">{b.title}</h3>
                   </div>
                   <div className="vote-badge">

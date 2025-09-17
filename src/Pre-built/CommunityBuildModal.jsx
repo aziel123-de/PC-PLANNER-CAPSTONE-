@@ -126,7 +126,7 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
             <header style={{ marginBottom: '1.1rem' }}>
               <h2 style={{ margin: '0 0 .4rem', fontSize: '1.45rem' }}>{data.title}</h2>
               <div className="cb-small-label">
-                By {data.username || 'Unknown'} · Score {(data.up_votes||0)-(data.down_votes||0)} · Up {data.up_votes||0} · Down {data.down_votes||0}
+                By {data.username || 'Unknown'} · Score {(data.up_votes||0)-(data.down_votes||0)} · Like {data.up_votes||0} · Dislike {data.down_votes||0}
               </div>
             </header>
             {data.description && <p style={{ whiteSpace: 'pre-line', fontSize: '.85rem', lineHeight: 1.45, color: 'var(--cb-text-light)', margin: '0 0 1.1rem' }}>{data.description}</p>}
@@ -173,8 +173,8 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
               </div>
             </section>
             <div className="vote-buttons" style={{ display: 'flex', gap: '.6rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-              <button disabled={voteBusy} className={` ${data.user_vote === 'up' ? 'active up' : ''}`} onClick={() => castVote(data.user_vote === 'up' ? 'unvote' : 'up')}>▲ {data.up_votes||0}</button>
-              <button disabled={voteBusy} className={` ${data.user_vote === 'down' ? 'active down' : ''}`} onClick={() => castVote(data.user_vote === 'down' ? 'unvote' : 'down')}>▼ {data.down_votes||0}</button>
+              <button disabled={voteBusy} className={` ${data.user_vote === 'up' ? 'active up' : ''}`} onClick={() => castVote(data.user_vote === 'up' ? 'unvote' : 'up')}>👍 {data.up_votes||0}</button>
+              <button disabled={voteBusy} className={` ${data.user_vote === 'down' ? 'active down' : ''}`} onClick={() => castVote(data.user_vote === 'down' ? 'unvote' : 'down')}>👎 {data.down_votes||0}</button>
               <button className="cb-btn" onClick={loadIntoBuilder}>Load Into Builder</button>
             </div>
             <section style={{ marginTop: '2rem' }}>

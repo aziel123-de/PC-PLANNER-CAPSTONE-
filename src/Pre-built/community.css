@@ -191,9 +191,9 @@
  
   border: 1px solid rgba(255,255,255,0.2);
   color: white;
-  border-radius: 10px;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.875rem;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -675,7 +675,7 @@
   flex: 1;
   min-width: 120px;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 6px;
   border: none;
   font-size: 14px;
   font-weight: 600;
@@ -708,10 +708,12 @@
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
   box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+  padding: 10px 16px;
+  font-size: 13px;
+  min-width: 110px;
 }
 
 .primary-btn:hover {
-  
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.45);
 }
 
@@ -719,10 +721,12 @@
   background: #c52a2a;
   color: white;
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  padding: 10px 16px;
+  font-size: 13px;
+  min-width: 110px;
 }
 
 .secondary-btn:hover {
- 
   box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
 }
 
