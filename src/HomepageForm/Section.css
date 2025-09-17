@@ -129,10 +129,18 @@ html, body {
   margin: 0 auto;
 }
 
-.main-content {
+/* Main content padding - excludes login page */
+.main-content:not(.login-page) {
   width: 100%;
   margin-top: 0;
   padding-top: 80px;
+}
+
+/* Login page specific styles - no padding */
+.main-content.login-page {
+  width: 100%;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .three-sections {
@@ -781,7 +789,7 @@ html, body {
 
 /* Devices up to 900px (Tablets and smaller) */
 @media screen and (max-width: 900px) {
-  .main-content {
+  .main-content:not(.login-page) {
     padding-top: 75px;
   }
 
@@ -888,7 +896,7 @@ html, body {
 
 /* Devices up to 500px */
 @media screen and (max-width: 500px) {
-  .main-content {
+  .main-content:not(.login-page) {
     padding-top: 50px;
   }
 

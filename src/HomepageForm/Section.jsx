@@ -31,7 +31,7 @@ function Section() {
   const isLoggedIn = !!rawToken && rawToken !== 'null' && rawToken !== 'undefined';
 
   return (
-    <div className="main-content-homepage">
+    <div className="homepage-container">
       <main className="three-sections">
 
         {/* Hero Section */}

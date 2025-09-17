@@ -90,7 +90,7 @@ function CommunityList() {
         <div className="community-header">
           <div className="header-content">
             <div className="header-text">
-              <h2 className='title-header-prebuild'>🌎PC Planner Community Builds</h2>
+              <h2 className='title-header-prebuild'>PC Planner Community Builds</h2>
               <p className='subtitle-header-prebuilt'>Discover Great PC Builds from our Community</p>
             </div>
             <div className="header-actions">
@@ -108,7 +108,7 @@ function CommunityList() {
 
         {error && (
           <div className="error-banner">
-            <span className="error-icon">⚠️</span>
+            <span className="error-icon"></span>
             {error}
           </div>
         )}
@@ -167,7 +167,6 @@ function CommunityList() {
                   </button>
                   {currentUserId && currentUserId === b.user_id && (
                     <button className="modern-btn danger-btn" onClick={() => handleDelete(b.id)}>
-                      <span className="btn-icon">🗑️</span>
                       <span>Delete</span>
                     </button>
                   )}
@@ -177,7 +176,7 @@ function CommunityList() {
             
             {!loading && builds.length === 0 && !error && (
               <div className="empty-state">
-                <div className="empty-icon">🔧</div>
+                <div className="empty-icon"></div>
                 <h3>No builds shared yet</h3>
                 <p>Be the first to share your amazing PC build with the community!</p>
               </div>
