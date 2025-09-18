@@ -94,10 +94,7 @@ function CommunityList() {
               <p className='subtitle-header-prebuilt'>Discover Great PC Builds from our Community</p>
             </div>
             <div className="header-actions">
-              <div className="stats-badge">
-                <span className="stats-number">{builds.length}</span>
-                <span className="stats-label">Builds</span>
-              </div>
+              
               <button className="refresh-btn" disabled={loading} onClick={() => setRefreshIndex(i => i + 1)}>
                 <span className="refresh-icon">↻</span>
                 {loading ? 'Refreshing...' : 'Refresh'}
