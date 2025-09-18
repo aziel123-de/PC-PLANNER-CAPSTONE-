@@ -2,6 +2,7 @@ import './BuildSummary.css';
 import ComponentSpecs from './ComponentSpecs';
 import React from 'react';
 import analyzeBuild from './analyzeBuild';
+import { FiLock } from 'react-icons/fi';
 
 function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
   // Convert selectedParts object to a flat array of all selected parts (filter out null/undefined)
@@ -142,7 +143,10 @@ function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
           </button>
         ) : (
           <div>
-            <p className='pcBuilderNotetoSign'>Log in to save your build.</p>
+            <p className='pcBuilderNotetoSign'>
+              <FiLock size={18} />
+              Log in to save your build.
+            </p>
           </div>
         )}
       </div>

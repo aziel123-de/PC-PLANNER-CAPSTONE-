@@ -212,6 +212,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
                 isSearchable
                 isClearable
                 placeholder={`-- Select ${part.name} Slot ${idx + 1} --`}
+                menuHeight={200}
+                maxMenuHeight={200}
               />
             </div>
           ))}
@@ -241,6 +243,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
         isSearchable
         isClearable // Add this prop
         placeholder={`-- Select ${part.name} --`}
+        menuHeight={200}
+        maxMenuHeight={200}
       />
     </div>
   );
