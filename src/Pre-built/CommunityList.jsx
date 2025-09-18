@@ -132,7 +132,19 @@ function CommunityList() {
             {builds.map(build => (
               <div key={build.id} className="build-card">
                 <div className="creator-row">
-                  <FaUser className="creator-icon" />
+                  <div className="profile-picture">
+                    {build.profile_picture ? (
+                      <img 
+                        src={build.profile_picture} 
+                        alt={`${build.username}'s profile`}
+                        className="profile-img"
+                      />
+                    ) : (
+                      <div className="profile-placeholder">
+                        <FaUser className="placeholder-icon" />
+                      </div>
+                    )}
+                  </div>
                   <span className="creator-name">{build.username || 'hazel sadangsal'}</span>
                 </div>
                 

@@ -45,6 +45,7 @@ function App() {
 
   const showHeader = !hideHeaderOn.includes(location.pathname);
   const isDashboard = location.pathname === '/dashboard';
+  const isAuthPage = hideHeaderOn.includes(location.pathname); // login or signup
 
   // On every route change, ensure body scroll isn't accidentally locked
   useEffect(() => {
@@ -68,48 +69,53 @@ function App() {
         )
       ) }
 
-      <div className={showHeader && !isDashboard ? 'with-global-header' : ''}>
-        <main className="main-content">
+      {/* Only wrap with header classes and main-content if NOT on auth pages */}
+      {isAuthPage ? (
         <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <Section />
-                <Footer />
-              </>
-            }
-          />
-
           <Route path="/login" element={<LoginWrapper />} />
           <Route path="/signup" element={<SignUpWrapper />} />
-
-          {/* PCBUILDER routes */}
-          <Route path="/builder" element={<BuilderPage />} />
-          <Route path="/builder/edit" element={<BuilderPageEdit />} />
-
-          {/* Prebuilt legacy paths now redirect/show CommunityList */}
-          <Route path="/prebuilt" element={<CommunityList />} />
-          <Route path="/prebuilt/" element={<CommunityList />} />
-          <Route path="/prebuilt/all" element={<CommunityList />} />
-          <Route path="/prebuilt/gaming" element={<CommunityList />} />
-          <Route path="/prebuilt/productivity" element={<CommunityList />} />
-          <Route path="/prebuilt/generaluse" element={<CommunityList />} />
-
-          <Route path="/components" element={<ComponentPage />} />
-          <Route path="/learn" element={<LearnPage />} />
-          <Route path="/learn/components" element={<ComponentsPage />} />
-          <Route path="/learn/compatibility" element={<CompatibilityPage />} />
-          <Route path="/learn/bottlenecks" element={<BottlenecksPage />} />
-          <Route path="/learn/budget-tips" element={<BudgettipsPage />} />
-
-          {/* Dashboard routes */}
-          <Route path="/dashboard" element={<DashboardWrapper />} />
-          <Route path="/settings" element={<SettingsWrapper />} />
-          <Route path="/community" element={<CommunityList />} />
         </Routes>
-      </main>
-      </div>
+      ) : (
+        <div className={showHeader && !isDashboard ? 'with-global-header' : ''}>
+          <main className="main-content">
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <Section />
+                    <Footer />
+                  </>
+                }
+              />
+
+              {/* PCBUILDER routes */}
+              <Route path="/builder" element={<BuilderPage />} />
+              <Route path="/builder/edit" element={<BuilderPageEdit />} />
+
+              {/* Prebuilt legacy paths now redirect/show CommunityList */}
+              <Route path="/prebuilt" element={<CommunityList />} />
+              <Route path="/prebuilt/" element={<CommunityList />} />
+              <Route path="/prebuilt/all" element={<CommunityList />} />
+              <Route path="/prebuilt/gaming" element={<CommunityList />} />
+              <Route path="/prebuilt/productivity" element={<CommunityList />} />
+              <Route path="/prebuilt/generaluse" element={<CommunityList />} />
+
+              <Route path="/components" element={<ComponentPage />} />
+              <Route path="/learn" element={<LearnPage />} />
+              <Route path="/learn/components" element={<ComponentsPage />} />
+              <Route path="/learn/compatibility" element={<CompatibilityPage />} />
+              <Route path="/learn/bottlenecks" element={<BottlenecksPage />} />
+              <Route path="/learn/budget-tips" element={<BudgettipsPage />} />
+
+              {/* Dashboard routes */}
+              <Route path="/dashboard" element={<DashboardWrapper />} />
+              <Route path="/settings" element={<SettingsWrapper />} />
+              <Route path="/community" element={<CommunityList />} />
+            </Routes>
+          </main>
+        </div>
+      )}
     </>
   );
 }
