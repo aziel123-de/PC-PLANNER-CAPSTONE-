@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './community.css';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import CommunityBuildModal from './CommunityBuildModal';
-import { FaUser } from 'react-icons/fa';
+import { FaUser, FaEye, FaDownload, FaTrash, FaCaretUp, FaDollarSign, FaClock } from 'react-icons/fa';
 
 /* Assumptions:
    - Auth token stored in localStorage under 'token'
@@ -19,6 +19,7 @@ function CommunityList() {
   const [error, setError] = useState(null);
   const [refreshIndex, setRefreshIndex] = useState(0);
   const [modalBuildId, setModalBuildId] = useState(null); // placeholder until modal is implemented
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, buildId: null, buildTitle: '' });
 
   const fetchBuilds = useCallback(async () => {
     setLoading(true); setError(null);
@@ -65,10 +66,21 @@ function CommunityList() {
     window.location.href = '/builder';
   };
 
-  const handleDelete = async (buildId) => {
-    if (!window.confirm('Delete this community build? This cannot be undone.')) return;
+  const handleDelete = (buildId, buildTitle) => {
+    setDeleteConfirm({ 
+      show: true, 
+      buildId: buildId, 
+      buildTitle: buildTitle || 'Untitled Build' 
+    });
+  };
+
+  const confirmDelete = async () => {
+    const buildId = deleteConfirm.buildId;
+    setDeleteConfirm({ show: false, buildId: null, buildTitle: '' });
+    
     const token = localStorage.getItem('token');
     if (!token) { alert('Login required'); return; }
+    
     try {
       const res = await fetch(`${API_PREFIX}/${buildId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) {
@@ -117,56 +129,43 @@ function CommunityList() {
           </div>
         ) : (
           <div className="builds-showcase">
-            {builds.map(b => (
-              <div key={b.id} className="modern-build-card">
-                <div className="card-gradient-border"></div>
+            {builds.map(build => (
+              <div key={build.id} className="build-card">
+                <div className="card-top-row">
+                  <h3 className="card-title">{build.title}</h3>
+                  <div className="card-right">
+                    <div className="votes">
+                      <FaCaretUp className="vote-triangle" />
+                      <span className="vote-count">{(build.up_votes || 0) - (build.down_votes || 0)}</span>
+                    </div>
+                    {currentUserId && currentUserId === build.user_id && (
+                      <button className="delete-button" onClick={() => handleDelete(build.id, build.title)}>
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                </div>
                 
-                <div className="card-header-modern">
-                  <div className="build-title-container">
-                   
-                    <h3 className="build-title-modern">{b.title}</h3>
-                  </div>
-                  <div className="vote-badge">
-                    <span className="vote-count">{(b.up_votes||0)-(b.down_votes||0)}</span>
-                    <span className="vote-label">votes</span>
-                  </div>
+                <div className="creator-row">
+                  <FaUser className="creator-icon" />
+                  <span className="creator-name">{build.username || 'hazel sadangsal'}</span>
+                </div>
+                
+                <p className="description-text">
+                  {build.description || 'Nag try lang ako ba'}
+                </p>
+
+                <div className="price-box">
+                  ₱{build.total_price?.toLocaleString() || '5,995'}
                 </div>
 
-                <div className="build-metadata">
-                  <div className="creator-info">
-                    <div className="creator-avatar">
-                      <FaUser />
-                    </div>
-                    <div className="creator-details">
-                      <span className="creator-name">{b.username || 'Anonymous'}</span>
-                      <span className="creator-label">Builder</span>
-                    </div>
-                  </div>
-                  
-                  <div className="price-display">
-                    <div className="price-amount">₱{b.total_price?.toLocaleString() || '0'}</div>
-                    <div className="price-label">Total Cost</div>
-                  </div>
-                </div>
-
-                <div className="build-description-modern">
-                  <p>{(b.description||'No description available').slice(0,140)}{b.description && b.description.length > 140 ? '...' : ''}</p>
-                </div>
-
-                <div className="card-actions-modern">
-                  <button className="modern-btn primary-btn" onClick={() => openModal(b.id)}>
-                  
-                    <span>View Details</span>
+                <div className="button-row">
+                  <button className="details-btn" onClick={() => openModal(build.id)}>
+                    View Details
                   </button>
-                  <button className="modern-btn secondary-btn" onClick={() => loadIntoBuilder(b)}>
-                    
-                    <span>Load Build</span>
+                  <button className="load-builds-btn" onClick={() => loadIntoBuilder(build)}>
+                    Load Builds
                   </button>
-                  {currentUserId && currentUserId === b.user_id && (
-                    <button className="modern-btn danger-btn" onClick={() => handleDelete(b.id)}>
-                      <span>Delete</span>
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
@@ -187,6 +186,35 @@ function CommunityList() {
           onClose={closeModal}
           onLoaded={closeModal}
         />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm.show && (
+        <div className="delete-dialog-overlay">
+          <div className="delete-dialog">
+            <div className="delete-dialog-header">
+              <h3>Confirm Delete</h3>
+            </div>
+            <div className="delete-dialog-body">
+              <p>Are you sure you want to delete this build?</p>
+              <p className="build-title-confirm">"{deleteConfirm.buildTitle}"</p>
+            </div>
+            <div className="delete-dialog-actions">
+              <button 
+                className="cancel-btn" 
+                onClick={() => setDeleteConfirm({ show: false, buildId: null, buildTitle: '' })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="confirm-delete-btn" 
+                onClick={() => confirmDelete()}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
