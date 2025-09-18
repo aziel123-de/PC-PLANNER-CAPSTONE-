@@ -207,12 +207,12 @@ function Section() {
               <p className="cta-subtitle">
                 Start your journey to a perfectly balanced PC build today.
               </p>
-              <div className="cta-buttons">
-                <button type="button" className="btn btn-primary" onClick={() => navigate('/builder')}>
+              <div className="s-buttons-homepage">
+                <button type="button" className="btn btn-f" onClick={() => navigate('/builder')}>
                   Start Building <FaArrowRight style={{ marginLeft: 2, verticalAlign: 'middle', display: 'inline-block' }} />
                 </button>
                 {!isLoggedIn && (
-                  <Link to="/signup" className="btn btn-secondary" role="button">
+                  <Link to="/signup" className="btn btn-s" role="button">
                     Create an Account <FaUserPlus style={{ marginLeft: 2, verticalAlign: 'middle', display: 'inline-block' }} />
                   </Link>
                 )}

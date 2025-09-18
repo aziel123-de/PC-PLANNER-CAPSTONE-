@@ -639,11 +639,13 @@ html, body {
   max-width: clamp(400px, 80vw, 600px);
 }
 
-.cta-buttons {
+.s-buttons-homepage {
   display: flex;
   gap: clamp(0.5rem, 2vw, 1rem);
   justify-content: center;
   flex-wrap: wrap;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .btn {
@@ -661,12 +663,12 @@ html, body {
 }
 
 
-.btn-primary {
+.btn-f {
   background: white;
   color: #3b82f6;
 }
 
-.btn-secondary {
+.btn-s {
   background: rgba(255, 255, 255, 0.1);
   color: rgb(255, 255, 255);
   border: 2px solid rgba(255, 255, 255, 0.3);
