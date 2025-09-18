@@ -75,12 +75,7 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
   return (
     <div className="login-wrapper">
 
-      <div className='back-home'>
-        <button className='home-button' onClick={onBackClick}>
-          <FaArrowLeft style={{ marginRight: '8px' }} />
-           Back
-        </button>
-      </div>
+     
 
       <div className="login-box">
         
@@ -158,6 +153,12 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
             Sign Up
           </a>
         </p>
+        <div className='back-home'>
+          <button className='home-button' onClick={onBackClick}>
+            <FaArrowLeft style={{ marginRight: '8px' }} />
+          
+          </button>
+        </div>
       </div>
     </div>
   );

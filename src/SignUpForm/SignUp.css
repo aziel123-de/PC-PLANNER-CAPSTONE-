@@ -19,8 +19,18 @@ html, body {
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative; /* allow absolutely positioned child back-home */
 }
 
+/* If using shared .back-home markup, position it in the top-left of the wrapper */
+.SignUp-wrapper .back-home {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 1000;
+}
+
+/* keep fallback legacy back-container support */
 .back-container {
   position: absolute;
   top: 20px;
@@ -62,6 +72,7 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative; /* allow in-card absolute elements */
 
   background: linear-gradient(
     to bottom right,
@@ -73,6 +84,22 @@ html, body {
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Position back-home inside the card's top-left corner */
+.signup-box .back-home {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+}
+
+.signup-box .home-button {
+  background: transparent;
+  color: #eaf6ff;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 8px;
 }
 
 .signup-box h2 {

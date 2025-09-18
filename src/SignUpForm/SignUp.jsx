@@ -59,23 +59,21 @@ function SignUp({ onLoginClick }) {
 
   return (
     <div className="SignUp-wrapper">
-      <div className="back-container">
-        <button
-          type="button"
-          className="back-btn"
-          onClick={() => {
-            if (typeof onLoginClick === 'function') onLoginClick();
-            else if (window && window.history) window.history.back();
-          }}
-          aria-label="Go back"
-        >
-          <FaArrowLeft aria-hidden="true" />
-          <span>Back</span>
-        </button>
-      </div>
-      
       
       <form onSubmit={handleSubmit} className="signup-box">
+        <div className="back-home">
+          <button
+            type="button"
+            className="home-button"
+            onClick={() => {
+              if (typeof onLoginClick === 'function') onLoginClick();
+              else if (window && window.history) window.history.back();
+            }}
+            aria-label="Go back"
+          >
+            <FaArrowLeft aria-hidden="true" style={{ marginRight: '8px' }} />
+          </button>
+        </div>
         <h2>PC Planner</h2>
         <h3>Create an Account</h3>
         <p>Sign up to save your PC Builds and get personalized recommendations</p>
