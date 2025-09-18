@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import './Section.css';
-import { FaArrowRight, FaBookOpen, FaCheckCircle, FaGlobe, FaBolt, FaTools } from 'react-icons/fa';
+import { FaArrowRight, FaBookOpen, FaCheckCircle, FaGlobe, FaBolt, FaTools, FaCheck } from 'react-icons/fa';
 import { PiSignInBold } from "react-icons/pi";
 import { FaUserPlus } from "react-icons/fa";
 import PC1 from '../assets/PC1.jpg';
@@ -173,9 +173,9 @@ function Section() {
                   Whether you're building your first PC or your fiftieth, PC Planner has features designed for you.
                 </p>
                 <ul className="feature-list">
-                  <li>Beginner-friendly explanations</li>
-                  <li>Budget recommendations</li>
-                  <li>Local pricing availability</li>
+                  <li><FaCheck /> Beginner-friendly explanations</li>
+                  <li><FaCheck /> Budget recommendations</li>
+                  <li><FaCheck /> Local pricing availability</li>
                 </ul>
               </div>
 
@@ -185,9 +185,9 @@ function Section() {
                   PC Planner is specifically designed for the Philippine market.
                 </p>
                 <ul className="feature-list">
-                  <li>Components available in the Philippine market</li>
-                  <li>Budget recommendations in Philippine Peso (₱)</li>
-                  <li>Local pricing and availability information</li>
+                  <li><FaCheck /> Components available in the Philippine market</li>
+                  <li><FaCheck /> Budget recommendations in Philippine Peso (₱)</li>
+                  <li><FaCheck /> Local pricing and availability information</li>
                 </ul>
                 <p className="note">
                   Note:PC Planner focuses on currently available components in the Philippine market.

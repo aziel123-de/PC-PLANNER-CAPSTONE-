@@ -131,6 +131,11 @@ function CommunityList() {
           <div className="builds-showcase">
             {builds.map(build => (
               <div key={build.id} className="build-card">
+                <div className="creator-row">
+                  <FaUser className="creator-icon" />
+                  <span className="creator-name">{build.username || 'hazel sadangsal'}</span>
+                </div>
+                
                 <div className="card-top-row">
                   <h3 className="card-title">{build.title}</h3>
                   <div className="card-right">
@@ -145,19 +150,14 @@ function CommunityList() {
                     )}
                   </div>
                 </div>
-                
-                <div className="creator-row">
-                  <FaUser className="creator-icon" />
-                  <span className="creator-name">{build.username || 'hazel sadangsal'}</span>
+
+                <div className="price-box">
+                  ₱{build.total_price?.toLocaleString() || '5,995'}
                 </div>
                 
                 <p className="description-text">
                   {build.description || 'Nag try lang ako ba'}
                 </p>
-
-                <div className="price-box">
-                  ₱{build.total_price?.toLocaleString() || '5,995'}
-                </div>
 
                 <div className="button-row">
                   <button className="details-btn" onClick={() => openModal(build.id)}>
