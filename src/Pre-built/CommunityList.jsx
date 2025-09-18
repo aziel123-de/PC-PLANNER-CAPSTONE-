@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './community.css';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import CommunityBuildModal from './CommunityBuildModal';
-import { FaUser, FaEye, FaDownload, FaTrash, FaCaretUp, FaDollarSign, FaClock } from 'react-icons/fa';
+import { FaUser, FaEye, FaDownload, FaTrash, FaCaretUp, FaDollarSign, FaClock, FaTools, FaWrench } from 'react-icons/fa';
 
 /* Assumptions:
    - Auth token stored in localStorage under 'token'
@@ -172,7 +172,10 @@ function CommunityList() {
             
             {!loading && builds.length === 0 && !error && (
               <div className="empty-state">
-                <div className="empty-icon"></div>
+                <div className="empty-icon">
+                  <FaTools style={{ fontSize: '3.5rem', color: '#3b5998', marginRight: '0.5rem' }} />
+                  <FaWrench style={{ fontSize: '2.8rem', color: '#4a6cf7', transform: 'rotate(-45deg)', marginLeft: '-0.8rem' }} />
+                </div>
                 <h3>No builds shared yet</h3>
                 <p>Be the first to share your amazing PC build with the community!</p>
               </div>

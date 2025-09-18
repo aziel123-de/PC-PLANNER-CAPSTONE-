@@ -432,9 +432,12 @@
 }
 
 .empty-icon {
-  font-size: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
   margin-bottom: 1rem;
-  opacity: 0.5;
+  height: 5rem;
 }
 
 .empty-state h3 {
