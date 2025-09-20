@@ -39,6 +39,7 @@
   color: var(--muted);
 }
 
+
 /* Image area */
 .component-image {
   width: 100%;
@@ -100,11 +101,39 @@
 }
 
 .component-card ul li strong {
-  min-width: 92px;
+  min-width: 120px; /* wider label column to match mock */
   display: inline-block;
   color: #111827;
   font-weight: 600;
-  text-transform: capitalize;
+  text-transform: none; /* labels are formatted in JS now */
+}
+
+.components-list-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.components-list-info .value {
+  flex: 1 1 auto;
+  color: rgba(17,24,39,0.85);
+  word-break: break-word;
+}
+
+/* label text should be black and clearly visible */
+.label-text {
+  color: #000000;
+  font-weight: 200;
+}
+
+/* make the list info text thinner and slightly muted */
+.components-list-info {
+  font-weight: 300; /* thinner body text */
+  color: var(--muted);
+}
+.components-list-info span {
+  font-weight: 400; /* ensure values are readable but still lighter than labels */
+  color: rgba(17,24,39,0.85);
 }
 
 /* Compact key/value for tight information */

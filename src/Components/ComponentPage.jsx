@@ -69,10 +69,10 @@ function ComponentPage() {
       {/* Header*/}
       <div className="component-page" style={{ paddingTop: 20 }}>
         <div className="componentdb-header">
-          <div className="comp-list">
+          
             <h2 className="componentdb-title">Component Database</h2>
             <p className="componentdb-desc">Browse our comprehensive database of PC components with detailed specifications and compatibility information</p>
-          </div>
+          
         </div>
 
          {/* Buttons*/}

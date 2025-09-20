@@ -35,10 +35,17 @@ function ComponentCard({ component }) {
 
       <ul>
         {Object.entries(item).map(([key, value]) => {
+          // skip meta fields and any raw data fields
           if (key === "id" || key === "name" || key === "image") return null;
+          if (String(key).toLowerCase().includes('raw')) return null;
+
+          // format the label: replace underscores and title-case
+          const label = String(key).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
           return (
-            <li key={key}>
-              <strong>{key}:</strong> <span>{String(value)}</span>
+            <li key={key} className="components-list-info">
+             <label className="label-text">{label}:</label>
+              <span className="value">{String(value)}</span>
             </li>
           );
         })}
