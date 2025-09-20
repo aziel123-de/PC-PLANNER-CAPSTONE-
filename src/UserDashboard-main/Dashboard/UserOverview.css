@@ -438,26 +438,24 @@ body.hide-global-header .header {
   flex-direction: row;
   min-height: 100vh; /* Use min-height instead of height */
   overflow-x: hidden; /* Only hide horizontal overflow */
-  margin-top: 8px; /* subtle gap below fixed header */
+  margin-top: 0; /* remove gap below fixed header */
 }
 
 .sidebar-db {
-  position: sticky;
-  top: 100px;
-  margin-top: 8px; /* small visual gap below header */
-  height: calc(100vh - 72px - 8px);
-  background: linear-gradient(135deg, #121f4c, #1c3777);
-  padding: 40px 0;
-  box-shadow: 20px 0 60px rgba(0,0,0,0.2);
+  position: sticky; /* keep the sidebar fixed under the header */
+  top: 48px; /* align under the header */
+  margin-top: 0; /* keep no visual gap */
+  background: linear-gradient(135deg, #07143a 0%, #0e2a56 45%, #123562 100%);
+  padding: 24px 20px; /* breathing room for content */
+  box-shadow: 0 8px 30px rgba(2,12,40,0.45);
   width: 280px;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: hidden; /* prevent internal scrollbars */
+  height: calc(100vh - 56px); /* fit under header and avoid internal scrolling */
   z-index: 1;
   transition: width 0.3s ease;
-  /* keep these only for the “radius-based” options */
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
-  border-top: 2px solid white;
 }
 
 /* Collapsed sidebar */
@@ -510,7 +508,7 @@ body.hide-global-header .header {
 .sidebar-content {
   position: relative;
   z-index: 2;
-  padding: 40px 0px;
+  padding: 0 12px; /* inner vertical spacing driven by other elements; keep content inset from edge */
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -612,47 +610,45 @@ body.hide-global-header .header {
 .buttons-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  align-items: center;
+  gap: 14px;
+  align-items: stretch; /* make buttons fill available width */
 }
 
 
 .sidebar-button {
-  background: rgba(4, 102, 214, 0.15);
+  background: rgba(255,255,255,0.03);
   border: none;
-  padding: 12px 16px;
-  text-align: center;
+  padding: 12px 18px;
+  text-align: left;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Changed from center to flex-start */
-  gap: 12px; /* Increased gap slightly */
-  transition: all 0.3s ease;
-  color: #d0e6ff;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0, 153, 255, 0.2);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
-  width: 180px; /* Fixed width */
-  height: 50px; /* Fixed height */
-  padding-left: 20px; /* More consistent left padding */
+  justify-content: flex-start;
+  gap: 12px;
+  transition: all 0.22s cubic-bezier(.2,.9,.2,1);
+  color: rgba(255,255,255,0.95);
+  width: 100%; /* full width inside padded container */
+  box-shadow: none;
+  padding-left: 22px; /* consistent left offset for icon + label */
 }
 
 .sidebar-db .sidebar-button.active {
   background: #ffffff !important;
-  color: #000000 !important;
+  color: #0e1a40 !important;
   font-weight: 700;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  border: 2px solid rgba(0, 119, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(14,26,64,0.12);
+  border-left: 6px solid rgba(0, 153, 255, 0.95);
+  transform: translateX(0);
 }
 
 .sidebar-button:active:not(.active) {
-  background: rgba(4, 102, 214, 0.25) !important;
-  color: #d0e6ff !important;
-  transform: scale(0.98);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(255,255,255,0.05) !important;
+  color: rgba(255,255,255,0.95) !important;
+  transform: scale(0.995);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 .dashboard-underline {
@@ -680,6 +676,14 @@ body.hide-global-header .header {
   flex-shrink: 0;
   vertical-align: middle;
   line-height: 1;
+}
+
+.sidebar-db .sidebar-button .button-icon {
+  color: rgba(255,255,255,0.9);
+}
+
+.sidebar-db .sidebar-button.active .button-icon {
+  color: rgba(14,26,64,1);
 }
 
 /* Force all SVG icons to have consistent sizing */

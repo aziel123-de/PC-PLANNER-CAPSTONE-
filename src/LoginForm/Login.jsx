@@ -75,7 +75,7 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
   return (
     <div className="login-wrapper">
 
-     
+    
 
       <div className="login-box">
         
@@ -123,7 +123,7 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
           {error && <p style={{ color: 'red', fontSize: '15px' }}>{error}</p>}
 
           <div className="forgot">
-            <a href="#">Forgot Password?</a>
+            <a onClick={() => navigate('/forgot-password')} style={{ cursor: 'pointer', color: '#9fd7ff' }}>Forgot Password?</a>
           </div>
 
           <button className="signin-btn" onClick={handleSignIn}>Sign In</button>

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { forceUnlockAllScroll } from './utils/scrollLock.js';
 import Login from './LoginForm/Login.jsx';
 import SignUp from './SignUpForm/SignUp.jsx';
+import ForgotPassword from './LoginForm/ForgotPassword.jsx';
 import Header from './HomepageForm/Header.jsx';
 import LoggedInUserHeader from './UserDashboard-main/Dashboard/loggedInUserHeader';
 import Section from './HomepageForm/Section.jsx';
@@ -27,7 +28,7 @@ function App() {
   const location = useLocation();
 
   // hide header on these routes
-  const hideHeaderOn = ['/login', '/signup'];
+  const hideHeaderOn = ['/login', '/signup', '/forgot-password'];
   const navigate = useNavigate();
 
   // decide logged-in by token in localStorage (matches other components)
@@ -74,6 +75,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginWrapper />} />
           <Route path="/signup" element={<SignUpWrapper />} />
+          <Route path="/forgot-password" element={<ForgotPasswordWrapper />} />
         </Routes>
       ) : (
         <div className={showHeader && !isDashboard ? 'with-global-header' : ''}>
@@ -138,6 +140,16 @@ function SignUpWrapper() {
       onBackClick={() => navigate('/')}
       onLoginClick={() => navigate('/login')}
       onLoginSuccess={() => navigate('/')} // go home after signup
+    />
+  );
+}
+
+function ForgotPasswordWrapper() {
+  const navigate = useNavigate();
+  return (
+    <ForgotPassword
+      // ForgotPassword uses its own back button; still provide a prop if needed
+      onBack={() => navigate(-1)}
     />
   );
 }
