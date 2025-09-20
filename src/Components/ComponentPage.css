@@ -1,6 +1,7 @@
 .componentdb-header {
   margin-top: 1rem;
   margin-bottom: 1.5em;
+  text-align: center;
 }
 
 .componentdb-title {
@@ -22,9 +23,8 @@
   justify-content: center;
   padding: 12px 16px;
   background: transparent;
-  position: sticky;
-  top: 70px; /* sits under fixed header */
-  z-index: 30;
+  margin: 0 auto 12px;
+  max-width: 980px; /* align with comp-list width */
 }
 
 .filter-nav {
@@ -160,6 +160,31 @@
   width: 100%;
 }
 
+/* comp-list card for the component DB header */
+.comp-list {
+  background-color: #f0f6ff;
+  border: 1px solid #cfdff8;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px auto;
+  font-family: Tahoma, sans-serif;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  max-width: 980px;
+  text-align: center; /* center contents */
+}
+
+.comp-list .componentdb-title {
+  text-align: center;
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.comp-list .componentdb-desc {
+  text-align: center;
+  color: #475569;
+  margin-bottom: 0;
+}
+
 /* sort menu visual polish */
 .sort-container { position: relative; z-index: 140; }
 
@@ -239,4 +264,59 @@
     padding-left: 36px;
   }
   .search-clear { right: 6px; width: 30px; height: 30px; font-size: 16px; }
+}
+
+/* Floating filter button (appears after scrolling past header) */
+.floating-filter {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 2000;
+}
+
+.floating-filter-btn {
+  background: linear-gradient(135deg,#1d5bff,#2563eb);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(37,99,235,0.2);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* subtle appear animation for the floating button */
+.floating-filter-btn {
+  transition: transform .16s cubic-bezier(.2,.9,.2,1), box-shadow .16s ease, opacity .12s ease;
+}
+.floating-filter-btn:active { transform: scale(.98); }
+
+.floating-filter-popover {
+  margin-top: 10px;
+  background: white;
+  border: 1px solid rgba(14,26,64,0.08);
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(13,20,40,0.12);
+  width: 320px;
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: translateY(6px) scale(.96);
+  transition: transform 180ms cubic-bezier(.2,.9,.2,1), opacity 140ms ease;
+}
+
+/* open state */
+.floating-filter-popover.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* closing — play slightly reversed animation */
+.floating-filter-popover.closing {
+  opacity: 0;
+  transform: translateY(6px) scale(.98);
+}
+
+@media (max-width: 520px) {
+  .floating-filter-popover { width: calc(100vw - 40px); right: 20px; left: 20px; }
 }

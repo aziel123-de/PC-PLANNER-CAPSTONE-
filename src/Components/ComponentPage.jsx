@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 // import Header from "../HomepageForm/Header.jsx"; // removed duplicated header
 import ComponentCard from "./ComponentCard";
 import './ComponentPage.css';
@@ -66,12 +66,16 @@ function ComponentPage() {
 
   return (
     <>
-      {/* Header removed here — App.jsx should render the global Header */}
-      <div className="component-page" style={{ paddingTop: 80 }}>
+      {/* Header*/}
+      <div className="component-page" style={{ paddingTop: 20 }}>
         <div className="componentdb-header">
-          <h2 className="componentdb-title">Component Database</h2>
-          <p className="componentdb-desc">Browse our comprehensive database of PC components with detailed specifications and compatibility information</p>
+          <div className="comp-list">
+            <h2 className="componentdb-title">Component Database</h2>
+            <p className="componentdb-desc">Browse our comprehensive database of PC components with detailed specifications and compatibility information</p>
+          </div>
         </div>
+
+         {/* Buttons*/}
         <div className="component-filter-wrap">
           <div className="filter-left">
             <div className="filter-nav">
@@ -161,6 +165,15 @@ function ComponentPage() {
           {/* removed filter-right - search is now under filter-left */}
         </div>
 
+        {/* Floating filter button shown after scrolling past header */}
+        <FloatingFilterButton
+          filters={filters}
+          activeFilter={filter}
+          onFilterChange={setFilter}
+          query={query}
+          onQueryChange={setQuery}
+        />
+
         {loading && (
           <div className="no-results">Loading components...</div>
         )}
@@ -171,6 +184,8 @@ function ComponentPage() {
         {visibleCategories.map(({ key, title, arr }) => (
           <section
             key={key}
+
+             
             className={`component-section component-section--${key}`}
           >
             <h2>{title}</h2>
@@ -190,3 +205,132 @@ function ComponentPage() {
 }
 
 export default ComponentPage;
+
+function FloatingFilterButton({ filters, activeFilter, onFilterChange, query, onQueryChange }) {
+  const [visible, setVisible] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [renderPopover, setRenderPopover] = useState(false);
+  const ANIM_MS = 180; // match CSS transition timing
+
+  useEffect(() => {
+    const el = document.querySelector('.comp-list');
+    // compute absolute threshold where comp-list bottom has scrolled past the viewport top
+    let threshold = 220; // fallback
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      threshold = rect.bottom + window.scrollY;
+    }
+
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        const scrollingUp = delta < 0;
+
+        // Show when we've passed the threshold OR when the user scrolls up a bit
+        const shouldShow = y >= threshold || (scrollingUp && y > 60);
+        setVisible(shouldShow);
+        lastY = y;
+        ticking = false;
+      });
+    }
+
+    // recompute threshold on resize
+    function onResize() {
+      const el2 = document.querySelector('.comp-list');
+      if (el2) {
+        const r2 = el2.getBoundingClientRect();
+        threshold = r2.bottom + window.scrollY;
+      }
+    }
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
+
+  // manage render/unmount so we can animate close
+  useEffect(() => {
+    if (open) {
+      setRenderPopover(true);
+    } else if (renderPopover) {
+      // start closing animation then unmount
+      const t = setTimeout(() => setRenderPopover(false), ANIM_MS);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [open]);
+
+  // keyboard: ESC to close
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape' && open) setOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  if (!visible && !open) return null;
+
+  function toggle() {
+    if (!open) {
+      setRenderPopover(true);
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
+  }
+
+  return (
+    <div className="floating-filter">
+      <button
+        className="floating-filter-btn"
+        onClick={toggle}
+        aria-expanded={open}
+        aria-label="Open filters"
+      >
+        Filters
+      </button>
+
+      {renderPopover && (
+        <div
+          className={`floating-filter-popover ${open ? 'open' : 'closing'}`}
+          role="dialog"
+          aria-modal="false"
+        >
+          <div className="filter-nav">
+            {filters.map(f => (
+              <button
+                key={f.key}
+                className={`filter-btn ${activeFilter === f.key ? 'active' : ''}`}
+                onClick={() => { onFilterChange(f.key); }}
+                type="button"
+              >
+                {f.title}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 8 }}>
+            <input
+              className="search-input"
+              type="search"
+              placeholder="Search components..."
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

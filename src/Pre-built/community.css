@@ -1040,6 +1040,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   border: 1px solid #e5e7eb;
   max-width: 300px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  position: relative; /* ensure absolute children are positioned relative to the card */
 }
 
 .card-top-row {
@@ -1047,6 +1048,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.25rem;
+  padding-right: 84px; /* reserve space on the right for the absolute card-right */
 }
 
 .card-title {
@@ -1063,6 +1065,9 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: absolute; /* position at the top-right of the card */
+  top: 1.25rem; /* align with creator-row which sits above card-top-row */
+  right: 1.25rem;
 }
 
 .votes {
@@ -1107,6 +1112,12 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+  /* On small screens, restore normal flow so items stack naturally */
+  .card-top-row { padding-right: 0; }
+  .card-right { position: static; top: auto; right: auto; margin-top: 0.5rem; }
 }
 
 .profile-picture {
