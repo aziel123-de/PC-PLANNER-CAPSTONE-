@@ -138,6 +138,8 @@ body.hide-global-header .header {
 
   .dashboard-container {
     flex-direction: column; /* Stack sidebar and main content on mobile */
+    max-height: fit-content;
+    
   }
 
   .sidebar {
@@ -451,7 +453,7 @@ body.hide-global-header .header {
   width: 280px;
   flex-shrink: 0;
   overflow: hidden; /* prevent internal scrollbars */
-  height: calc(100vh - 56px); /* fit under header and avoid internal scrolling */
+  height: calc(100vh - 10px); /* fit under header and avoid internal scrolling */
   z-index: 1;
   transition: width 0.3s ease;
   border-top-right-radius: 20px;
@@ -802,7 +804,7 @@ body.hide-global-header .header {
   background-color: #f1f1f1;
   /* Allow natural document scrolling; remove internal scroll trap */
   width: 100%;
-  min-height: calc(100vh - 72px); /* at least viewport minus header */
+  max-height: calc(100vh - 10px); /* at least viewport minus header */
   flex-grow: 1;
 }
 
@@ -815,11 +817,11 @@ body.hide-global-header .header {
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  max-width: 1100px;
   width: 100%;
-  margin: 0.5rem auto 2rem auto;
   position: relative;
   overflow: hidden;
+  
+
 }
 
 .welcome-box::before {
@@ -858,6 +860,7 @@ body.hide-global-header .header {
   padding: 1rem 1.5rem;
   position: relative;
   z-index: 2;
+  max-width: fit-content;
 }
 
 .welcome-text {
@@ -926,6 +929,7 @@ body.hide-global-header .header {
   font-weight: 400;
   line-height: 1.6;
   letter-spacing: 0.5px;
+
 }
 
 .gradientName {
@@ -977,6 +981,7 @@ body.hide-global-header .header {
   .welcome-box {
     margin: 0.25rem auto 1.5rem auto;
     border-radius: 20px;
+    width: 100vh;
   }
   
   .welcome-content {
