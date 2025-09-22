@@ -304,7 +304,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   {/* Recent Builds */}
   <div className="box-recentBuilds">
   <div className="box-header">
-    <h3>Recent Builds</h3>
+    <h3><FaTools /> Recent Builds</h3>
     <p>Your most recently created or modified PC builds</p>
   </div>
 
@@ -333,7 +333,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   {/* Detected Issues */}
   <div className='box-detectedIssues'>
   <div className="box-header">
-    <h3>Detected Issues</h3>
+    <h3><TriangleAlert size={20} /> Detected Issues</h3>
     <p>Bottlenecks and warnings in your builds</p>
   </div>
 
@@ -439,7 +439,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
 <div className="box-buildHistory">
       <div className="box-header">
-        <h3>Build History</h3>
+        <h3><FaHistory /> Build History</h3>
         <p>Track your saved builds over time</p>
       </div>
 
