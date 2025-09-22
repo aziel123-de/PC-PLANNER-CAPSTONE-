@@ -273,17 +273,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     </div>
   </div>
 
-  <div className='box box-3'>
-    <div className="box-top">
-      <p className="box-label">Builds
-        <Clock3 size={20} className="box-icon-3" />
-      </p>
-      <h2 className="box-value">0</h2>
-    </div>
-    <div className="box-bottom">
-      <p className="box-note">You haven't saved any</p>
-    </div>
-  </div>
 
   <div className='box box-4'>
     <div className="box-top">

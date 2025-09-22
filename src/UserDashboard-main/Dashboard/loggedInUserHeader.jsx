@@ -82,7 +82,6 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                   <img src={authUser?.photoURL || profDefault} alt="Profile" className="header-profile-img" />
                   <div className="profile-info">
                     <span className="profile-name">{authUser?.username || authUser?.displayName || ''}</span>
-                    <span className="profile-email">{authUser?.email || ''}</span>
                   </div>
                   <div className={`dropdown-icon ${openDropdown ? 'rotate' : ''}`}>
                     <ChevronDown size={20} />
