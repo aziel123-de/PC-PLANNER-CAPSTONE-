@@ -33,6 +33,35 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+/* interactive card variant */
+.compat-card {
+  background: #fff;
+  border: 1px solid #eef2ff;
+  border-radius: 10px;
+  padding: 0;
+  margin: 12px 0;
+  overflow: hidden;
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+.compat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(2,6,23,0.06); }
+
+.compat-card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; cursor:pointer; }
+.compat-left { display:flex; align-items:center; gap:10px; }
+.compat-icon { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background: #f8fafc; flex:0 0 36px; }
+.compat-icon svg { width:22px; height:22px; }
+
+.compat-inner { padding: 12px 14px 16px; color: #374151; }
+.compat-details { transition: max-height 300ms cubic-bezier(.2,.9,.3,1), opacity 260ms ease; overflow:hidden; }
+
+.expand-arrow { transition: transform 220ms cubic-bezier(.2,.9,.3,1), color 180ms; color:#64748B; font-size:16px; }
+.expand-arrow.rotated { transform: rotate(180deg); color:#0f172a; }
+
+@media (max-width: 640px) {
+  .compat-icon { width:32px; height:32px; }
+  .compat-card-header { padding: 10px 12px; }
+  .compat-inner { padding: 10px 12px; }
+}
+
 .vertical-card-title {
   margin: 0 0 6px;
   font-size: 1.25rem;

@@ -1,194 +1,202 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './BudgettipsPage.css';
 import Navbar from '../Navigation/Navbar.jsx';
 
 function BudgettipsPage() {
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [selectedBuild, setSelectedBuild] = useState('Budget');
+  // allow multiple tips open
+  const [openIds, setOpenIds] = useState([]);
+  const sectionsRef = useRef({});
 
-  const toggleDropdown = (index) => {
-    setOpenDropdown(openDropdown === index ? null : index);
-  };
+  // Collapsible card component
+  function TipCard({ id, title, summary, children }) {
+    const isOpen = openIds.includes(id);
+    const containerRef = useRef(null);
+    const innerRef = useRef(null);
+
+    useEffect(() => {
+      const el = containerRef.current;
+      const inner = innerRef.current;
+      if (!el || !inner) return;
+      if (isOpen) {
+        el.style.maxHeight = inner.scrollHeight + 'px';
+        el.style.opacity = '1';
+      } else {
+        el.style.maxHeight = '0px';
+        el.style.opacity = '0';
+      }
+    }, [isOpen]);
+
+    const toggle = () => {
+      setOpenIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
+    return (
+      <article className={`tips-card ${isOpen ? 'is-open' : ''}`} id={id} ref={(el) => (sectionsRef.current[id] = el)}>
+        <header
+          className="tips-header"
+          role="button"
+          tabIndex={0}
+          aria-expanded={isOpen}
+          onClick={toggle}
+          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggle()}
+        >
+          <div>
+            <h3 className="card-heading">{title}</h3>
+            {summary ? <p className="card-summary">{summary}</p> : null}
+          </div>
+          <div className={`expand-arrow ${isOpen ? 'rotated' : ''}`}>{'▾'}</div>
+        </header>
+        <div className="tips-details" ref={containerRef} style={{ maxHeight: 0, opacity: 0 }}>
+          <div ref={innerRef} className="tips-inner">
+            {children}
+          </div>
+        </div>
+      </article>
+    );
+  }
   
 
   const dropdowns = [
     {
       title: 'Prioritize Performance-Critical Components',
+      badge: 'Quick win',
+      summary: 'Spend more on components that directly impact your primary workload (gaming, content, etc.)',
       content: (
         <>
-          Spend more on components that directly impact performance for your specific use case:
-          <ul>
-            <li>Gaming: GPU &gt; CPU &gt; RAM &gt; Storage</li>
-            <li>Content Creation: CPU &gt; RAM &gt; Storage &gt; GPU</li>
-            <li>General Use: CPU &gt; SSD &gt; RAM &gt; GPU</li>
+          <p className="tldr">TL;DR: Spend where it matters for your workload — GPU for gaming, CPU for content.</p>
+          <ul className="action-list">
+            <li><strong>Do:</strong> Allocate ~30–40% to GPU for gaming builds.</li>
+            <li><strong>Do:</strong> Prioritize CPU and RAM for productivity/content creation.</li>
+            <li><strong>Quick check:</strong> Compare current-gen vs previous-gen price/perf.</li>
           </ul>
         </>
       )
     },
     {
       title: 'Consider Previous Generation Components',
+      badge: 'Trade-off',
+      summary: 'Last-gen parts often give great value — check price/perf before buying latest.',
       content: (
         <>
-          Last-gen components often offer excellent value:
-          <ul>
-            <li>20–30% cheaper, 10–15% less performance</li>
-            <li>Ryzen 5000 series and Intel 12th Gen still great in 2023</li>
-            <li>RTX 3000 series still good vs RTX 4000</li>
+          <p className="tldr">TL;DR: Buying last-gen hardware can save money with small performance loss.</p>
+          <ul className="action-list">
+            <li><strong>Do:</strong> Check prices for previous-gen CPUs/GPUs — often 20–30% cheaper.</li>
+            <li><strong>Check:</strong> Feature gaps (PCIe lanes, memory support) before buying.</li>
+            <li><strong>Tip:</strong> Look for sales on trusted retailers or gently-used parts.</li>
           </ul>
         </>
       )
     },
     {
       title: "Don't Overspend on the Motherboard",
+      badge: 'Long-term',
+      summary: 'Choose a mid-range board and avoid paying for features you don\'t need.',
       content: (
         <>
-          Mid-range boards offer best value:
-          <ul>
-            <li>B550, B660 offer great features</li>
-            <li>Only pay for features you need (Wi-Fi, extra M.2, VRMs)</li>
-            <li>Check for needed ports and expansion slots</li>
+          <p className="tldr">TL;DR: Get a reliable mid-range board — skip expensive extras you won't use.</p>
+          <ul className="action-list">
+            <li><strong>Do:</strong> Pick a board with the sockets and slots you actually need.</li>
+            <li><strong>Avoid:</strong> Paying for premium features (RGB, ultra-high-end audio) if unnecessary.</li>
+            <li><strong>Check:</strong> VRM quality for future CPU upgrades.</li>
           </ul>
         </>
       )
     },
     {
       title: 'Start with a Good Foundation',
+      badge: 'Essential',
+      summary: 'Invest in quality PSU, case, and motherboard for longevity and upgrades.',
       content: (
         <>
-          Invest in long-lasting parts:
-          <ul>
-            <li>Good PSU lasts 10+ years</li>
-            <li>Case with airflow supports future upgrades</li>
-            <li>Motherboard with extra slots for expandability</li>
+          <p className="tldr">TL;DR: Spend a bit more on PSU and case — they protect and enable future upgrades.</p>
+          <ul className="action-list">
+            <li><strong>Do:</strong> Buy a reputable PSU with headroom (80+ Bronze or better).</li>
+            <li><strong>Do:</strong> Choose a case with good airflow and cable management.</li>
+            <li><strong>Tip:</strong> A quality PSU often outlives one or two CPU/GPU upgrades.</li>
           </ul>
         </>
       )
     },
     {
       title: 'Plan for Upgrades',
+      badge: 'Strategy',
+      summary: 'Build with future expansion in mind: leave slots and headroom.',
       content: (
         <>
-          Build with expansion in mind:
-          <ul>
-            <li>Strong CPU & motherboard first, GPU later</li>
-            <li>Start with 2x8GB RAM, leave room to expand</li>
-            <li>Begin with NVMe SSD, add storage later</li>
-            <li>PSU with headroom for GPU upgrade</li>
+          <p className="tldr">TL;DR: Design the build for easy upgrades to extend lifespan and save money long-term.</p>
+          <ul className="action-list">
+            <li><strong>Do:</strong> Start with a strong CPU/motherboard, upgrade GPU later as needed.</li>
+            <li><strong>Do:</strong> Buy 2x8GB RAM now and leave room to add more later.</li>
+            <li><strong>Check:</strong> PSU wattage headroom and extra M.2 slots.</li>
           </ul>
         </>
       )
     }
   ];
 
-  const builds = {
-    Budget: {
-      title: 'Budget Gaming Build (₱35,000)',
-      parts: [
-        'CPU: Intel Core i3-12100F (₱6,500) or AMD Ryzen 5 5500 (₱7,000)',
-        'Motherboard: MSI PRO B660M-A (₱6,000) or MSI B550M PRO-VDH (₱5,500)',
-        'GPU: NVIDIA GTX 1660 Super (₱12,000) or AMD RX 6600 (₱13,000)',
-        'RAM: 16GB (2x8GB) DDR4-3200 (₱3,500)',
-        'Storage: 500GB NVMe SSD (₱3,000)',
-        'PSU: 550W 80+ Bronze (₱3,000)',
-        'Case: Budget ATX case with mesh front (₱2,000)',
-        'Performance: 1080p gaming at medium-high settings'
-      ]
-    },
-    Mid: {
-      title: 'Mid-range Gaming Build (₱65,000)',
-      parts: [
-        'CPU: Intel Core i5-13400F (₱11,000) or Ryzen 5 7600 (₱13,000)',
-        'Motherboard: B660M or B650M (₱6,000–₱7,000)',
-        'GPU: RTX 3060 Ti (₱20,000) or RX 6700 XT (₱21,000)',
-        'RAM: 16GB (2x8GB) DDR4/DDR5 (₱4,000)',
-        'Storage: 1TB NVMe SSD (₱4,500)',
-        'PSU: 650W 80+ Bronze or Gold (₱4,000)',
-        'Case: Mid-tower with good airflow (₱2,500)',
-        'Performance: Excellent 1080p / good 1440p'
-      ]
-    },
-    High: {
-      title: 'High-end Gaming Build (₱100,000)',
-      parts: [
-        'CPU: Ryzen 7 7800X3D (₱21,000) or Intel Core i7-14700KF (₱22,000)',
-        'Motherboard: B650/X670 or Z790 (₱9,000–₱12,000)',
-        'GPU: RTX 4070 Super (₱36,000) or RX 7900 XT (₱38,000)',
-        'RAM: 32GB DDR5 (2x16GB) 6000MHz (₱7,000)',
-        'Storage: 1TB Gen4 NVMe SSD (₱5,000)',
-        'PSU: 750W–850W Gold (₱5,500)',
-        'Case: High-airflow premium ATX (₱3,000–₱5,000)',
-        'Performance: Ultra 1440p / entry 4K'
-      ]
-    }
-  };
+  // builds/templates removed (templates section is intentionally deleted)
 
   return (
     <div className="budget-tips-page">
       <h1>Budget Optimization Tips</h1>
       <p className="page-description">Build a powerful PC without breaking the bank</p>
       <Navbar />
-      
-  {/* First Card */}
-  <section className="wiki-section">
+
+      {/* First Card */}
+      <section className="wiki-section">
         <h2>Budget Allocation Strategy</h2>
-        <h3>Gaming PC Budget Breakdown</h3>
-        <ul>
-          <li>GPU: 30–40% of budget</li>
-          <li>CPU: 15–20%</li>
-          <li>Motherboard, RAM, Storage: 10–15% each</li>
-          <li>PSU, Case: 5–10% each</li>
-        </ul>
-        <p><strong>Example:</strong> ₱50,000 build → ₱15,000–₱20,000 on GPU, ₱7,500–₱10,000 on CPU</p>
+        <p className="tldr">TL;DR: Allocate most of your budget to the component that affects your main workload (GPU for gaming, CPU for productivity).</p>
 
-        <h3>Productivity PC Budget Breakdown</h3>
-        <ul>
-          <li>CPU: 25–30% of budget</li>
-          <li>RAM, Storage: 15–20%</li>
-          <li>GPU: 10–15%</li>
-          <li>Motherboard, PSU, Case: 5–15%</li>
-        </ul>
-  </section>
-
-  {/* Second Card */}
-  <section className="wiki-section">
-        <h2>Smart Saving Strategies</h2>
-        {dropdowns.map((item, index) => (
-          <div key={index} className="dropdown">
-            <button onClick={() => toggleDropdown(index)} className="dropdown-button">
-              {item.title}
-            </button>
-            {openDropdown === index && (
-              <div className="dropdown-content">
-                {item.content}
-              </div>
-            )}
+        <div className="alloc-grid">
+          <div className="alloc-col">
+            <h4>Gaming PC (example)</h4>
+            <div className="alloc-row"><span>GPU</span><div className="alloc-bar"><div style={{width:'35%'}}/></div><span className="alloc-pct">35%</span></div>
+            <div className="alloc-row"><span>CPU</span><div className="alloc-bar"><div style={{width:'18%'}}/></div><span className="alloc-pct">18%</span></div>
+            <div className="alloc-row"><span>Motherboard</span><div className="alloc-bar"><div style={{width:'10%'}}/></div><span className="alloc-pct">10%</span></div>
+            <div className="alloc-row"><span>RAM</span><div className="alloc-bar"><div style={{width:'10%'}}/></div><span className="alloc-pct">10%</span></div>
+            <div className="alloc-row"><span>Storage</span><div className="alloc-bar"><div style={{width:'10%'}}/></div><span className="alloc-pct">10%</span></div>
+            <div className="alloc-row"><span>PSU/Case</span><div className="alloc-bar"><div style={{width:'17%'}}/></div><span className="alloc-pct">17%</span></div>
           </div>
-        ))}
-  </section>
+          <div className="alloc-col">
+            <h4>Productivity PC (example)</h4>
+            <div className="alloc-row"><span>CPU</span><div className="alloc-bar"><div style={{width:'30%'}}/></div><span className="alloc-pct">30%</span></div>
+            <div className="alloc-row"><span>RAM</span><div className="alloc-bar"><div style={{width:'18%'}}/></div><span className="alloc-pct">18%</span></div>
+            <div className="alloc-row"><span>Storage</span><div className="alloc-bar"><div style={{width:'18%'}}/></div><span className="alloc-pct">18%</span></div>
+            <div className="alloc-row"><span>GPU</span><div className="alloc-bar"><div style={{width:'12%'}}/></div><span className="alloc-pct">12%</span></div>
+            <div className="alloc-row"><span>Motherboard</span><div className="alloc-bar"><div style={{width:'12%'}}/></div><span className="alloc-pct">12%</span></div>
+            <div className="alloc-row"><span>PSU/Case</span><div className="alloc-bar"><div style={{width:'10%'}}/></div><span className="alloc-pct">10%</span></div>
+          </div>
+        </div>
+      </section>
 
-  {/* Third Card */}
-  <section className="wiki-section">
-        <h2>Budget Build Templates</h2>
-        <div className="build-nav">
-          {['Budget', 'Mid', 'High'].map((tab) => (
-            <button
-              key={tab}
-              className={selectedBuild === tab ? 'active' : ''}
-              onClick={() => setSelectedBuild(tab)}
-            >
-              {tab === 'Budget' ? '₱35,000' : tab === 'Mid' ? '₱65,000' : '₱100,000'}
-            </button>
-          ))}
-        </div>
-        <div className="build-details">
-          <h3>{builds[selectedBuild].title}</h3>
-          <ul>
-            {builds[selectedBuild].parts.map((part, idx) => (
-              <li key={idx}>{part}</li>
+      {/* Second Card */}
+      <section className="wiki-section">
+        <h2>Smart Saving Strategies</h2>
+
+        <div className="tips-controls">
+          <div className="tips-toc">
+            {dropdowns.map((d, i) => (
+              <button key={d.title} className="toc-tip" onClick={() => {
+                const id = `tip-${i}`;
+                setOpenIds(prev => prev.includes(id) ? prev : [...prev, id]);
+                const el = sectionsRef.current[id];
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}>
+                <span className="toc-title">{d.title}</span>
+                {d.badge ? <span className="badge">{d.badge}</span> : null}
+              </button>
             ))}
-          </ul>
+          </div>
         </div>
-  </section>
+
+        {dropdowns.map((item, index) => (
+          <TipCard key={index} id={`tip-${index}`} title={item.title} summary={item.summary}>
+            {item.content}
+          </TipCard>
+        ))}
+      </section>
+
+      {/* Budget Build Templates removed per request */}
     </div>
   );
 }
