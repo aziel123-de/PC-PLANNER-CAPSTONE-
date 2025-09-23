@@ -494,21 +494,37 @@ body.hide-global-header .header {
   margin-top: 0; /* remove gap below fixed header */
 }
 
+/* Main content areas need margin for fixed sidebar */
+.main-content-overview,
+.user-saved-builds,
+.user-history-builds {
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+}
+
+/* Adjust margin when sidebar is collapsed */
+.sidebar-db.collapsed ~ .main-content-overview,
+.sidebar-db.collapsed ~ .user-saved-builds,
+.sidebar-db.collapsed ~ .user-history-builds {
+  margin-left: 80px;
+}
+
 .sidebar-db {
-  position: sticky; /* keep the sidebar fixed under the header */
-  top: 48px; /* align under the header */
-  margin-top: 0; /* keep no visual gap */
-  background: linear-gradient(135deg, #07143a 0%, #0e2a56 45%, #123562 100%);
-  padding: 24px 20px; /* breathing room for content */
-  box-shadow: 0 8px 30px rgba(2,12,40,0.45);
+  position: fixed;
+  top: 48px;
+  left: 0;
+  background: linear-gradient(135deg, #121f4c, #1c3777);
+  padding: 32px 24px;
   width: 280px;
   flex-shrink: 0;
-  overflow: hidden; /* prevent internal scrollbars */
-  height: calc(100vh - 15px); /* fit under header and avoid internal scrolling */
+  overflow: hidden;
+  height: calc(100vh - 48px);
   z-index: 1;
   transition: width 0.3s ease;
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-top-right-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-top: 3rem;
 }
 
 /* Collapsed sidebar */
@@ -568,10 +584,12 @@ body.hide-global-header .header {
 }
 
 .dashboard-title {
-  margin-top: 20px;
-  margin-bottom: 50px;
-  text-align: center;
+  margin-top: 0;
+  margin-bottom: 40px;
+  text-align: left;
   position: relative;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Collapsed dashboard title */
@@ -606,28 +624,20 @@ body.hide-global-header .header {
 .dashboard-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   width: 100%;
   position: relative;
-  padding: 0 10px;
-}
-
-/* Center dashboard text when toggle button is hidden on large screens */
-@media (min-width: 1025px) {
-  .sidebar-db:not(.collapsed) .dashboard-header {
-    justify-content: center;
-  }
 }
 
 .dashboard-title-text {
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 12px;
   color: #ffffff;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   position: relative;
 }
 
@@ -654,8 +664,8 @@ body.hide-global-header .header {
 }
 
 .dashboard-icon {
-  font-size: 32px;
-  color: #00aaff;
+  font-size: 24px;
+  color: #60a5fa;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
@@ -663,38 +673,43 @@ body.hide-global-header .header {
 .buttons-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  align-items: stretch; /* make buttons fill available width */
+  gap: 4px;
+  align-items: stretch;
+  margin-top: 20px;
 }
 
 
 .sidebar-button {
-  background: rgba(255,255,255,0.03);
-  border: none;
-  padding: 12px 18px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
   text-align: left;
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  transition: all 0.22s cubic-bezier(.2,.9,.2,1);
-  color: rgba(255,255,255,0.95);
-  width: 100%; /* full width inside padded container */
-  box-shadow: none;
-  padding-left: 22px; /* consistent left offset for icon + label */
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.8);
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.sidebar-button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .sidebar-db .sidebar-button.active {
   background: #ffffff !important;
-  color: #0e1a40 !important;
-  font-weight: 700;
-  box-shadow: 0 10px 30px rgba(14,26,64,0.12);
-  border-left: 6px solid rgba(0, 153, 255, 0.95);
-  transform: translateX(0);
+  color: #1e3a8a !important;
+  font-weight: 600;
+  border: 1px solid #ffffff;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-button:active:not(.active) {
@@ -704,19 +719,7 @@ body.hide-global-header .header {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
-.dashboard-underline {
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(to right, #1e3a8a, #3b82f6); /* blue gradient */
-  margin-top: 10px;
-  border-radius: 2px;
-}
-.fancy-divider {
-  width: 100%;
-  height: 20px;
-  margin-top: 12px;
-  display: block;
-}
+
 
 .button-icon {
   width: 18px !important;

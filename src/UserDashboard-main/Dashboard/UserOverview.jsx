@@ -28,7 +28,11 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   });
 
 // ----------------------------------------------------------------
-  
+
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hideSidebar, setHideSidebar] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const [activeSection, setActiveSection] = useState('overview');
   const [savedBuilds, setSavedBuilds] = useState([]);
   const [buildHistory, setBuildHistory] = useState([]);
@@ -156,10 +160,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 <div className="dashboard-container">
        {/*----------------------------- Sidebar------------------------------------------- */}
   <aside className={`sidebar-db ${sidebarCollapsed ? 'collapsed' : ''}`}>
-  <div className="sidebar-overlay"></div>
-  <div className="decorative-element"></div>
-  <div className="decorative-element-2"></div>
-
   <div className="sidebar-content">
     <div className="dashboard-title">
       <div className="dashboard-header">
@@ -171,14 +171,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
           {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
-      {!sidebarCollapsed && (
-        <>
-          <div className="dashboard-underline"></div>
-          <svg className="fancy-divider" viewBox="0 0 100 20" preserveAspectRatio="none">
-            <path d="M0,10 C25,0 75,20 100,10" stroke="#1e3a8a" strokeWidth="3" fill="none" />
-          </svg>
-        </>
-      )}
     </div>
 
     <div className="buttons-container">
