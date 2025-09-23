@@ -29,10 +29,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
 // ----------------------------------------------------------------
 
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [hideSidebar, setHideSidebar] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
+
   const [activeSection, setActiveSection] = useState('overview');
   const [savedBuilds, setSavedBuilds] = useState([]);
   const [buildHistory, setBuildHistory] = useState([]);
@@ -165,7 +162,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <div className="dashboard-header">
         <h2 className="dashboard-title-text">
           <BarChart3 className="dashboard-icon" />
-          {!sidebarCollapsed && <span>Dashboard</span>}
+          {!sidebarCollapsed && <span className='db-text'>Dashboard</span>}
         </h2>
         <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
           {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -352,7 +349,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     </div>
 
     <div className="welcome-image">
-      <img src={pcImage} alt="PC Illustration" />
+     
     </div>
   </div>
 </div>
