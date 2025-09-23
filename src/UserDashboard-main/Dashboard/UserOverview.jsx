@@ -14,8 +14,24 @@ import ShareSavedBuildModal from './ShareSavedBuildModal';
 
 function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,onBackClick }) {
   const navigate = useNavigate();
-// -------------------------- PUT THE DROPDOWN ACCOUNT HERE --------------------------------------
-  const userName = '';
+// -------------------------- GET USERNAME FROM LOCALSTORAGE --------------------------------------
+  const [userName, setUserName] = useState('');
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        const displayName = userData.full_name || userData.fullName || userData.username || userData.email || 'User';
+        setUserName(displayName);
+      } catch (e) {
+        setUserName('User');
+      }
+    } else {
+      setUserName('User');
+    }
+  }, []);
+  
   // data in backend
   const recentBuilds = [];
   const detectedIssues =[];
@@ -404,9 +420,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <h3 className="text-h3">Welcome to your Build History</h3>
     </div>
 
-    <div className="welcome-image">
-      <img src={pcImage} alt="PC Illustration" />
-    </div>
   </div>
 </div>
 
