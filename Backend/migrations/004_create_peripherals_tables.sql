@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS headset (
 CREATE TABLE IF NOT EXISTS monitor (
   id INT PRIMARY KEY,
   name VARCHAR(255),
+  type VARCHAR(64),
   price INT,
   size_inches FLOAT,
   resolution VARCHAR(64),
