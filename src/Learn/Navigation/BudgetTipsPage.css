@@ -85,57 +85,69 @@ h1 {
   color: #374151;
 }
 
-/* BUILD TABS - simplified to links */
-.build-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin: 1.25rem 0 1rem;
-}
-
-.build-nav button {
-  background: transparent;
-  color: #1d4ed8;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 0.12s ease;
-  font-size: 1rem;
-  min-width: auto;
-  text-decoration: underline;
-}
-
-.build-nav button:hover { color: #1e40af; }
-
-.build-nav .active {
-  color: #111827;
-  text-decoration: none;
-  border-bottom: 2px solid #9ca3af; /* subtle underline for active */
-}
-
-.build-details h3 {
-  font-size: 1.05rem;
-  margin: 0 0 8px;
-  color: #111827;
-}
-
-.build-details ul {
-  list-style-type: disc;
-  padding-left: 1.25rem;
-  margin: 0;
-}
-
-.build-details ul li {
-  padding: 6px 0;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 0.97rem;
-  color: #374151;
-  word-break: break-word;
-}
+/* Build templates removed - styles deleted */
 
 @media (max-width: 480px) {
   .budget-tips-page { padding: 1rem; }
   h1 { font-size: 1.5rem; }
 }
+
+/* ---- Added: interactive tips styles ---- */
+.tips-controls { display:flex; flex-direction:column; gap:10px; margin: 8px 0 12px; }
+.controls-row { display:flex; gap:8px; }
+.tips-toc { display:flex; gap:8px; flex-wrap:wrap; }
+.toc-tip { background: transparent; border: 1px solid transparent; color:#475569; padding:6px 10px; border-radius:999px; cursor:pointer; }
+.toc-tip:hover { background:#f8fafc; }
+
+.tips-card { border: 1px solid #eef2ff; border-radius: 12px; overflow: hidden; margin: 12px 0; background: #fff; box-shadow: 0 6px 18px rgba(2,6,23,0.03); transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms; }
+.tips-card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(15,23,42,0.06); }
+.tips-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; cursor:pointer; }
+.card-heading { margin:0; font-size:1.05rem; font-weight:700; color:#0f172a; }
+.card-summary { margin:6px 0 0; color:#475569; font-size:0.95rem; }
+.tips-details { transition: max-height 320ms cubic-bezier(.2,.9,.3,1), opacity 220ms ease; overflow:hidden; }
+.tips-inner { padding: 12px 16px 16px; color:#374151; }
+.expand-arrow { transition: transform 220ms cubic-bezier(.2,.9,.3,1), color 160ms; color:#64748B; font-size:16px; }
+.expand-arrow.rotated { transform: rotate(180deg); color:#0f172a; }
+
+@keyframes cardEnter { from { transform: translateY(8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+.tips-card { animation: cardEnter 360ms ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tips-card, .tips-details, .expand-arrow { transition: none !important; animation: none !important; }
+}
+
+/* small responsive tweaks */
+@media (max-width: 640px) {
+  .tips-controls { gap:8px; }
+  .card-summary { display:block; }
+}
+
+/* Smart Saving Strategies enhancements */
+.tldr { margin: 0 0 8px; color: #334155; font-weight:600; }
+.action-list { list-style: none; padding-left: 0; margin: 6px 0 0; }
+.action-list li { padding: 8px 0; border-bottom: 1px dashed #eef2ff; color:#475569; }
+.action-list li strong { color:#0f172a; }
+.badge { display:inline-block; background:#eef2ff; color:#0f172a; border:1px solid #e0e7ff; padding:4px 8px; border-radius:999px; font-size:0.8rem; font-weight:700; margin-left:8px; }
+
+.tips-toc { gap:10px; margin-bottom:6px; }
+
+/* Allocation visualization */
+.alloc-grid { display:flex; gap:18px; margin: 12px 0 18px; }
+.alloc-col { flex:1; min-width:220px; }
+.alloc-row { display:flex; align-items:center; gap:12px; margin:8px 0; }
+.alloc-bar { flex:1; height:12px; background:#f1f5f9; border-radius:8px; overflow:hidden; }
+.alloc-bar > div { height:100%; background: linear-gradient(90deg,#60a5fa,#1d4ed8); }
+.alloc-pct { width:46px; text-align:right; color:#475569; font-weight:700; }
+
+/* Build parts removed - styles deleted */
+
+@media (max-width: 720px) {
+  .alloc-grid { flex-direction:column; }
+  .alloc-pct { width:40px; }
+  .part-row { flex-direction:column; align-items:flex-start; }
+  .part-price { text-align:left; }
+}
+
+/* Build header/actions removed */
+
+/* ---- end added styles ---- */

@@ -1,8 +1,59 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../Navigation/Navbar.jsx';
 import './BottlenecksPage.css';
 
+function Collapsible({ id, title, icon, openId, setOpenId, children }) {
+  const isOpen = openId === id;
+  const detailsRef = useRef(null);
+  const innerRef = useRef(null);
+
+  useEffect(() => {
+    const el = detailsRef.current;
+    const inner = innerRef.current;
+    if (!el || !inner) return;
+    if (isOpen) {
+      const h = inner.scrollHeight;
+      el.style.maxHeight = h + 'px';
+      el.style.opacity = '1';
+    } else {
+      el.style.maxHeight = '0px';
+      el.style.opacity = '0';
+    }
+  }, [isOpen]);
+
+  const toggle = () => setOpenId(isOpen ? null : id);
+
+  return (
+    <div className={`vertical-card interactive-card compat-card ${isOpen ? 'is-open' : ''}`}>
+      <header className="compat-card-header" role="button" tabIndex={0} aria-expanded={isOpen} onClick={toggle} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && toggle()}>
+        <div className="compat-left">
+          <span className="compat-icon" aria-hidden>{icon}</span>
+          <h3 className="vertical-card-title">{title}</h3>
+        </div>
+        <div className={`expand-arrow ${isOpen ? 'rotated' : ''}`}>{'▾'}</div>
+      </header>
+      <div className="compat-details" ref={detailsRef} style={{ maxHeight: 0, opacity: 0 }}>
+        <div className="compat-inner" ref={innerRef}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BottlenecksPage() {
+  const [openId, setOpenId] = useState(null);
+
+  const icon = (type) => {
+    switch (type) {
+      case 'cpu': return (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="16" height="16" rx="3" stroke="#6366F1" strokeWidth="1.4" fill="#EEF2FF"/></svg>);
+      case 'gpu': return (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="6" width="18" height="12" rx="2" stroke="#EF4444" strokeWidth="1.2" fill="#FFF1F2"/></svg>);
+      case 'ram': return (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="7" width="16" height="10" rx="2" stroke="#F59E0B" strokeWidth="1.2" fill="#FFFBEB"/></svg>);
+      case 'storage': return (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="6" width="16" height="12" rx="2" stroke="#0EA5A4" strokeWidth="1.2" fill="#ECFEFF"/></svg>);
+      default: return (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="16" rx="3" stroke="#64748B" strokeWidth="1" fill="#F1F5F9"/></svg>);
+    }
+  };
+
   return (
     <div className="bottlenecks-page">
       <h1 className="section-title">Understanding Bottlenecks</h1>
@@ -13,9 +64,7 @@ function BottlenecksPage() {
 
       <div className="vertical-container">
 
-        {/* CPU Bottleneck */}
-        <div className="vertical-card interactive-card">
-          <h3 className="vertical-card-title">CPU Bottlenecks</h3>
+        <Collapsible id="cpu" title="CPU Bottlenecks" icon={icon('cpu')} openId={openId} setOpenId={setOpenId}>
           <p>When your processor limits system performance.</p>
 
           <h4>Signs</h4>
@@ -38,11 +87,9 @@ function BottlenecksPage() {
             <li>Choose CPUs with more cores for multitasking</li>
             <li>Prioritize single-core performance for gaming</li>
           </ul>
-        </div>
+        </Collapsible>
 
-        {/* GPU Bottleneck */}
-        <div className="vertical-card interactive-card">
-          <h3 className="vertical-card-title">GPU Bottlenecks</h3>
+        <Collapsible id="gpu" title="GPU Bottlenecks" icon={icon('gpu')} openId={openId} setOpenId={setOpenId}>
           <p>When your graphics card limits system performance.</p>
 
           <h4>Signs</h4>
@@ -65,11 +112,9 @@ function BottlenecksPage() {
             <li>Spend more on GPU for gaming builds</li>
             <li>Check VRAM needs for your games</li>
           </ul>
-        </div>
+        </Collapsible>
 
-        {/* RAM Bottleneck */}
-        <div className="vertical-card interactive-card">
-          <h3 className="vertical-card-title">RAM Bottlenecks</h3>
+        <Collapsible id="ram" title="RAM Bottlenecks" icon={icon('ram')} openId={openId} setOpenId={setOpenId}>
           <p>When memory limits system performance.</p>
 
           <h4>Signs</h4>
@@ -93,11 +138,9 @@ function BottlenecksPage() {
             <li>Enable dual-channel (2 or 4 sticks)</li>
             <li>Use 3200–3600MHz for AMD, 3200MHz+ for Intel</li>
           </ul>
-        </div>
+        </Collapsible>
 
-        {/* Storage Bottleneck */}
-        <div className="vertical-card interactive-card">
-          <h3 className="vertical-card-title">Storage Bottlenecks</h3>
+        <Collapsible id="storage" title="Storage Bottlenecks" icon={icon('storage')} openId={openId} setOpenId={setOpenId}>
           <p>When storage speed slows down the system.</p>
 
           <h4>Signs</h4>
@@ -121,7 +164,7 @@ function BottlenecksPage() {
             <li>Leave 10–20% SSD space free</li>
             <li>Use tiered storage: NVMe (OS), SATA SSD (games), HDD (files)</li>
           </ul>
-        </div>
+        </Collapsible>
       </div>
     </div>
   );

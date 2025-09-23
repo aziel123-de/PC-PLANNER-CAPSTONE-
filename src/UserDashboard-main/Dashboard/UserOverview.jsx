@@ -240,9 +240,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <h3 className="text-h3">Welcome to your Dashboard</h3>
     </div>
 
-    <div className="welcome-image">
-      <img src={pcImage} alt="PC Illustration" />
-    </div>
   </div>
 </div>
 
@@ -272,7 +269,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <p className="box-note">No usage data</p>
     </div>
   </div>
-
 
   <div className='box box-4'>
     <div className="box-top">
