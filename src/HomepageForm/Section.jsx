@@ -60,7 +60,7 @@ function Section() {
             </div>
 
             <div className="feature-badges">
-              <div className="badge">
+              <div className="badges">
                 <div className="badge-icon">
                   <FaGlobe />
                 </div>
@@ -69,7 +69,7 @@ function Section() {
                   <p className="badge-subtitle">Philippines</p>
                 </div>
               </div>
-              <div className="badge">
+              <div className="badges">
                 <div className="badge-icon">
                   <FaCheckCircle />
                 </div>
@@ -78,7 +78,7 @@ function Section() {
                   <p className="badge-subtitle">Locally Sourced</p>
                 </div>
               </div>
-              <div className="badge">
+              <div className="badges">
                 <div className="badge-icon">
                   <FaBookOpen />
                 </div>

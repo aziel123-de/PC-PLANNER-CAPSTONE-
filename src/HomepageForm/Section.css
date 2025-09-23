@@ -304,7 +304,7 @@ html, body {
   max-width: 450px;
 }
 
-.badge {
+.badges {
   display: flex;
   align-items: center;
   gap: clamp(0.2rem, 0.5vw, 0.3rem);
