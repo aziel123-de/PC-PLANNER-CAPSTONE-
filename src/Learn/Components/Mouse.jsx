@@ -25,7 +25,7 @@ function Mouse() {
         <button
   className="card-button" onClick=
   {() => window.open('https://www.techtarget.com/whatis/definition/mouse', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

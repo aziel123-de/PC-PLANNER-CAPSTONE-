@@ -159,7 +159,11 @@ app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
     ram: 'ram',
     storage: 'storage',
     m2: 'm2',
-    case: 'pc_case'
+    case: 'pc_case',
+    keyboard: 'keyboard',
+    mouse: 'mouse',
+    headset: 'headset',
+    monitor: 'monitor'
   };
   const table = map[type];
   if (!table) return res.status(400).json({ error: 'unknown component type' });

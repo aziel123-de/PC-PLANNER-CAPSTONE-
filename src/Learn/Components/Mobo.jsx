@@ -23,7 +23,7 @@ function Mobo() {
         <button
   className="card-button" onClick=
   {() => window.open('https://www.spiceworks.com/tech/hardware/articles/what-is-motherboard/', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

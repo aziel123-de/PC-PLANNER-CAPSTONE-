@@ -26,7 +26,7 @@ function Monitor(){
         <button
   className="card-button" onClick=
   {() => window.open('https://www.itamg.com/it-asset/hardware/monitor/', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

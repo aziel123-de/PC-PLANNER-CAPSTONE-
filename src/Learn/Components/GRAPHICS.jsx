@@ -23,7 +23,7 @@ function GRAPHICS() {
         <button
   className="card-button" onClick=
   {() => window.open('https://support.microsoft.com/en-us/windows/all-about-graphics-processing-units-gpus-e159bedb-80b7-4738-a0c1-76d2a05beab4', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

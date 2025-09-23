@@ -26,7 +26,7 @@ function Case(){
         <button
   className="card-button" onClick=
   {() => window.open('https://www.lifewire.com/what-is-a-computer-case-2618149', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

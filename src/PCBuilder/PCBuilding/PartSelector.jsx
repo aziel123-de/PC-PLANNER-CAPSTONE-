@@ -13,6 +13,10 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
     storage: dataLookup?.storage || [],
     m2: dataLookup?.m2 || [],
     case: dataLookup?.case || [],
+    keyboard: dataLookup?.keyboard || [],
+    mouse: dataLookup?.mouse || [],
+    headset: dataLookup?.headset || [],
+    monitor: dataLookup?.monitor || [],
   };
 
   const resolveArray = () => {
@@ -27,6 +31,10 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
     if (partName.includes('m.2') || partName.includes('nvme') || partName === 'm2') return mapByCanonical.m2;
     if (partName.includes('storage') || partName.includes('hdd') || partName.includes('ssd')) return mapByCanonical.storage;
     if (partName.includes('case')) return mapByCanonical.case;
+    if (partName.includes('keyboard')) return mapByCanonical.keyboard;
+    if (partName.includes('mouse')) return mapByCanonical.mouse;
+    if (partName.includes('headset') || partName.includes('headphone')) return mapByCanonical.headset;
+    if (partName.includes('monitor') || partName.includes('display')) return mapByCanonical.monitor;
     return [];
   };
 

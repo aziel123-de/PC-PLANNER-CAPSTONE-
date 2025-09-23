@@ -22,7 +22,7 @@ function PROCESSOR() {
         <button
   className="card-button" onClick=
   {() => window.open('https://www.arm.com/glossary/cpu', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
 
       </div>

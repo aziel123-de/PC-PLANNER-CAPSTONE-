@@ -23,7 +23,7 @@ function Ram() {
         <button
   className="card-button" onClick=
   {() => window.open('https://www.intel.com/content/www/us/en/tech-tips-and-tricks/computer-ram.html', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

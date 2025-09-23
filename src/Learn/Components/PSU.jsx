@@ -23,7 +23,7 @@ function PSU(){
         <button
   className="card-button" onClick=
   {() => window.open('https://www.actpower.com/blog/what-is-a-power-supply-and-how-does-it-work/', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

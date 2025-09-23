@@ -24,7 +24,7 @@ function Keyboard(){
         <button
   className="card-button" onClick=
   {() => window.open('https://www.computerhope.com/jargon/k/keyboard.htm', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

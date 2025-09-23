@@ -23,7 +23,7 @@ function Storage() {
         <button
   className="card-button" onClick=
   {() => window.open('https://www.techtarget.com/searchstorage/definition/storage', '_blank')}>
-  Browse Processors
+  Browse →
 </button>
       </div>
     </section>

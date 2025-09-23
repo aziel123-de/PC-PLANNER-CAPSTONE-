@@ -15,12 +15,16 @@ function BuilderPage() {
   const [selectedStorage, setSelectedStorage] = useState([]);
   const [selectedPSU, setSelectedPSU] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [selectedKeyboard, setSelectedKeyboard] = useState(null);
+  const [selectedMouse, setSelectedMouse] = useState(null);
+  const [selectedHeadset, setSelectedHeadset] = useState(null);
+  const [selectedMonitor, setSelectedMonitor] = useState(null);
   const [dataLookup, setDataLookup] = useState(null);
 
   useEffect(() => {
     let mounted = true;
     async function load() {
-      const types = ['cpu','gpu','psu','mobo','ram','storage','m2','case'];
+      const types = ['cpu','gpu','psu','mobo','ram','storage','m2','case','keyboard','mouse','headset','monitor'];
       const map = {};
       for (const t of types) {
         try {
@@ -63,7 +67,7 @@ function BuilderPage() {
       const raw = localStorage.getItem('loadedBuild');
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      // Expecting keys: mobo, cpu, gpus, rams, m2s, storage, psu, case
+      // Expecting keys: mobo, cpu, gpus, rams, m2s, storage, psu, case, keyboard, mouse, headset
       if (parsed.mobo) setSelectedMOBO(parsed.mobo);
       if (parsed.cpu) setSelectedCPU(parsed.cpu);
       if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
@@ -72,6 +76,10 @@ function BuilderPage() {
       if (Array.isArray(parsed.storage)) setSelectedStorage(parsed.storage);
       if (parsed.psu) setSelectedPSU(parsed.psu);
       if (parsed.case) setSelectedCase(parsed.case);
+      if (parsed.keyboard) setSelectedKeyboard(parsed.keyboard);
+      if (parsed.mouse) setSelectedMouse(parsed.mouse);
+      if (parsed.headset) setSelectedHeadset(parsed.headset);
+      if (parsed.monitor) setSelectedMonitor(parsed.monitor);
       // Clear after applying so it doesn't reapply on next visit
       // do not clear loadedBuild until after we evaluate editing metadata
     } catch (e) {
@@ -94,6 +102,10 @@ function BuilderPage() {
     storage: selectedStorage,
     psu: selectedPSU,
     case: selectedCase,
+    keyboard: selectedKeyboard,
+    mouse: selectedMouse,
+    headset: selectedHeadset,
+    monitor: selectedMonitor,
   };
 
   // helper to read a field with multiple possible capitalizations and from _raw
@@ -134,6 +146,10 @@ function BuilderPage() {
     (selectedStorage || []).forEach(x => x && items.push(x));
     if (selectedPSU) items.push(selectedPSU);
     if (selectedCase) items.push(selectedCase);
+    if (selectedKeyboard) items.push(selectedKeyboard);
+    if (selectedMouse) items.push(selectedMouse);
+    if (selectedHeadset) items.push(selectedHeadset);
+    if (selectedMonitor) items.push(selectedMonitor);
     return items;
   };
 
@@ -155,7 +171,11 @@ function BuilderPage() {
     m2s: (selectedM2s || []).filter(Boolean),
     storage: (selectedStorage || []).filter(Boolean),
     psu: selectedPSU,
-    case: selectedCase
+    case: selectedCase,
+    keyboard: selectedKeyboard,
+    mouse: selectedMouse,
+    headset: selectedHeadset,
+    monitor: selectedMonitor
   });
 
   const handleSaveBuild = async () => {
@@ -358,6 +378,10 @@ function BuilderPage() {
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
             <h1>Peripherals</h1>
+            <PartSelector part={{ name: "Keyboard" }} selectedValue={selectedKeyboard} setSelectedValue={setSelectedKeyboard} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Mouse" }} selectedValue={selectedMouse} setSelectedValue={setSelectedMouse} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Headset" }} selectedValue={selectedHeadset} setSelectedValue={setSelectedHeadset} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Monitor" }} selectedValue={selectedMonitor} setSelectedValue={setSelectedMonitor} dataLookup={dataLookup} />
           </div>
           <div className="RightColumn">
             <BuildSummary 
