@@ -75,7 +75,7 @@ function BudgettipsPage() {
     {
       title: 'Consider Previous Generation Components',
       badge: 'Trade-off',
-      summary: 'Last-gen parts often give great value — check price/perf before buying latest.',
+      summary: 'Last-gen parts often give great value, check price/perf before buying latest.',
       content: (
         <>
           <p className="tldr">TL;DR: Buying last-gen hardware can save money with small performance loss.</p>
