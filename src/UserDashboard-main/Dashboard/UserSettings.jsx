@@ -16,6 +16,7 @@ function UserSettings({ onBack, onLogout, userId }) {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false);
   // Header is rendered globally; no local nav state needed
+  const [profilePictureUrl, setProfilePictureUrl] = useState(null);
   const [formData, setFormData] = useState(() => {
     try {
       const raw = localStorage.getItem('user');
@@ -60,6 +61,9 @@ function UserSettings({ onBack, onLogout, userId }) {
             email: userData.email || 'user@example.com',
             profilePicture: null
           });
+          if (userData.profile_picture) {
+            setProfilePictureUrl(userData.profile_picture);
+          }
         } else {
           const error = await response.json();
           console.error('Failed to fetch user data:', error.message);
@@ -115,10 +119,15 @@ function UserSettings({ onBack, onLogout, userId }) {
       return;
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'file' ? files[0] : value
-    }));
+    if (type === 'file' && files[0]) {
+      const file = files[0];
+      setFormData(prev => ({ ...prev, [name]: file }));
+      // Create preview URL for immediate display
+      const previewUrl = URL.createObjectURL(file);
+      setProfilePictureUrl(previewUrl);
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -214,6 +223,8 @@ function UserSettings({ onBack, onLogout, userId }) {
           }),
         });
         
+        // Update the displayed profile picture
+        setProfilePictureUrl(uploadResult.filePath);
         console.log('Profile picture updated in MySQL:', uploadResult.filePath);
       }
     } catch (error) {
@@ -240,7 +251,7 @@ function UserSettings({ onBack, onLogout, userId }) {
                   {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                 </button>
               )}
-              <img src={profDefault} alt="User" className="profile-avatar" />
+              <img src={profilePictureUrl || profDefault} alt="User" className="profile-avatar" />
               {!sidebarCollapsed && (
                 <>
                   {formData.fullName && (

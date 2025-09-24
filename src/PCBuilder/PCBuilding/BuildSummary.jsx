@@ -10,7 +10,8 @@ function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
   const TOTAL_PART_COUNT = 14; // configurable expected parts count (includes 4 peripherals)
   const selectedCount = allParts.length;
   const progress = Math.min(Math.round((selectedCount / TOTAL_PART_COUNT) * 100), 100);
-  const estimatedPrice = allParts.reduce((total, part) => part?.price ? total + part.price : total, 0);
+  const basePrice = allParts.reduce((total, part) => part?.price ? total + part.price : total, 0);
+  const upperPrice = Math.round(basePrice * 1.2); // 20% increase for price variation
 
   // Centralized analysis
   const analysis = analyzeBuild(selectedParts);
@@ -51,7 +52,7 @@ function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
         )}
       </div>
 
-      <h1 className='Price'>Estimated Price: ₱{estimatedPrice.toLocaleString()}</h1>
+      <h1 className='Price'>Estimated Price: ₱{basePrice.toLocaleString()} - ₱{upperPrice.toLocaleString()}</h1>
       
       {/* Enhanced Compatibility Section */}
       <div className="compatibility-section">
