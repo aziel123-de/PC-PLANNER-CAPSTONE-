@@ -170,7 +170,9 @@ function UserSettings({ onBack, onLogout, userId }) {
             full_name: newFullName,
             username: newFullName,
             displayName: newFullName,
-            email: newEmail
+            email: newEmail,
+            profile_picture: profilePictureUrl,
+            photoURL: profilePictureUrl
           };
           localStorage.setItem('user', JSON.stringify(merged));
           window.dispatchEvent(new CustomEvent('authChanged', { detail: merged }));

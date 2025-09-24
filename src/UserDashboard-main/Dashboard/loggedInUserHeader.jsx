@@ -60,7 +60,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
         <button className="hamburger-db" onClick={toggleMenu} ref={hamburgerRef} aria-label="Toggle menu">
           {/* if logged in show avatar inside hamburger */}
           {authUser ? (
-            <img src={authUser.photoURL || profDefault} alt="avatar" style={{ width: 28, height: 28, borderRadius: 6 }} />
+            <img src={authUser.photoURL || authUser.profile_picture || profDefault} alt="avatar" style={{ width: 28, height: 28, borderRadius: 6 }} />
           ) : (
             menuOpen ? <FaTimes size={24} color="#fff" /> : <FaBars size={24} color="#fff" />
           )}
@@ -79,7 +79,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
             <div className="header-dropdown" ref={dropdownRef}>
               <button className="header-profile-btn" onClick={() => setOpenDropdown(!openDropdown)}>
                 <div className="profile-box">
-                  <img src={authUser?.photoURL || profDefault} alt="Profile" className="header-profile-img" />
+                  <img src={authUser?.photoURL || authUser?.profile_picture || profDefault} alt="Profile" className="header-profile-img" />
                   <div className="profile-info">
                     <span className="profile-name">{authUser?.username || authUser?.displayName || ''}</span>
                   </div>
@@ -93,7 +93,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                 <div className="header-dropdown-content">
                   <div className="dropdown-arrow" />
                   <div className="dropdown-header">
-                    <img src={authUser?.photoURL || profDefault} alt="Profile" className="avatar-img-large" />
+                    <img src={authUser?.photoURL || authUser?.profile_picture || profDefault} alt="Profile" className="avatar-img-large" />
                     <div className="user-info">
                       <p className="user-name">{authUser?.username || authUser?.displayName || ''}</p>
                       <p className="user-email">{authUser?.email || ''}</p>
