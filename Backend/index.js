@@ -133,6 +133,46 @@ app.post(`${API_PREFIX}/register`, handleRegister);
 app.post('/login', handleLogin);
 app.post(`${API_PREFIX}/login`, handleLogin);
 
+// User profile endpoints
+app.get(`${API_PREFIX}/users/:id`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  if (userId !== req.params.id) return res.status(403).json({ error: 'forbidden' });
+  
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT id,email,username FROM users WHERE id = ?', [userId]);
+    if (!rows.length) return res.status(404).json({ error: 'user not found' });
+    const user = rows[0];
+    return res.json({ id: user.id, email: user.email, full_name: user.username, username: user.username });
+  } catch (err) {
+    console.error('get user error', err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
+
+app.put(`${API_PREFIX}/users/:id`, async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  if (userId !== req.params.id) return res.status(403).json({ error: 'forbidden' });
+  
+  const { full_name } = req.body || {};
+  if (!full_name) return res.status(400).json({ error: 'full_name required' });
+  
+  const conn = await pool.getConnection();
+  try {
+    await conn.query('UPDATE users SET username = ? WHERE id = ?', [full_name, userId]);
+    return res.json({ id: userId, full_name, username: full_name });
+  } catch (err) {
+    console.error('update user error', err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
+});
+
 const port = process.env.PORT || 5050;
 ensureSchema().then(() => {
   app.listen(port, '127.0.0.1', () => console.log('Backend listening on 127.0.0.1:' + port));
