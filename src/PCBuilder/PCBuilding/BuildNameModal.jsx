@@ -83,9 +83,10 @@ function BuildNameModal({ isOpen, onClose, onSave, initialName = '', initialDesc
               id="build-name"
               type="text"
               className={`form-input ${nameError ? 'form-input-error' : ''}`}
+              style={{ color: '#000' }}
               placeholder="Enter a name for your build"
               value={name}
-              onChange={(e) => {
+              onChange={(e) => {  
                 setName(e.target.value);
                 if (nameError) setNameError('');
               }}
