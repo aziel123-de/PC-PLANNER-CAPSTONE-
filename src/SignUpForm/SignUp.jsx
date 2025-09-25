@@ -10,14 +10,31 @@ function SignUp({ onLoginClick }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (Password !== confirmPassword) {
-      alert("Passwords do not match!");
+    const hasMinLength = Password.length >= 8;
+    const hasLowerCase = /[a-z]/.test(Password);
+    const hasUpperCase = /[A-Z]/.test(Password);
+    const hasNumber = /[0-9]/.test(Password);
+    const hasSpecialChar = /[@#$]/.test(Password);
+
+    if (!hasMinLength || !hasLowerCase || !hasUpperCase || !hasNumber || !hasSpecialChar) {
+      setShowPasswordRequirements(true);
       return;
     }
+    setPasswordError('');
+
+    if (Password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      return;
+    }
+    setConfirmPasswordError('');
 
     if (!Fullname || !Email || !Password || !confirmPassword) {
       alert("Please fill all fields.");
@@ -25,9 +42,10 @@ function SignUp({ onLoginClick }) {
     }
 
     if (!Email.includes('@')) {
-      alert("Please enter a valid email address.");
+      setEmailError('Enter a valid email');
       return;
     }
+    setEmailError('');
 
     try {
       // create user with backend
@@ -97,12 +115,16 @@ function SignUp({ onLoginClick }) {
 
         {/* Email */}
         <label>Email</label>
+        {emailError && <p style={{ color: 'red', fontSize: '14px', margin: '5px 0' }}>{emailError}</p>}
         <div className="E_Input">
           <input
             type="email"
             placeholder="Enter your email"
             value={Email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError('');
+            }}
         
           />
         </div>
@@ -115,7 +137,24 @@ function SignUp({ onLoginClick }) {
               type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
               value={Password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError('');
+                setShowPasswordRequirements(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const hasMinLength = Password.length >= 8;
+                  const hasLowerCase = /[a-z]/.test(Password);
+                  const hasUpperCase = /[A-Z]/.test(Password);
+                  const hasNumber = /[0-9]/.test(Password);
+                  const hasSpecialChar = /[@#$]/.test(Password);
+                  if (!hasMinLength || !hasLowerCase || !hasUpperCase || !hasNumber || !hasSpecialChar) {
+                    setShowPasswordRequirements(true);
+                  }
+                }
+              }}
+
               style={{ paddingRight: Password ? '36px' : undefined }}
              
             />
@@ -130,15 +169,43 @@ function SignUp({ onLoginClick }) {
               </button>
             )}
           </div>
+          {showPasswordRequirements && (
+            <div style={{ backgroundColor: '#f0f0f0', padding: '2px', borderRadius: '2px', marginTop: '2px', fontSize: '8px', maxWidth: '200px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '1px 0' }}>
+                <span style={{ color: Password.length >= 8 ? 'green' : 'gray', marginRight: '2px' }}>✓</span>
+                <span style={{ color: Password.length >= 8 ? 'green' : 'gray' }}>Minimum 8 characters in length</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '1px 0' }}>
+                <span style={{ color: /[a-z]/.test(Password) ? 'green' : 'gray', marginRight: '2px' }}>✓</span>
+                <span style={{ color: /[a-z]/.test(Password) ? 'green' : 'gray' }}>At least one lower case letter (a-z)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '1px 0' }}>
+                <span style={{ color: /[A-Z]/.test(Password) ? 'green' : 'gray', marginRight: '2px' }}>✓</span>
+                <span style={{ color: /[A-Z]/.test(Password) ? 'green' : 'gray' }}>At least one upper case letter (A-Z)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '1px 0' }}>
+                <span style={{ color: /[0-9]/.test(Password) ? 'green' : 'gray', marginRight: '2px' }}>✓</span>
+                <span style={{ color: /[0-9]/.test(Password) ? 'green' : 'gray' }}>At least one number (0-9)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '1px 0' }}>
+                <span style={{ color: /[@#$]/.test(Password) ? 'green' : 'gray', marginRight: '2px' }}>✓</span>
+                <span style={{ color: /[@#$]/.test(Password) ? 'green' : 'gray' }}>At least one special character (@# $)</span>
+              </div>
+            </div>
+          )}
 
           {/* Confirm Password */}
           <label>Confirm Password</label>
+          {confirmPasswordError && <p style={{ color: 'red', fontSize: '14px', margin: '5px 0' }}>{confirmPasswordError}</p>}
           <div className="Confirm_Input">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm your password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                if (confirmPasswordError) setConfirmPasswordError('');
+              }}
               style={{ paddingRight: confirmPassword ? '36px' : undefined }}
              
             />
