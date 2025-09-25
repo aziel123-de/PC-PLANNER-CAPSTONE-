@@ -17,6 +17,7 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [voteBusy, setVoteBusy] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -58,7 +59,7 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
   };
 
   const castVote = async (direction) => {
-    if (!token) { alert('Login required'); return; }
+    if (!token) { setShowLoginDialog(true); return; }
     if (voteBusy) return;
     setVoteBusy(true);
     try {
@@ -200,6 +201,24 @@ export default function CommunityBuildModal({ buildId, onClose, onLoaded }) {
           </>
         )}
       </div>
+      
+      {/* Login Required Dialog */}
+      {showLoginDialog && (
+        <div className="delete-dialog-overlay">
+          <div className="delete-dialog">
+            <div className="delete-dialog-header">
+              <h3>Login Required</h3>
+            </div>
+            <div className="delete-dialog-body">
+              <p>You need to be logged in to vote on builds.</p>
+            </div>
+            <div className="delete-dialog-actions">
+              <button className="cancel-btn" onClick={() => setShowLoginDialog(false)}>Close</button>
+              <button className="confirm-delete-btn" onClick={() => window.location.href = '/login'}>Login</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
