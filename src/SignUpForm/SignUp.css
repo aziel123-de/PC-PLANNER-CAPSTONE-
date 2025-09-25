@@ -67,7 +67,7 @@ html, body {
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
-  height: 580px;
+  min-height: 580px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -222,4 +222,106 @@ input[type="password"]::-webkit-credentials-auto-fill-button,
 input[type="password"]::-webkit-textfield-decoration-container,
 input[type="password"]::-webkit-clear-button {
   display: none;
+}
+/* Email Already Registered Dialog */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+  color: black;
+}
+
+.dialog-content h3 {
+  margin-top: 0;
+  color: black;
+}
+
+.dialog-content p {
+  color: #666;
+  margin: 15px 0;
+}
+
+.dialog-ok-btn {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dialog-ok-btn:hover {
+  background-color: #1976d2;
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+  .signup-box {
+    padding: 20px;
+    margin: 10px;
+    max-width: 90%;
+    min-height: auto;
+  }
+  
+  .signup-box h2 {
+    font-size: 22px;
+  }
+  
+  .signup-box h3 {
+    font-size: 16px;
+  }
+  
+  .signup-box p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .SignUp-wrapper {
+    padding: 10px;
+  }
+  
+  .signup-box {
+    padding: 15px;
+    margin: 5px;
+    max-width: 95%;
+  }
+  
+  .signup-box h2 {
+    font-size: 20px;
+  }
+  
+  .signup-box h3 {
+    font-size: 14px;
+  }
+  
+  input[type="text"],
+  input[type="password"] {
+    font-size: 12px;
+  }
+  
+  .signUp-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+  
+  .dialog-content {
+    margin: 10px;
+    max-width: 90%;
+  }
 }

@@ -10,13 +10,28 @@ function SignUp({ onLoginClick }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [emailError, setEmailError] = useState('');
+  const [showEmailError, setShowEmailError] = useState(false);
+  const [showNameError, setShowNameError] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [showConfirmPasswordError, setShowConfirmPasswordError] = useState(false);
+  const [showEmailExistsDialog, setShowEmailExistsDialog] = useState(false);
+  const [showAccountCreatedDialog, setShowAccountCreatedDialog] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!Fullname) {
+      setShowNameError(true);
+      return;
+    }
+    setShowNameError(false);
+
+    if (!Email.includes('@')) {
+      setShowEmailError(true);
+      return;
+    }
+    setShowEmailError(false);
 
     const hasMinLength = Password.length >= 8;
     const hasLowerCase = /[a-z]/.test(Password);
@@ -31,21 +46,42 @@ function SignUp({ onLoginClick }) {
     setPasswordError('');
 
     if (Password !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
+      setShowConfirmPasswordError(true);
       return;
     }
-    setConfirmPasswordError('');
+    setShowConfirmPasswordError(false);
 
-    if (!Fullname || !Email || !Password || !confirmPassword) {
+    let hasErrors = false;
+
+    if (!Fullname) {
+      setShowNameError(true);
+      hasErrors = true;
+    } else {
+      setShowNameError(false);
+    }
+
+    if (!Email.includes('@')) {
+      setShowEmailError(true);
+      hasErrors = true;
+    } else {
+      setShowEmailError(false);
+    }
+
+    if (!hasMinLength || !hasLowerCase || !hasUpperCase || !hasNumber || !hasSpecialChar) {
+      setShowPasswordRequirements(true);
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      return;
+    }
+
+    if (!Email || !Password || !confirmPassword) {
       alert("Please fill all fields.");
       return;
     }
 
-    if (!Email.includes('@')) {
-      setEmailError('Enter a valid email');
-      return;
-    }
-    setEmailError('');
+    
 
     try {
       // create user with backend
@@ -65,14 +101,17 @@ function SignUp({ onLoginClick }) {
       }
 
       if (response.ok) {
-        alert(`Account created for: ${Fullname}`);
+        setShowAccountCreatedDialog(true);
         setFullName('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-        if (typeof onLoginClick === 'function') onLoginClick();
       } else {
-        alert(`Error: ${data.error || JSON.stringify(data)}`);
+        if (data.error && data.error.includes('already')) {
+          setShowEmailExistsDialog(true);
+        } else {
+          alert(`Error: ${data.error || JSON.stringify(data)}`);
+        }
       }
     } catch (error) {
       console.error('Signup Error:', error);
@@ -108,26 +147,54 @@ function SignUp({ onLoginClick }) {
             type="text"
             placeholder="Enter your full name"
             value={Fullname}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => {
+              setFullName(e.target.value);
+              setShowNameError(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (!Fullname.trim()) {
+                  setShowNameError(true);
+                }
+              }
+            }}
             
           />
         </div>
+        {showNameError && (
+          <div style={{ backgroundColor: 'white', padding: '8px', borderRadius: '5px', marginTop: '5px', fontSize: '12px', display: 'flex', alignItems: 'center', border: '1px solid #ddd' }}>
+            <span style={{ color: 'orange', marginRight: '5px' }}>⚠</span>
+            <span style={{ color: 'black' }}>Enter your full name</span>
+          </div>
+        )}
 
         {/* Email */}
         <label>Email</label>
-        {emailError && <p style={{ color: 'red', fontSize: '14px', margin: '5px 0' }}>{emailError}</p>}
         <div className="E_Input">
           <input
-            type="email"
+            type="text"
             placeholder="Enter your email"
             value={Email}
             onChange={(e) => {
               setEmail(e.target.value);
-              if (emailError) setEmailError('');
+              setShowEmailError(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (!Email.includes('@')) {
+                  setShowEmailError(true);
+                }
+              }
             }}
         
           />
         </div>
+        {showEmailError && (
+          <div style={{ backgroundColor: 'white', padding: '8px', borderRadius: '5px', marginTop: '5px', fontSize: '12px', display: 'flex', alignItems: 'center', border: '1px solid #ddd' }}>
+            <span style={{ color: 'orange', marginRight: '5px' }}>⚠</span>
+            <span style={{ color: 'black' }}>Enter valid email</span>
+          </div>
+        )}
 
         {/* Password */}
         <div className="Pass-btn">
@@ -196,7 +263,6 @@ function SignUp({ onLoginClick }) {
 
           {/* Confirm Password */}
           <label>Confirm Password</label>
-          {confirmPasswordError && <p style={{ color: 'red', fontSize: '14px', margin: '5px 0' }}>{confirmPasswordError}</p>}
           <div className="Confirm_Input">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
@@ -204,7 +270,14 @@ function SignUp({ onLoginClick }) {
               value={confirmPassword}
               onChange={(e) => {
                 setConfirmPassword(e.target.value);
-                if (confirmPasswordError) setConfirmPasswordError('');
+                setShowConfirmPasswordError(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (Password !== confirmPassword) {
+                    setShowConfirmPasswordError(true);
+                  }
+                }
               }}
               style={{ paddingRight: confirmPassword ? '36px' : undefined }}
              
@@ -220,6 +293,12 @@ function SignUp({ onLoginClick }) {
               </button>
             )}
           </div>
+          {showConfirmPasswordError && (
+            <div style={{ backgroundColor: 'white', padding: '8px', borderRadius: '5px', marginTop: '5px', fontSize: '12px', display: 'flex', alignItems: 'center', border: '1px solid #ddd' }}>
+              <span style={{ color: 'orange', marginRight: '5px' }}>⚠</span>
+              <span style={{ color: 'black' }}>Passwords do not match</span>
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}
@@ -235,6 +314,41 @@ function SignUp({ onLoginClick }) {
           </a>
         </p>
       </form>
+      
+      {showEmailExistsDialog && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', maxWidth: '400px', textAlign: 'center' }}>
+            <h3 className="registered-alert">Email Already Registered</h3>
+            <p className="registered-message">This email address is already associated with an account. Please use a different email or sign in instead.</p>
+
+            <button
+              onClick={() => setShowEmailExistsDialog(false)}
+              className="registered-ok-button alert-ok-button"
+              
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {showAccountCreatedDialog && (
+        <div className="dialog-overlay">
+          <div className="dialog-content">
+            <h3>Account Created Successfully!</h3>
+            <p>Your account has been created. You can now sign in with your credentials.</p>
+            <button 
+              onClick={() => {
+                setShowAccountCreatedDialog(false);
+                if (typeof onLoginClick === 'function') onLoginClick();
+              }}
+              className="dialog-ok-btn"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
