@@ -24,6 +24,11 @@ function SignUp({ onLoginClick }) {
       return;
     }
 
+    if (!Email.includes('@')) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
     try {
       // create user with backend
       const response = await fetch('/api/register', {
@@ -86,7 +91,7 @@ function SignUp({ onLoginClick }) {
             placeholder="Enter your full name"
             value={Fullname}
             onChange={(e) => setFullName(e.target.value)}
-            required
+            
           />
         </div>
 
@@ -98,7 +103,7 @@ function SignUp({ onLoginClick }) {
             placeholder="Enter your email"
             value={Email}
             onChange={(e) => setEmail(e.target.value)}
-            required
+        
           />
         </div>
 
@@ -112,7 +117,7 @@ function SignUp({ onLoginClick }) {
               value={Password}
               onChange={(e) => setPassword(e.target.value)}
               style={{ paddingRight: Password ? '36px' : undefined }}
-              required
+             
             />
             {Password && (
               <button
@@ -135,7 +140,7 @@ function SignUp({ onLoginClick }) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               style={{ paddingRight: confirmPassword ? '36px' : undefined }}
-              required
+             
             />
             {confirmPassword && (
               <button
