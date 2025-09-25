@@ -124,6 +124,8 @@
 .label-text {
   color: #000000;
   font-weight: 200;
+  min-width: 120px;
+  display: inline-block;
 }
 
 /* make the list info text thinner and slightly muted */
