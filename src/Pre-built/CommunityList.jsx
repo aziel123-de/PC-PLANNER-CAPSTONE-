@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './community.css';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import CommunityBuildModal from './CommunityBuildModal';
+import AlertModal from '../components/AlertModal';
 import { FaUser, FaEye, FaDownload, FaTrash, FaCaretUp, FaDollarSign, FaClock, FaTools, FaWrench } from 'react-icons/fa';
 
 /* Assumptions:
@@ -20,6 +21,7 @@ function CommunityList() {
   const [refreshIndex, setRefreshIndex] = useState(0);
   const [modalBuildId, setModalBuildId] = useState(null); // placeholder until modal is implemented
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, buildId: null, buildTitle: '' });
+  const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
 
   const fetchBuilds = useCallback(async () => {
     setLoading(true); setError(null);
@@ -79,7 +81,10 @@ function CommunityList() {
     setDeleteConfirm({ show: false, buildId: null, buildTitle: '' });
     
     const token = localStorage.getItem('token');
-    if (!token) { alert('Login required'); return; }
+    if (!token) { 
+      setAlertModal({ show: true, message: 'Login required', title: 'Authentication Required' }); 
+      return; 
+    }
     
     try {
       const res = await fetch(`${API_PREFIX}/${buildId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
@@ -90,7 +95,7 @@ function CommunityList() {
       setBuilds(prev => prev.filter(b => b.id !== buildId));
     } catch (e) {
       console.error('delete community build failed', e);
-      alert(e.message || 'Delete failed');
+      setAlertModal({ show: true, message: e.message || 'Delete failed', title: 'Delete Error' });
     }
   };
 
@@ -168,7 +173,7 @@ function CommunityList() {
                 </div>
                 
                 <p className="description-text">
-                  {build.description || 'Nag try lang ako ba'}
+                  {build.description || 'No description provided.'}
                 </p>
 
                 <div className="button-row">
@@ -231,6 +236,14 @@ function CommunityList() {
           </div>
         </div>
       )}
+
+      {/* Custom Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.show}
+        onClose={() => setAlertModal({ show: false, message: '', title: 'Alert' })}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </div>
   );
 }

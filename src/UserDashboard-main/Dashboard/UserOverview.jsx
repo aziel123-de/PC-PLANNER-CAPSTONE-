@@ -9,6 +9,7 @@ import { FaTools, FaCheckCircle, FaBoxOpen, FaHistory } from 'react-icons/fa';
 import LoggedInUserHeader from './loggedInUserHeader';
 import SavedBuildModal from './SavedBuildModal';
 import ShareSavedBuildModal from './ShareSavedBuildModal';
+import AlertModal from '../../components/AlertModal';
 
 
 
@@ -33,8 +34,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   }, []);
   
   // data in backend
-  const recentBuilds = [];
-  const detectedIssues =[];
 
 // ------------------------------- CURRENT DATE UPDATED ---------------------------------
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -50,11 +49,52 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [savedBuilds, setSavedBuilds] = useState([]);
   const [buildHistory, setBuildHistory] = useState([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [userCollapsed, setUserCollapsed] = useState(false); // Track user manual collapse
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
+  const [userCollapsed, setUserCollapsed] = useState(false);
   const [viewingBuild, setViewingBuild] = useState(null);
   const [sharingBuild, setSharingBuild] = useState(null);
   const [justSharedId, setJustSharedId] = useState(null);
+  const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
+
+  // Calculate average build cost and price range
+  const calculateAverageCost = () => {
+    if (savedBuilds.length === 0) return { average: 0, estimatedMin: 0, estimatedMax: 0, actualMin: 0, actualMax: 0 };
+    
+    const prices = savedBuilds.map(build => build.total_price || 0);
+    const total = prices.reduce((sum, price) => sum + price, 0);
+    const average = Math.round(total / savedBuilds.length);
+    const range = Math.round(average * 0.4); // 40% range
+    const actualMin = Math.min(...prices);
+    const actualMax = Math.max(...prices);
+    
+    return {
+      average,
+      estimatedMin: Math.max(0, average - range),
+      estimatedMax: average + range,
+      actualMin,
+      actualMax
+    };
+  };
+
+  // Calculate bottleneck builds
+  const calculateBottlenecks = () => {
+    return savedBuilds.filter(build => 
+      build.has_issues || (build.warnings && build.warnings.length > 0)
+    ).length;
+  };
+
+  const { average, estimatedMin, estimatedMax, actualMin, actualMax } = calculateAverageCost();
+  const bottleneckCount = calculateBottlenecks();
+
+  // Get builds with issues for detected issues section
+  const buildsWithIssues = savedBuilds.filter(build => 
+    build.has_issues || (build.warnings && build.warnings.length > 0)
+  );
+
+  // Get recent builds (most recently created/modified)
+  const recentBuilds = savedBuilds
+    .sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0))
+    .slice(0, 3); // Show only the 3 most recent
 
   // Header is rendered by LoggedInUserHeader component
 
@@ -66,7 +106,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     }
   };
 
-  // Check screen size for responsive behavior
   useEffect(() => {
     const checkScreenSize = () => {
       const smallScreen = window.innerWidth <= 1024;
@@ -74,9 +113,8 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       
       if (smallScreen) {
         setSidebarCollapsed(true);
-        setUserCollapsed(false); // Reset user preference on small screen
+        setUserCollapsed(false);
       } else {
-        // On large screen, use user preference or default to expanded
         setSidebarCollapsed(userCollapsed);
       }
     };
@@ -115,13 +153,16 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   const handleDeleteBuild = async (id) => {
     const token = localStorage.getItem('token');
-    if (!token) return alert('Please log in');
+    if (!token) {
+      setAlertModal({ show: true, message: 'Please log in', title: 'Login Required' });
+      return;
+    }
     try {
       const resp = await fetch(`/api/builds/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (!resp.ok) throw new Error('delete failed');
       setSavedBuilds(b => b.filter(x => x.id !== id));
     } catch (e) {
-      alert('Delete failed: ' + (e.message || 'unknown'));
+      setAlertModal({ show: true, message: 'Delete failed: ' + (e.message || 'unknown'), title: 'Delete Error' });
     }
   };
 
@@ -134,7 +175,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       if (build.description) localStorage.setItem('editingBuildDescription', build.description);
       navigate('/builder/edit');
     } catch (e) {
-      alert('Failed to load build into builder');
+      setAlertModal({ show: true, message: 'Failed to load build into builder', title: 'Load Error' });
     }
   };
 
@@ -244,7 +285,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       </h2>
       <h3 className="text-h3">Welcome to your Dashboard</h3>
     </div>
-
   </div>
 </div>
 
@@ -256,10 +296,10 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <p className="box-label">Total Builds
         <Save size={20}className="box-icon-1" />
       </p>
-      <h2 className="box-value">No Data</h2>
+      <h2 className="box-value">{savedBuilds.length}</h2>
     </div>
     <div className="box-bottom">
-      <p className="box-note">No cost data yet</p>
+      <p className="box-note">{savedBuilds.length === 0 ? 'No builds saved yet' : `${savedBuilds.length} build${savedBuilds.length !== 1 ? 's' : ''} saved`}</p>
     </div>
   </div>
 
@@ -268,10 +308,10 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <p className="box-label">Average Build Cost
         <Cpu size={20} className="box-icon-2" />
       </p>
-      <h2 className="box-value">No Data</h2>
+      <h2 className="box-value">{savedBuilds.length === 0 ? 'No Data' : `₱${average.toLocaleString()}`}</h2>
     </div>
     <div className="box-bottom">
-      <p className="box-note">No usage data</p>
+      <p className="box-note">{savedBuilds.length === 0 ? 'No cost data yet' : `Est: ₱${estimatedMin.toLocaleString()} - ₱${estimatedMax.toLocaleString()} | Low to Highest: ₱${actualMin.toLocaleString()} - ₱${actualMax.toLocaleString()}`}</p>
     </div>
   </div>
 
@@ -281,10 +321,10 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
        <TriangleAlert size={20} className="box-icon-4" />
 
       </p>
-      <h2 className="box-value">No Data</h2>
+      <h2 className="box-value">{bottleneckCount}</h2>
     </div>
     <div className="box-bottom">
-      <p className="box-note">No recent activity</p>
+      <p className="box-note">{bottleneckCount === 0 ? 'No bottlenecks detected' : `${bottleneckCount} build${bottleneckCount !== 1 ? 's' : ''} with issues`}</p>
     </div>
   </div>
 </div>
@@ -309,12 +349,12 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       <ul className="build-list">
         {recentBuilds.map((build, index) => (
           <li key={index}>
-            <strong>{build.name}</strong><br />
-            {build.specs} — ₱{build.price}
+            <strong>{build.name || 'Untitled Build'}</strong><br />
+            Created: {build.createdAt ? new Date(build.createdAt).toLocaleDateString() : 'Unknown'} — ₱{(build.total_price || 0).toLocaleString()}
           </li>
         ))}
       </ul>
-      <button className="view-button">View all Builds</button>
+      <button className="view-button" onClick={() => setActiveSection('saved')}>View all Builds</button>
     </>
   )}
 </div>
@@ -327,7 +367,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     <p>Bottlenecks and warnings in your builds</p>
   </div>
 
-  {detectedIssues.length === 0 ? (
+  {buildsWithIssues.length === 0 ? (
     <div className="no-data-box">
       <div className="no-data-icon"><FaCheckCircle /></div>
       <p className="no-data-msg">No issues detected yet.</p>
@@ -336,13 +376,14 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   ) : (
     <>
       <ul className="issue-list">
-        {detectedIssues.map((issue, index) => (
+        {buildsWithIssues.map((build, index) => (
           <li key={index}>
-            <strong>{issue.type}</strong>: {issue.message}
+            <strong>Build name:</strong> {build.name || 'Untitled Build'}<br />
+            <strong>Warnings:</strong> {build.warnings && build.warnings.length > 0 ? build.warnings.join(', ') : 'General issues detected'}
           </li>
         ))}
       </ul>
-      <button className="view-button">View all Issues</button>
+      <button className="view-button" onClick={() => setActiveSection('saved')}>View all Issues</button>
     </>
   )}
 </div>
@@ -362,10 +403,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
         <MdWavingHand className="wave-Icon" />
       </h2>
       <h3 className="text-h3">Welcome to your Saved Builds</h3>
-    </div>
-
-    <div className="welcome-image">
-     
     </div>
   </div>
 </div>
@@ -411,17 +448,16 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
      {activeSection === 'history' && (
       <main className="user-history-builds">
         <div className="welcome-box">
-  <div className="welcome-content">
-    <div className="welcome-text">
-      <h2 className="gradientName">
-        <span className="gradientText">Hello, {userName}!</span>
-        <MdWavingHand className="wave-Icon" />
-      </h2>
-      <h3 className="text-h3">Welcome to your Build History</h3>
-    </div>
-
-  </div>
-</div>
+          <div className="welcome-content">
+            <div className="welcome-text">
+              <h2 className="gradientName">
+                <span className="gradientText">Hello, {userName}!</span>
+                <MdWavingHand className="wave-Icon" />
+              </h2>
+              <h3 className="text-h3">Welcome to your Build History</h3>
+            </div>
+          </div>
+        </div>
 
 
 <div className="box-buildHistory">
@@ -473,6 +509,13 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
       </div>
       
+      {/* Custom Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.show}
+        onClose={() => setAlertModal({ show: false, message: '', title: 'Alert' })}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </div>
     
 

@@ -1,0 +1,106 @@
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.confirm-modal-box {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 320px;
+  max-width: 500px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.confirm-modal-header {
+  background: #e9ecef;
+  border-bottom: 1px solid #dee2e6;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.confirm-modal-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.confirm-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-modal-close:hover {
+  color: #495057;
+}
+
+.confirm-modal-body {
+  padding: 16px 12px;
+}
+
+.confirm-modal-message {
+  margin: 0;
+  font-size: 14px;
+  color: #495057;
+  line-height: 1.4;
+}
+
+.confirm-modal-footer {
+  padding: 8px 12px 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-modal-cancel-btn {
+  background: #6c757d;
+  color: white;
+  border: 1px solid #6c757d;
+  border-radius: 3px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-modal-cancel-btn:hover {
+  background: #545b62;
+  border-color: #545b62;
+}
+
+.confirm-modal-ok-btn {
+  background: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+  border-radius: 3px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-modal-ok-btn:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
