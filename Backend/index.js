@@ -6,12 +6,49 @@ const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const pool = require('./mysql');
 
 const app = express();
 app.use(helmet());
 app.use(cors({ origin: true }));
 app.use(express.json());
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `profile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}${ext}`;
+    cb(null, filename);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only JPEG and PNG images are allowed'));
+    }
+  }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const API_PREFIX = '/api';
@@ -38,6 +75,7 @@ async function ensureSchema() {
       username VARCHAR(255),
       salt VARCHAR(100) NOT NULL,
       hash VARCHAR(255) NOT NULL,
+      profile_picture TEXT,
       createdAt DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
     await conn.query(sql);
@@ -112,13 +150,22 @@ const handleLogin = async (req, res) => {
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query('SELECT id,email,username,hash FROM users WHERE email = ?', [email.toLowerCase()]);
+    const [rows] = await conn.query('SELECT id,email,username,hash,profile_picture,createdAt FROM users WHERE email = ?', [email.toLowerCase()]);
     if (!rows.length) return res.status(401).json({ error: 'invalid credentials' });
     const row = rows[0];
     const match = bcrypt.compareSync(password, row.hash);
     if (!match) return res.status(401).json({ error: 'invalid credentials' });
     const token = jwt.sign({ sub: row.id, email: row.email }, JWT_SECRET, { expiresIn: '7d' });
-    return res.json({ user: { id: row.id, email: row.email, username: row.username, createdAt: row.createdAt }, token });
+    return res.json({ 
+      user: { 
+        id: row.id, 
+        email: row.email, 
+        username: row.username, 
+        profile_picture: row.profile_picture,
+        createdAt: row.createdAt 
+      }, 
+      token 
+    });
   } catch (err) {
     console.error('db error', err && err.message ? err.message : err);
     return res.status(500).json({ error: 'db error' });
@@ -141,10 +188,16 @@ app.get(`${API_PREFIX}/users/:id`, async (req, res) => {
   
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query('SELECT id,email,username FROM users WHERE id = ?', [userId]);
+    const [rows] = await conn.query('SELECT id,email,username,profile_picture FROM users WHERE id = ?', [userId]);
     if (!rows.length) return res.status(404).json({ error: 'user not found' });
     const user = rows[0];
-    return res.json({ id: user.id, email: user.email, full_name: user.username, username: user.username });
+    return res.json({ 
+      id: user.id, 
+      email: user.email, 
+      full_name: user.username, 
+      username: user.username,
+      profile_picture: user.profile_picture 
+    });
   } catch (err) {
     console.error('get user error', err);
     return res.status(500).json({ error: 'db error' });
@@ -164,13 +217,81 @@ app.put(`${API_PREFIX}/users/:id`, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.query('UPDATE users SET username = ? WHERE id = ?', [full_name, userId]);
-    return res.json({ id: userId, full_name, username: full_name });
+    const [rows] = await conn.query('SELECT profile_picture FROM users WHERE id = ?', [userId]);
+    const profile_picture = rows.length ? rows[0].profile_picture : null;
+    return res.json({ id: userId, full_name, username: full_name, profile_picture });
   } catch (err) {
     console.error('update user error', err);
     return res.status(500).json({ error: 'db error' });
   } finally {
     conn.release();
   }
+});
+
+// Test endpoint for file upload
+app.post(`${API_PREFIX}/test-upload`, upload.single('profilePicture'), (req, res) => {
+  console.log('Test upload received:', req.file);
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file received' });
+  }
+  res.json({ message: 'Test upload successful', file: req.file });
+});
+
+// Profile picture upload endpoint
+app.post(`${API_PREFIX}/users/:id/profile-picture`, (req, res) => {
+  console.log('Profile picture upload attempt for user:', req.params.id);
+  
+  // Handle multer upload
+  upload.single('profilePicture')(req, res, async (err) => {
+    if (err) {
+      console.error('Multer error:', err.message);
+      return res.status(400).json({ error: err.message });
+    }
+    
+    console.log('File received:', req.file);
+    const userId = getUserIdFromRequest(req);
+    if (!userId) return res.status(401).json({ error: 'unauthorized' });
+    if (userId !== req.params.id) return res.status(403).json({ error: 'forbidden' });
+    
+    if (!req.file) {
+      console.log('No file uploaded');
+      return res.status(400).json({ error: 'no file uploaded' });
+    }
+  
+    const conn = await pool.getConnection();
+    try {
+      // Get old profile picture to delete it
+      const [oldRows] = await conn.query('SELECT profile_picture FROM users WHERE id = ?', [userId]);
+      const oldPicture = oldRows.length ? oldRows[0].profile_picture : null;
+      
+      // Update database with new profile picture path
+      const profilePicturePath = `/uploads/${req.file.filename}`;
+      await conn.query('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePicturePath, userId]);
+      
+      // Delete old profile picture file if it exists
+      if (oldPicture && oldPicture.startsWith('/uploads/')) {
+        const oldFilePath = path.join(__dirname, oldPicture);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+      
+      console.log('Profile picture saved successfully:', profilePicturePath);
+      return res.json({ 
+        message: 'Profile picture updated successfully',
+        profile_picture: profilePicturePath
+      });
+    } catch (err) {
+      console.error('profile picture upload error', err);
+      // Delete uploaded file if database update failed
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(500).json({ error: 'database error: ' + err.message });
+    } finally {
+      conn.release();
+    }
+  });
 });
 
 const port = process.env.PORT || 5050;

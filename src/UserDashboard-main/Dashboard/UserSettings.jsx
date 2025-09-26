@@ -182,7 +182,13 @@ function UserSettings({ onBack, onLogout, userId }) {
 
         // Handle profile picture upload separately if needed
         if (formData.profilePicture) {
-          await handleProfilePictureUpload();
+          try {
+            await handleProfilePictureUpload();
+          } catch (uploadError) {
+            console.error('Profile picture upload failed:', uploadError);
+            alert(`Profile updated but profile picture upload failed: ${uploadError.message}. Please try uploading the picture again.`);
+            return;
+          }
         }
 
         alert('Profile updated successfully!');
@@ -200,37 +206,77 @@ function UserSettings({ onBack, onLogout, userId }) {
   };
 
   const handleProfilePictureUpload = async () => {
+    console.log('Starting profile picture upload...');
+    console.log('File to upload:', formData.profilePicture);
+    console.log('User ID:', userId);
+    
+    if (!formData.profilePicture) {
+      throw new Error('No file selected');
+    }
+    
+    if (!userId) {
+      throw new Error('User ID is missing');
+    }
+    
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('profilePicture', formData.profilePicture);
-      formDataToSend.append('userId', userId);
+      
+      console.log('FormData created, making request...');
 
-      const uploadResponse = await fetch('/api/upload/profile-picture', {
+      const token = localStorage.getItem('token');
+      const uploadResponse = await fetch(`/api/users/${userId}/profile-picture`, {
         method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: formDataToSend,
       });
+      
+      console.log('Upload response status:', uploadResponse.status);
+      console.log('Upload response headers:', uploadResponse.headers);
 
       if (uploadResponse.ok) {
         const uploadResult = await uploadResponse.json();
-        
-        // Update user record with new profile picture path
-        await fetch(`/api/users/${userId}/profile-picture`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            profile_picture: uploadResult.filePath,
-            updated_at: new Date().toISOString()
-          }),
-        });
+        console.log('Upload successful:', uploadResult);
         
         // Update the displayed profile picture
-        setProfilePictureUrl(uploadResult.filePath);
-        console.log('Profile picture updated in MySQL:', uploadResult.filePath);
+        setProfilePictureUrl(uploadResult.profile_picture);
+        
+        // Update localStorage user data
+        try {
+          const rawLocal = localStorage.getItem('user');
+          const localUser = rawLocal ? JSON.parse(rawLocal) : {};
+          const merged = {
+            ...localUser,
+            profile_picture: uploadResult.profile_picture,
+            photoURL: uploadResult.profile_picture
+          };
+          localStorage.setItem('user', JSON.stringify(merged));
+          window.dispatchEvent(new CustomEvent('authChanged', { detail: merged }));
+        } catch (e) {
+          console.warn('Failed to update localStorage user:', e);
+        }
+        
+        console.log('Profile picture updated in MySQL:', uploadResult.profile_picture);
+      } else {
+        const errorText = await uploadResponse.text();
+        console.error('Upload failed with status:', uploadResponse.status);
+        console.error('Error response:', errorText);
+        
+        let errorMessage = 'Upload failed';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorJson.message || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error uploading profile picture:', error);
+      throw error;
     }
   };
 
