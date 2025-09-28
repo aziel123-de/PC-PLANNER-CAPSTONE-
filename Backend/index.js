@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const pool = require('./mysql');
 
 const app = express();
@@ -118,6 +120,18 @@ async function ensureSchema() {
       CONSTRAINT fk_cbv_build FOREIGN KEY (build_id) REFERENCES community_builds(id) ON DELETE CASCADE,
       CONSTRAINT fk_cbv_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
+    // Password reset tokens
+    await conn.query(`CREATE TABLE IF NOT EXISTS password_resets (
+      id VARCHAR(36) PRIMARY KEY,
+      user_id VARCHAR(36) NOT NULL,
+      token_hash VARCHAR(128) NOT NULL,
+      expiresAt DATETIME NOT NULL,
+      used TINYINT DEFAULT 0,
+      createdAt DATETIME NOT NULL,
+      INDEX(token_hash),
+      INDEX(user_id),
+      CONSTRAINT fk_pr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   } finally {
     conn.release();
   }
@@ -179,6 +193,96 @@ app.post('/register', handleRegister);
 app.post(`${API_PREFIX}/register`, handleRegister);
 app.post('/login', handleLogin);
 app.post(`${API_PREFIX}/login`, handleLogin);
+
+// Password reset: request reset link
+app.post(`${API_PREFIX}/forgot-password`, async (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'email required' });
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT id,email FROM users WHERE email = ? LIMIT 1', [email.toLowerCase()]);
+    if (!rows.length) {
+      // don't reveal whether email exists
+      return res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+    }
+    const user = rows[0];
+    // create a one-time token
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
+    const id = uuidv4();
+    const now = new Date();
+    await conn.query('INSERT INTO password_resets (id,user_id,token_hash,expiresAt,used,createdAt) VALUES (?,?,?,?,?,?)', [id, user.id, tokenHash, expiresAt, 0, now]);
+    const resetUrl = `${process.env.FRONTEND_URL || ''}/newpassword?token=${rawToken}`;
+
+    // If SMTP settings are provided, attempt to send email. Otherwise fall back to dev behavior.
+    const smtpHost = process.env.SMTP_HOST || '';
+    const smtpPort = parseInt(process.env.SMTP_PORT || '0', 10) || 0;
+    const smtpUser = process.env.SMTP_USER || '';
+    const smtpPass = process.env.SMTP_PASS || '';
+    const fromEmail = process.env.FROM_EMAIL || `no-reply@${req.hostname || 'localhost'}`;
+
+    if (smtpHost && smtpPort && smtpUser && smtpPass) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: smtpPort,
+          secure: smtpPort === 465, // true for 465, false for other ports
+          auth: { user: smtpUser, pass: smtpPass }
+        });
+        const mail = {
+          from: fromEmail,
+          to: user.email,
+          subject: 'Password reset for PC Planner',
+          text: `You requested a password reset. Click the link to reset your password:\n\n${resetUrl}\n\nIf you didn't request this, ignore this email.`,
+          html: `<p>You requested a password reset. Click the link to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, ignore this email.</p>`
+        };
+        await transporter.sendMail(mail);
+        return res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+      } catch (mailErr) {
+        console.error('failed to send reset email', mailErr && mailErr.message ? mailErr.message : mailErr);
+        // Fall through to dev behavior below if in development, otherwise still return generic message
+      }
+    }
+
+    // In development return the reset link for testing
+    if ((process.env.NODE_ENV || 'development') === 'development') {
+      return res.json({ message: 'reset link created (dev)', resetUrl });
+    }
+    return res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
+  } catch (err) {
+    console.error('forgot-password error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'server error' });
+  } finally { conn.release(); }
+});
+
+// Password reset: accept token and set new password
+app.post(`${API_PREFIX}/auth/reset`, async (req, res) => {
+  const { token, password } = req.body || {};
+  if (!token || !password) return res.status(400).json({ error: 'token and password required' });
+  if (typeof password !== 'string' || password.length < 6) return res.status(400).json({ error: 'password too short' });
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT id,user_id,expiresAt,used FROM password_resets WHERE token_hash = ? LIMIT 1', [tokenHash]);
+    if (!rows.length) return res.status(400).json({ error: 'invalid or expired token' });
+    const row = rows[0];
+    if (row.used) return res.status(400).json({ error: 'token already used' });
+    const expiresAt = new Date(row.expiresAt);
+    if (expiresAt.getTime() < Date.now()) return res.status(400).json({ error: 'token expired' });
+
+    // Update user password
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    await conn.query('UPDATE users SET salt=?, hash=? WHERE id=?', [salt, hash, row.user_id]);
+    // mark token used
+    await conn.query('UPDATE password_resets SET used=1 WHERE id=?', [row.id]);
+    return res.json({ message: 'password updated' });
+  } catch (err) {
+    console.error('reset password error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'server error' });
+  } finally { conn.release(); }
+});
 
 // User profile endpoints
 app.get(`${API_PREFIX}/users/:id`, async (req, res) => {
