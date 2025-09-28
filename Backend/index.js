@@ -228,7 +228,8 @@ app.post(`${API_PREFIX}/forgot-password`, async (req, res) => {
           host: smtpHost,
           port: smtpPort,
           secure: smtpPort === 465, // true for 465, false for other ports
-          auth: { user: smtpUser, pass: smtpPass }
+          auth: { user: smtpUser, pass: smtpPass },
+          tls: { rejectUnauthorized: false }
         });
         const mail = {
           from: fromEmail,
