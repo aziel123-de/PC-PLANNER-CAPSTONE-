@@ -56,11 +56,50 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
         <h1 className="header-title">PC Planner</h1>
       </div>
 
+<<<<<<< HEAD
+      {/* Navigation links for large screens */}
+      {!isSmallScreen && (
+        <nav className="header-nav desktop-nav">
+          <Link to="/" className="header-nav-link">Home</Link>
+          <Link to="/builder" className="header-nav-link">PC Builder</Link>
+          <Link to="/prebuilt" className="header-nav-link">Pre-built PCs</Link>
+          <Link to="/components" className="header-nav-link">Components</Link>
+          <Link to="/learn" className="header-nav-link">Learn</Link>
+          
+          <div className="header-dropdown" ref={dropdownRef}>
+            <button className="header-profile-btn" onClick={() => setOpenDropdown(!openDropdown)}>
+              <div className="profile-box">
+                <img src={authUser?.photoURL || authUser?.profile_picture || profDefault} alt="Profile" className="header-profile-img" />
+                <div className="profile-info">
+                  <span className="profile-name">{authUser?.username || authUser?.displayName || ''}</span>
+                </div>
+                <div className={`dropdown-icon ${openDropdown ? 'rotate' : ''}`}>
+                  <ChevronDown size={20} />
+                </div>
+              </div>
+            </button>
+
+            {openDropdown && (
+              <div className="header-dropdown-content">
+                <div className="dropdown-arrow" />
+                <div className="dropdown-header">
+                  <img src={authUser?.photoURL || authUser?.profile_picture || profDefault} alt="Profile" className="avatar-img-large" />
+                  <div className="user-info">
+                    <p className="user-name">{authUser?.username || authUser?.displayName || ''}</p>
+                    <p className="user-email">{authUser?.email || ''}</p>
+                  </div>
+                </div>
+                <div className="dropdown-body">
+                  <div className="signed-in"><span>Signed in as</span></div>
+                  <div className="user-detail">
+                    <div className="user-line"><User size={14} /> {authUser?.username || authUser?.displayName || ''}</div>
+                    <div className="user-line"><Mail size={12} /> {authUser?.email || ''}</div>
+=======
       {isSmallScreen && (
         <button className="hamburger-db" onClick={toggleMenu} ref={hamburgerRef} aria-label="Toggle menu">
           {/* if logged in show avatar inside hamburger */}
           {authUser ? (
-            <img src={authUser.photoURL || authUser.profile_picture || profDefault} alt="avatar" style={{ width: 28, height: 28, borderRadius: 6 }} />
+            <img src={authUser.profile_picture || authUser.photoURL || profDefault} alt="avatar" style={{ width: 28, height: 28, borderRadius: 6 }} />
           ) : (
             menuOpen ? <FaTimes size={24} color="#fff" /> : <FaBars size={24} color="#fff" />
           )}
@@ -79,7 +118,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
             <div className="header-dropdown" ref={dropdownRef}>
               <button className="header-profile-btn" onClick={() => setOpenDropdown(!openDropdown)}>
                 <div className="profile-box">
-                  <img src={authUser?.photoURL || authUser?.profile_picture || profDefault} alt="Profile" className="header-profile-img" />
+                  <img src={authUser?.profile_picture || authUser?.photoURL || profDefault} alt="Profile" className="header-profile-img" />
                   <div className="profile-info">
                     <span className="profile-name">{authUser?.username || authUser?.displayName || ''}</span>
                   </div>
@@ -93,7 +132,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                 <div className="header-dropdown-content">
                   <div className="dropdown-arrow" />
                   <div className="dropdown-header">
-                    <img src={authUser?.photoURL || authUser?.profile_picture || profDefault} alt="Profile" className="avatar-img-large" />
+                    <img src={authUser?.profile_picture || authUser?.photoURL || profDefault} alt="Profile" className="avatar-img-large" />
                     <div className="user-info">
                       <p className="user-name">{authUser?.username || authUser?.displayName || ''}</p>
                       <p className="user-email">{authUser?.email || ''}</p>
@@ -143,45 +182,116 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                       </div>
                     )}
 
+>>>>>>> 80682b125c68173cdafeee94a72d46f3a09c7409
                   </div>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* Small-screen menu actions (show sign in/up or dashboard/logout) */}
-          {isSmallScreen && (
-            <div className="mobile-actions">
-              {authUser ? (
-                <>
-                  <button className="mobile-link" onClick={() => { closeMenu(); navigate('/dashboard'); }}>Dashboard</button>
-                  <button className="mobile-link" onClick={() => { closeMenu(); navigate('/settings'); }}>Settings</button>
-                  <button className="mobile-link logout" onClick={() => { setShowConfirm(true); }}>
-                    Logout
+                <div className="dropdown-footer">
+                  <button className="dropdown-btn" onClick={() => { setOpenDropdown(false); navigate('/dashboard'); }}>
+                    <FaHome size={14} style={{ marginRight: 6 }} /> Dashboard
                   </button>
+                  <button className="dropdown-btn" onClick={() => { setOpenDropdown(false); onClickSettings && onClickSettings(); navigate('/settings'); }}>
+                    <Settings size={14} /> Account Settings
+                  </button>
+                  <button
+                    className="dropdown-btn logout"
+                    onClick={() => setShowConfirm(true)}
+                  >
+                    <LogOut size={14} /> Log Out
+                  </button>
+
                   {showConfirm && (
                     <div className="signout-modal-overlay">
                       <div className="signout-modal-box">
                         <p className="signout-modal-message">Are you sure you want to log out?</p>
                         <div className="signout-modal-actions">
-                          <button onClick={handleLogout} className="signout-confirm-btn">Yes</button>
-                          <button onClick={() => setShowConfirm(false)} className="signout-cancel-btn">Cancel</button>
+                          <button
+                            onClick={handleLogout}
+                            className="signout-confirm-btn"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => setShowConfirm(false)}
+                            className="signout-cancel-btn"
+                          >
+                            Cancel
+                          </button>
                         </div>
                       </div>
                     </div>
                   )}
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="header-nav-link" onClick={closeMenu}>Sign In</Link>
-                  <Link to="/signup" className="header-nav-link" onClick={closeMenu}>Sign Up</Link>
-                </>
-              )}
+                </div>
+              </div>
+            )}
+          </div>
+        </nav>
+      )}
+
+      {/* Hamburger menu for small screens */}
+      {isSmallScreen && (
+        <button className="hamburger-db" onClick={toggleMenu} ref={hamburgerRef} aria-label="Toggle menu">
+          {menuOpen ? <FaTimes size={24} color="#fff" /> : <FaBars size={24} color="#fff" />}
+        </button>
+      )}
+
+      {/* Overlay */}
+      {isSmallScreen && <div className={`overlay ${menuOpen ? 'show' : ''}`}></div>}
+
+      {/* Mobile sidebar menu */}
+      {isSmallScreen && (
+        <div className={`slide-down-menu ${menuOpen ? 'show' : ''}`}>
+          <nav className="navM" ref={headerNavRef}>
+            <Link to="/" className="navM-link" onClick={closeMenu}>
+              <FaHome size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Home
+            </Link>
+            <hr />
+            <Link to="/builder" className="navM-link" onClick={closeMenu}>
+              <FaBars size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> PC Builder
+            </Link>
+            <hr />
+            <Link to="/prebuilt" className="navM-link" onClick={closeMenu}>
+              <FaBars size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Pre-built PCs
+            </Link>
+            <hr />
+            <Link to="/components" className="navM-link" onClick={closeMenu}>
+              <FaBars size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Components
+            </Link>
+            <hr />
+            <Link to="/learn" className="navM-link" onClick={closeMenu}>
+              <FaBars size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Learn
+            </Link>
+            <hr />
+          </nav>
+
+          <div className="menu-buttons">
+            {authUser ? (
+              <>
+                <button className="sign-in" onClick={() => { closeMenu(); navigate('/dashboard'); }}>Dashboard</button>
+                <button className="sign-in" onClick={() => { closeMenu(); navigate('/settings'); }} style={{ marginTop: 8 }}>Settings</button>
+                <button className="sign-in" onClick={() => setShowConfirm(true)} style={{ marginTop: 8 }}>Logout</button>
+              </>
+            ) : (
+              <>
+                <button className="sign-in" onClick={() => { closeMenu(); navigate('/login'); }}>Sign In</button>
+                <button className="sign-in" onClick={() => { closeMenu(); navigate('/signup'); }} style={{ marginTop: 8 }}>Sign Up</button>
+              </>
+            )}
+          </div>
+
+          {showConfirm && (
+            <div className="signout-modal-overlay">
+              <div className="signout-modal-box">
+                <p className="signout-modal-message">Are you sure you want to log out?</p>
+                <div className="signout-modal-actions">
+                  <button onClick={handleLogout} className="signout-confirm-btn">Yes</button>
+                  <button onClick={() => setShowConfirm(false)} className="signout-cancel-btn">Cancel</button>
+                </div>
+              </div>
             </div>
           )}
-
-        </nav>
-      </div>
+        </div>
+      )}
     </header>
   );
 }

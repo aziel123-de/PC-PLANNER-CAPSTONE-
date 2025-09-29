@@ -1,7 +1,7 @@
 import './PartSelector.css';
 import Select from 'react-select';
 
-function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dataLookup, slotCount, selectedValues, setSelectedValues }) {
+function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex }) {
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
   const mapByCanonical = {
@@ -75,6 +75,39 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
 
   // normalize all options early so compatibility checks work
   options = options.map(normalize);
+
+  // GPU SLI/CrossFire compatibility filtering
+  if (part.name === "Graphics Card (GPU)" && selectedGPUs && selectedGPUs[0] && selectedValue !== selectedGPUs[0]) {
+    const firstGPU = selectedGPUs[0];
+    const firstGPUName = (firstGPU.name || '').toLowerCase();
+    
+    // Extract brand and model from first GPU
+    const isNvidia = firstGPUName.includes('rtx') || firstGPUName.includes('gtx') || firstGPUName.includes('nvidia');
+    const isAMD = firstGPUName.includes('rx') || firstGPUName.includes('radeon') || firstGPUName.includes('amd');
+    
+    // Extract model number (e.g., "4090" from "RTX 4090")
+    const modelMatch = firstGPUName.match(/(\d{4}|\d{3})/); // Match 3-4 digit numbers
+    const firstModel = modelMatch ? modelMatch[1] : null;
+    
+    options = options.filter(gpu => {
+      const gpuName = (gpu.name || '').toLowerCase();
+      const gpuIsNvidia = gpuName.includes('rtx') || gpuName.includes('gtx') || gpuName.includes('nvidia');
+      const gpuIsAMD = gpuName.includes('rx') || gpuName.includes('radeon') || gpuName.includes('amd');
+      
+      // Must be same brand
+      if (isNvidia && !gpuIsNvidia) return false;
+      if (isAMD && !gpuIsAMD) return false;
+      
+      // Must be same model for SLI/CrossFire
+      if (firstModel) {
+        const gpuModelMatch = gpuName.match(/(\d{4}|\d{3})/);
+        const gpuModel = gpuModelMatch ? gpuModelMatch[1] : null;
+        return gpuModel === firstModel;
+      }
+      
+      return true;
+    });
+  }
 
   // Compatibility filtering
   if (selectedMOBO) {
@@ -186,19 +219,29 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
     data: opt
   }));
 
-  // multi-slot support for RAM / M.2 / Storage
+  // multi-slot support for RAM / M.2 / Storage with dynamic add/remove
   const multiTypes = ['Memory (RAM)', 'M.2 SSD', 'Storage'];
-  const isMulti = multiTypes.includes(part.name) && (slotCount > 1 || Array.isArray(selectedValues));
+  const isMulti = multiTypes.includes(part.name) && Array.isArray(selectedValues);
 
   if (isMulti) {
-    const count = Number(slotCount) || (Array.isArray(selectedValues) ? selectedValues.length : 0);
-    const valuesArr = Array.from({ length: Math.max(0, count) }).map((_, i) => (Array.isArray(selectedValues) ? selectedValues[i] : null));
+    const valuesArr = selectedValues || [];
+    const maxSlots = Number(slotCount) || 8; // fallback max
 
     const handleChangeAt = (index, selectedOption) => {
-      const newArr = Array.from(valuesArr);
+      const newArr = [...valuesArr];
       newArr[index] = selectedOption ? selectedOption.data : null;
-      if (typeof setSelectedValues === 'function') setSelectedValues(newArr);
-      else if (typeof setSelectedValue === 'function') setSelectedValue(newArr);
+      setSelectedValues(newArr);
+    };
+
+    const addSlot = () => {
+      if (valuesArr.length < maxSlots) {
+        setSelectedValues([...valuesArr, null]);
+      }
+    };
+
+    const removeSlot = (index) => {
+      const newArr = valuesArr.filter((_, i) => i !== index);
+      setSelectedValues(newArr);
     };
 
     return (
@@ -211,7 +254,18 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
         <div className="MultiSlotWrapper">
           {valuesArr.map((val, idx) => (
             <div key={idx} className="SlotSelect">
-              <label className="SlotLabel">{part.name} Slot {idx + 1}</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <label className="SlotLabel">{part.name} {idx + 1}</label>
+                {valuesArr.length > 1 && (
+                  <button 
+                    type="button" 
+                    onClick={() => removeSlot(idx)}
+                    style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
               <Select
                 className="PartSelector"
                 value={val ? { value: val.id, label: `${val.name} (₱${Number(val.price || 0).toLocaleString()})`, data: val } : null}
@@ -219,12 +273,34 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
                 options={reactSelectOptions}
                 isSearchable
                 isClearable
-                placeholder={`-- Select ${part.name} Slot ${idx + 1} --`}
+                placeholder={`-- Select ${part.name} ${idx + 1} --`}
                 menuHeight={200}
                 maxMenuHeight={200}
               />
             </div>
           ))}
+          {valuesArr.length < maxSlots && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+              <button 
+                type="button" 
+                onClick={addSlot}
+                style={{ 
+                  background: '#059669', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  padding: '12px 16px', 
+                  fontSize: '14px', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px'
+                }}
+              >
+                + Add {part.name}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

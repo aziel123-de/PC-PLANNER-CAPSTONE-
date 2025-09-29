@@ -4,7 +4,7 @@ import React from 'react';
 import analyzeBuild from './analyzeBuild';
 import { FiLock } from 'react-icons/fi';
 
-function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
+function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, dataLookup }) {
   // Convert selectedParts object to a flat array of all selected parts (filter out null/undefined)
   const allParts = Object.values(selectedParts).flat().filter(Boolean).map(p => p._raw ? p : p);
   const TOTAL_PART_COUNT = 14; // configurable expected parts count (includes 4 peripherals)
@@ -131,17 +131,37 @@ function BuildSummary({ selectedParts, onSaveBuild, isLoggedIn, dataLookup }) {
         )}
       </div>
 
-      {/* Save Build Button */}
-      <div style={{ marginTop: 20 }}>
+      {/* Save Build and Clear Buttons */}
+      <div style={{ marginTop: 20, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         {isLoggedIn ? (
-          <button 
-            id="save-build-btn-builderpage"
-            onClick={onSaveBuild} 
-            disabled={!dataLookup} 
-            className="save-build-btn-builderpage"
-          >
-            Save Build
-          </button>
+          <>
+            <button 
+              id="save-build-btn-builderpage"
+              onClick={onSaveBuild} 
+              disabled={!dataLookup} 
+              className="save-build-btn-builderpage"
+            >
+              Save Build
+            </button>
+            <button 
+              onClick={onClearBuild}
+              style={{
+                background: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#b91c1c'}
+              onMouseOut={(e) => e.target.style.background = '#dc2626'}
+            >
+              Clear All
+            </button>
+          </>
         ) : (
           <div>
             <p className='pcBuilderNotetoSign'>

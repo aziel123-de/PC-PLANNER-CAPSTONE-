@@ -4,15 +4,17 @@ import PartSelector from '../PCBuilding/PartSelector';
 import BuildSummary from '../PCBuilding/BuildSummary';
 import SaveBuildModal from '../PCBuilding/SaveBuildModal';
 import BuildNameModal from '../PCBuilding/BuildNameModal';
+import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import analyzeBuild from '../PCBuilding/analyzeBuild';
 
 function BuilderPage() {
   const [selectedMOBO, setSelectedMOBO] = useState(null);
   const [selectedCPU, setSelectedCPU] = useState(null);
-  const [selectedGPUs, setSelectedGPUs] = useState([]);
-  const [selectedRAMs, setSelectedRAMs] = useState([]);
-  const [selectedM2s, setSelectedM2s] = useState([]);
-  const [selectedStorage, setSelectedStorage] = useState([]);
+  const [selectedGPUs, setSelectedGPUs] = useState([null]); // Start with one GPU slot
+  const [selectedRAMs, setSelectedRAMs] = useState([null]); // Start with one RAM slot
+  const [selectedM2s, setSelectedM2s] = useState([null]); // Start with one M.2 slot
+  const [selectedStorage, setSelectedStorage] = useState([null]); // Start with one Storage slot
   const [selectedPSU, setSelectedPSU] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
   const [selectedKeyboard, setSelectedKeyboard] = useState(null);
@@ -60,6 +62,8 @@ function BuilderPage() {
 
   // Modal state for build name input
   const [showNameModal, setShowNameModal] = useState(false);
+  const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
+  const [confirmModal, setConfirmModal] = useState({ show: false, message: '', title: 'Confirm', onConfirm: null });
 
   // Prefill from a previously loaded build saved in localStorage (if present)
   useEffect(() => {
@@ -181,7 +185,7 @@ function BuilderPage() {
   const handleSaveBuild = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('You must be logged in to save a build.');
+      setAlertModal({ show: true, message: 'You must be logged in to save a build.', title: 'Login Required' });
       return;
     }
 
@@ -231,7 +235,7 @@ function BuilderPage() {
       setShowSaveModal(true);
     } catch (e) {
       console.error('Save build failed', e);
-      alert('Save failed: ' + (e.message || 'Unknown error'));
+      setAlertModal({ show: true, message: 'Save failed: ' + (e.message || 'Unknown error'), title: 'Save Error' });
     }
   };
 
@@ -242,6 +246,29 @@ function BuilderPage() {
 
   const handleNameModalClose = () => {
     setShowNameModal(false);
+  };
+
+  const handleClearBuild = () => {
+    setConfirmModal({
+      show: true,
+      title: 'Clear All Components',
+      message: 'Are you sure you want to clear all components? This action cannot be undone.',
+      onConfirm: () => {
+        setSelectedMOBO(null);
+        setSelectedCPU(null);
+        setSelectedGPUs([null]);
+        setSelectedRAMs([null]);
+        setSelectedM2s([null]);
+        setSelectedStorage([null]);
+        setSelectedPSU(null);
+        setSelectedCase(null);
+        setSelectedKeyboard(null);
+        setSelectedMouse(null);
+        setSelectedHeadset(null);
+        setSelectedMonitor(null);
+        setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null });
+      }
+    });
   };
 
   useEffect(() => {
@@ -308,10 +335,10 @@ function BuilderPage() {
               setSelectedValue={(value) => {
                 // update selected MOBO and reset dependent selectors
                 setSelectedMOBO(value);
-                setSelectedRAMs([]);
-                setSelectedGPUs([]);
-                setSelectedM2s([]);
-                setSelectedStorage([]);
+                setSelectedRAMs([null]);
+                setSelectedGPUs([null]);
+                setSelectedM2s([null]);
+                setSelectedStorage([null]);
 
                 // if a CPU is already selected, invalidate it when sockets don't match
                 if (selectedCPU && value) {
@@ -339,23 +366,61 @@ function BuilderPage() {
                 setSelectedGPUs(updated);
               }}
               dataLookup={dataLookup}
+              selectedGPUs={selectedGPUs}
             />
-      {Array.from({ length: Math.max(0, (gpuSlotsCount || 1) - 1) }).map((_, index) => (
-              <PartSelector
-                key={`gpu-${index + 1}`}
-                part={{ name: "Graphics Card (GPU)" }}
-        selectedValue={selectedGPUs[index + 1]}
-                setSelectedValue={(value) => {
-                  const updated = [...selectedGPUs];
-                  updated[index + 1] = value;
-                  setSelectedGPUs(updated);
-                }}
-                dataLookup={dataLookup}
-              />
+            {selectedGPUs.slice(1).map((gpu, index) => (
+              <div key={`gpu-${index + 1}`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <h1 style={{ margin: 0 }}>Graphics Card (GPU) {index + 2}</h1>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const updated = selectedGPUs.filter((_, i) => i !== index + 1);
+                      setSelectedGPUs(updated);
+                    }}
+                    style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <PartSelector
+                  part={{ name: "Graphics Card (GPU)" }}
+                  selectedValue={gpu}
+                  setSelectedValue={(value) => {
+                    const updated = [...selectedGPUs];
+                    updated[index + 1] = value;
+                    setSelectedGPUs(updated);
+                  }}
+                  dataLookup={dataLookup}
+                  selectedGPUs={selectedGPUs}
+                />
+              </div>
             ))}
+            {selectedGPUs.length < (gpuSlotsCount || 2) && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setSelectedGPUs([...selectedGPUs, null])}
+                  style={{ 
+                    background: '#059669', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '8px', 
+                    padding: '12px 16px', 
+                    fontSize: '14px', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px'
+                  }}
+                >
+                  + Add Graphics Card
+                </button>
+              </div>
+            )}
             <PartSelector
               part={{ name: "Memory (RAM)" }}
-              slotCount={ramSlotsCount || 0}
+              slotCount={ramSlotsCount || 8}
               selectedValues={selectedRAMs}
               setSelectedValues={setSelectedRAMs}
               selectedMOBO={selectedMOBO}
@@ -363,21 +428,21 @@ function BuilderPage() {
             />
             <PartSelector
               part={{ name: "M.2 SSD" }}
-              slotCount={m2SlotsCount || 0}
+              slotCount={m2SlotsCount || 4}
               selectedValues={selectedM2s}
               setSelectedValues={setSelectedM2s}
               dataLookup={dataLookup}
             />
             <PartSelector
               part={{ name: "Storage" }}
-              slotCount={storageSlotsCount || 0}
+              slotCount={storageSlotsCount || 6}
               selectedValues={selectedStorage}
               setSelectedValues={setSelectedStorage}
               dataLookup={dataLookup}
             />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
-            <h1>Peripherals</h1>
+            <h1 style={{ textAlign: 'left' }}>Peripherals</h1>
             <PartSelector part={{ name: "Keyboard" }} selectedValue={selectedKeyboard} setSelectedValue={setSelectedKeyboard} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Mouse" }} selectedValue={selectedMouse} setSelectedValue={setSelectedMouse} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Headset" }} selectedValue={selectedHeadset} setSelectedValue={setSelectedHeadset} dataLookup={dataLookup} />
@@ -388,6 +453,7 @@ function BuilderPage() {
               selectedParts={buildSummaryParts} 
               dataLookup={dataLookup}
               onSaveBuild={handleSaveBuild}
+              onClearBuild={handleClearBuild}
               isLoggedIn={isLoggedIn}
             />
           </div>
@@ -411,6 +477,23 @@ function BuilderPage() {
         buildName={saveModalData.buildName}
         hasIssues={saveModalData.hasIssues}
         warnings={saveModalData.warnings}
+      />
+
+      {/* Custom Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.show}
+        onClose={() => setAlertModal({ show: false, message: '', title: 'Alert' })}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
       />
     </>
   );

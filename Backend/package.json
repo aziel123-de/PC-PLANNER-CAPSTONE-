@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-  "start": "node -r dotenv/config index.js dotenv_config_path=.env dotenv_config_override=true",
+    "start": "node -r dotenv/config index.js dotenv_config_path=.env dotenv_config_override=true",
     "migrate": "node migrate_create_table.js",
     "create-db": "node create_database.js"
   },
@@ -15,7 +15,9 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.4",
+    "nodemailer": "^6.10.1",
     "uuid": "^11.1.0"
   }
 }

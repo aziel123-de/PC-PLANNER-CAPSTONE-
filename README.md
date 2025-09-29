@@ -25,3 +25,19 @@ Make sure to start the backend before calling the API endpoints:
 	- `npm run dev`
 
 The SignUp form sends requests to `/api/register` which will be forwarded to the backend.
+
+## Profile Pictures
+
+Profile pictures are now stored in MySQL database and persist after logout. Users can upload profile pictures through the Settings page:
+
+- Maximum file size: 2MB
+- Supported formats: JPEG, PNG
+- Pictures are stored in `Backend/uploads/` directory
+- Database stores the file path in the `profile_picture` column
+
+To upload a profile picture:
+1. Login to your account
+2. Go to Settings page
+3. Upload a profile picture
+4. Save changes
+5. Your picture will persist even after logout!

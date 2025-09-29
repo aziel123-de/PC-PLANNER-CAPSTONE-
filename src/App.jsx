@@ -1,9 +1,10 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { forceUnlockAllScroll } from './utils/scrollLock.js';
 import Login from './LoginForm/Login.jsx';
 import SignUp from './SignUpForm/SignUp.jsx';
 import ForgotPassword from './LoginForm/ForgotPassword.jsx';
+import NewPassword from './LoginForm/NewPassword.jsx';
 import Header from './HomepageForm/Header.jsx';
 import LoggedInUserHeader from './UserDashboard-main/Dashboard/loggedInUserHeader';
 import Section from './HomepageForm/Section.jsx';
@@ -26,10 +27,21 @@ import CommunityBuildModal from './Pre-built/CommunityBuildModal';
 
 function App() {
   const location = useLocation();
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   // hide header on these routes
-  const hideHeaderOn = ['/login', '/signup', '/forgot-password'];
+  const hideHeaderOn = ['/login', '/signup', '/forgot-password', '/newpassword'];
   const navigate = useNavigate();
+
+  // Check screen size for responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth <= 1024);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // decide logged-in by token in localStorage (matches other components)
   const rawToken = (localStorage.getItem('token') || '').trim();
@@ -59,7 +71,7 @@ function App() {
       { showHeader && (
         isLoggedIn ? (
           <LoggedInUserHeader
-            isSmallScreen={false}
+            isSmallScreen={isSmallScreen}
             onClickSettings={() => navigate('/settings')}
             onLogout={topLogout}
             onClickSignIn={() => navigate('/login')}
@@ -76,6 +88,7 @@ function App() {
           <Route path="/login" element={<LoginWrapper />} />
           <Route path="/signup" element={<SignUpWrapper />} />
           <Route path="/forgot-password" element={<ForgotPasswordWrapper />} />
+          <Route path="/newpassword" element={<NewPasswordWrapper />} />
         </Routes>
       ) : (
         <div className={showHeader && !isDashboard ? 'with-global-header' : ''}>
@@ -149,6 +162,15 @@ function ForgotPasswordWrapper() {
   return (
     <ForgotPassword
       // ForgotPassword uses its own back button; still provide a prop if needed
+      onBack={() => navigate(-1)}
+    />
+  );
+}
+
+function NewPasswordWrapper() {
+  const navigate = useNavigate();
+  return (
+    <NewPassword
       onBack={() => navigate(-1)}
     />
   );
