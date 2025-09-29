@@ -225,6 +225,20 @@ function BuilderPage() {
       setTempName(name);
       setTempDescription(description);
       
+      // Clear all components after successful save
+      setSelectedMOBO(null);
+      setSelectedCPU(null);
+      setSelectedGPUs([null]);
+      setSelectedRAMs([null]);
+      setSelectedM2s([null]);
+      setSelectedStorage([null]);
+      setSelectedPSU(null);
+      setSelectedCase(null);
+      setSelectedKeyboard(null);
+      setSelectedMouse(null);
+      setSelectedHeadset(null);
+      setSelectedMonitor(null);
+      
       // Show success modal
       setSaveModalData({
         buildId: data.id || '(id unknown)',

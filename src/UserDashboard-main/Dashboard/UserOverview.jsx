@@ -10,6 +10,7 @@ import LoggedInUserHeader from './loggedInUserHeader';
 import SavedBuildModal from './SavedBuildModal';
 import ShareSavedBuildModal from './ShareSavedBuildModal';
 import AlertModal from '../../components/AlertModal';
+import Footer from '../../HomepageForm/Footer';
 
 
 
@@ -146,9 +147,16 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     return () => { mounted = false; };
   }, []);
 
-  // Build history placeholder (could derive from saved builds in time)
+  // Build history derived from saved builds
   useEffect(() => {
-    setBuildHistory([]);
+    const history = savedBuilds.map(build => ({
+      title: build.name || 'Untitled Build',
+      date: build.createdAt ? new Date(build.createdAt).toLocaleDateString() : new Date(build.created_at || Date.now()).toLocaleDateString(),
+      price: (build.total_price || 0).toLocaleString(),
+      buildId: build.id,
+      hasIssues: build.has_issues || (build.warnings && build.warnings.length > 0)
+    })).sort((a, b) => new Date(b.date) - new Date(a.date));
+    setBuildHistory(history);
   }, [savedBuilds]);
 
   const handleDeleteBuild = async (id) => {
@@ -477,17 +485,18 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
           <ul className="history-list">
             {buildHistory.map((history, index) => (
               <li key={index}>
-                <strong>{history.title}</strong><br />
+                <strong>{history.title}</strong>
+                {history.hasIssues && <span className="issue-indicator"> ⚠️</span>}<br />
                 {history.date} — ₱{history.price}
               </li>
             ))}
           </ul>
-          <button className="view-button">View Full History</button>
+          <button className="view-button" onClick={() => setActiveSection('saved')}>View All Builds</button>
         </>
       )}
     </div>
 
-
+  <Footer />
 
 
 
@@ -508,6 +517,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 </div>
 
       </div>
+    
       
       {/* Custom Alert Modal */}
       <AlertModal

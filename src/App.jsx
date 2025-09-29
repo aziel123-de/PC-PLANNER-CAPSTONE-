@@ -105,23 +105,23 @@ function App() {
               />
 
               {/* PCBUILDER routes */}
-              <Route path="/builder" element={<BuilderPage />} />
-              <Route path="/builder/edit" element={<BuilderPageEdit />} />
+              <Route path="/builder" element={<><BuilderPage /><Footer /></>} />
+              <Route path="/builder/edit" element={<><BuilderPageEdit /><Footer /></>} />
 
               {/* Prebuilt legacy paths now redirect/show CommunityList */}
-              <Route path="/prebuilt" element={<CommunityList />} />
-              <Route path="/prebuilt/" element={<CommunityList />} />
-              <Route path="/prebuilt/all" element={<CommunityList />} />
-              <Route path="/prebuilt/gaming" element={<CommunityList />} />
-              <Route path="/prebuilt/productivity" element={<CommunityList />} />
-              <Route path="/prebuilt/generaluse" element={<CommunityList />} />
+              <Route path="/prebuilt" element={<><CommunityList /><Footer /></>} />
+              <Route path="/prebuilt/" element={<><CommunityList /><Footer /></>} />
+              <Route path="/prebuilt/all" element={<><CommunityList /><Footer /></>} />
+              <Route path="/prebuilt/gaming" element={<><CommunityList /><Footer /></>} />
+              <Route path="/prebuilt/productivity" element={<><CommunityList /><Footer /></>} />
+              <Route path="/prebuilt/generaluse" element={<><CommunityList /><Footer /></>} />
 
-              <Route path="/components" element={<ComponentPage />} />
-              <Route path="/learn" element={<LearnPage />} />
-              <Route path="/learn/components" element={<ComponentsPage />} />
-              <Route path="/learn/compatibility" element={<CompatibilityPage />} />
-              <Route path="/learn/bottlenecks" element={<BottlenecksPage />} />
-              <Route path="/learn/budget-tips" element={<BudgettipsPage />} />
+              <Route path="/components" element={<><ComponentPage /><Footer /></>} />
+              <Route path="/learn" element={<><LearnPage /><Footer /></>} />
+              <Route path="/learn/components" element={<><ComponentsPage /><Footer /></>} />
+              <Route path="/learn/compatibility" element={<><CompatibilityPage /><Footer /></>} />
+              <Route path="/learn/bottlenecks" element={<><BottlenecksPage /><Footer /></>} />
+              <Route path="/learn/budget-tips" element={<><BudgettipsPage /><Footer /></>} />
 
               {/* Dashboard routes */}
               <Route path="/dashboard" element={<DashboardWrapper />} />

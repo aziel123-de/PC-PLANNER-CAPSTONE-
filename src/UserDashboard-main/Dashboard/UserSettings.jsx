@@ -12,6 +12,7 @@ function UserSettings({ onBack, onLogout, userId }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false);
@@ -186,19 +187,22 @@ function UserSettings({ onBack, onLogout, userId }) {
             await handleProfilePictureUpload();
           } catch (uploadError) {
             console.error('Profile picture upload failed:', uploadError);
+            setShowSuccessDialog(false);
             alert(`Profile updated but profile picture upload failed: ${uploadError.message}. Please try uploading the picture again.`);
             return;
           }
         }
 
-        alert('Profile updated successfully!');
+        setShowSuccessDialog(true);
       } else {
         const error = await response.json();
         console.error('Failed to update profile in MySQL:', error.message);
+        setShowSuccessDialog(false);
         alert('Failed to update profile. Please try again.');
       }
     } catch (error) {
       console.error('Error updating profile in MySQL database:', error);
+      setShowSuccessDialog(false);
       alert('An error occurred while updating your profile.');
     } finally {
       setSaving(false);
@@ -360,6 +364,24 @@ function UserSettings({ onBack, onLogout, userId }) {
                     className="signout-cancel-btn-settings"
                   >
                     Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Dialog */}
+          {showSuccessDialog && (
+            <div className="success-modal-overlay">
+              <div className="success-modal-box">
+                <h3>Success!</h3>
+                <p>Profile updated successfully!</p>
+                <div className="success-modal-actions">
+                  <button 
+                    onClick={() => setShowSuccessDialog(false)}
+                    className="success-ok-btn"
+                  >
+                    OK
                   </button>
                 </div>
               </div>
