@@ -75,11 +75,27 @@ async function ensureSchema() {
       id VARCHAR(36) PRIMARY KEY,
       email VARCHAR(255) NOT NULL UNIQUE,
       username VARCHAR(255),
-      salt VARCHAR(100) NOT NULL,
-      hash VARCHAR(255) NOT NULL,
+      firebase_uid VARCHAR(255),
+      salt VARCHAR(100),
+      hash VARCHAR(255),
       profile_picture TEXT,
       createdAt DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
+    
+    // Add firebase_uid column if it doesn't exist
+    try {
+      await conn.query('ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(255)');
+    } catch (e) {
+      // Column already exists
+    }
+    
+    // Make salt and hash nullable for Firebase users
+    try {
+      await conn.query('ALTER TABLE users MODIFY salt VARCHAR(100)');
+      await conn.query('ALTER TABLE users MODIFY hash VARCHAR(255)');
+    } catch (e) {
+      // Already nullable
+    }
     await conn.query(sql);
     // Community builds main table
     await conn.query(`CREATE TABLE IF NOT EXISTS community_builds (
@@ -283,6 +299,42 @@ app.post(`${API_PREFIX}/auth/reset`, async (req, res) => {
     console.error('reset password error', err && err.message ? err.message : err);
     return res.status(500).json({ error: 'server error' });
   } finally { conn.release(); }
+});
+
+// Firebase authentication sync endpoint
+app.post(`${API_PREFIX}/auth/firebase`, async (req, res) => {
+  const { uid, email, displayName, photoURL } = req.body || {};
+  if (!uid || !email) return res.status(400).json({ error: 'uid and email required' });
+  
+  const conn = await pool.getConnection();
+  try {
+    // Check if user exists by email
+    const [rows] = await conn.query('SELECT id,email,username,profile_picture FROM users WHERE email = ?', [email.toLowerCase()]);
+    
+    let user;
+    if (rows.length) {
+      // User exists, update Firebase UID if needed
+      user = rows[0];
+      await conn.query('UPDATE users SET firebase_uid = ? WHERE id = ?', [uid, user.id]);
+    } else {
+      // Create new user
+      const id = uuidv4();
+      const createdAt = new Date();
+      await conn.query(
+        'INSERT INTO users (id,email,username,firebase_uid,profile_picture,salt,hash,createdAt) VALUES (?,?,?,?,?,?,?,?)',
+        [id, email.toLowerCase(), displayName || null, uid, photoURL || null, '', '', createdAt]
+      );
+      user = { id, email: email.toLowerCase(), username: displayName, profile_picture: photoURL, createdAt };
+    }
+    
+    const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    return res.json({ user, token });
+  } catch (err) {
+    console.error('firebase auth sync error', err);
+    return res.status(500).json({ error: 'db error' });
+  } finally {
+    conn.release();
+  }
 });
 
 // User profile endpoints

@@ -63,9 +63,31 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
     setError('');
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-  if (typeof onLoginSuccess === 'function') onLoginSuccess();
-  try { navigate('/dashboard'); } catch (e) {}
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Send Firebase user data to backend
+      const res = await fetch('/api/auth/firebase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) return setError(data.error || 'Firebase sync failed');
+      
+      // Store user and token locally
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.token) localStorage.setItem('token', data.token);
+      window.dispatchEvent(new CustomEvent('authChanged', { detail: { user: data.user, token: data.token } }));
+      
+      if (typeof onLoginSuccess === 'function') onLoginSuccess(data.user);
+      navigate('/dashboard');
     } catch (err) {
       console.error('Google sign-in error', err);
       setError(err.message || 'Google sign-in failed');
