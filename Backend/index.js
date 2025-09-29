@@ -400,7 +400,8 @@ app.post(`${API_PREFIX}/users/:id/profile-picture`, (req, res) => {
 
 const port = process.env.PORT || 5050;
 ensureSchema().then(() => {
-  app.listen(port, '127.0.0.1', () => console.log('Backend listening on 127.0.0.1:' + port));
+  // Use 0.0.0.0 so container platforms (Render, Railway, etc.) can expose the port
+  app.listen(port, '0.0.0.0', () => console.log('Backend listening on 0.0.0.0:' + port));
 }).catch(err => {
   console.error('Schema setup failed', err);
   process.exit(1);
