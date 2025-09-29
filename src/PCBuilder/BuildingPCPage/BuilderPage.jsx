@@ -189,6 +189,19 @@ function BuilderPage() {
       return;
     }
 
+    // Check if any components are selected
+    const hasComponents = selectedMOBO || selectedCPU || selectedPSU || selectedCase ||
+      (selectedGPUs && selectedGPUs.some(gpu => gpu)) ||
+      (selectedRAMs && selectedRAMs.some(ram => ram)) ||
+      (selectedM2s && selectedM2s.some(m2 => m2)) ||
+      (selectedStorage && selectedStorage.some(storage => storage)) ||
+      selectedKeyboard || selectedMouse || selectedHeadset || selectedMonitor;
+
+    if (!hasComponents) {
+      setAlertModal({ show: true, message: 'Please select at least one component before saving your build.', title: 'No Components Selected' });
+      return;
+    }
+
     // If we don't have a name, show the name modal
     if (!tempName) {
       setShowNameModal(true);

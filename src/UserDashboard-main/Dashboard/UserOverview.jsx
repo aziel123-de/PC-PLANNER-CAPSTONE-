@@ -10,6 +10,7 @@ import LoggedInUserHeader from './loggedInUserHeader';
 import SavedBuildModal from './SavedBuildModal';
 import ShareSavedBuildModal from './ShareSavedBuildModal';
 import AlertModal from '../../components/AlertModal';
+import ConfirmModal from '../../components/ConfirmModal';
 import Footer from '../../HomepageForm/Footer';
 
 
@@ -56,6 +57,7 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [sharingBuild, setSharingBuild] = useState(null);
   const [justSharedId, setJustSharedId] = useState(null);
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
+  const [confirmModal, setConfirmModal] = useState({ show: false, message: '', title: 'Confirm', onConfirm: null });
 
   // Calculate average build cost and price range
   const calculateAverageCost = () => {
@@ -159,7 +161,17 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
     setBuildHistory(history);
   }, [savedBuilds]);
 
-  const handleDeleteBuild = async (id) => {
+  const handleDeleteBuild = (build) => {
+    setConfirmModal({
+      show: true,
+      title: 'Delete Build',
+      message: `Are you sure you want to delete "${build.name || 'Untitled Build'}"? This action cannot be undone.`,
+      onConfirm: () => confirmDeleteBuild(build.id)
+    });
+  };
+
+  const confirmDeleteBuild = async (id) => {
+    setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null });
     const token = localStorage.getItem('token');
     if (!token) {
       setAlertModal({ show: true, message: 'Please log in', title: 'Login Required' });
@@ -496,11 +508,6 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
       )}
     </div>
 
-  <Footer />
-
-
-
-
       </main>
 
 
@@ -525,6 +532,17 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
         onClose={() => setAlertModal({ show: false, message: '', title: 'Alert' })}
         title={alertModal.title}
         message={alertModal.message}
+      />
+      
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </div>
     

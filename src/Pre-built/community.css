@@ -20,6 +20,9 @@
 
 .community-builds-wrapper {
   color: var(--cb-text);
+  min-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
 }
 
 .community-builds-wrapper h1,
@@ -34,6 +37,7 @@
   box-shadow: 0 8px 32px rgba(0,0,0,0.08);
   overflow: hidden;
   position: relative;
+  flex: 1;
 }
 
 .community-panel::before {

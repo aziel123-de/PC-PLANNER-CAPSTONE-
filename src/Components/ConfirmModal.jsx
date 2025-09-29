@@ -12,7 +12,19 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title = "Confirm", message, 
           <button className="confirm-modal-close" onClick={onClose}>×</button>
         </div>
         <div className="confirm-modal-body">
-          <p className="confirm-modal-message">{message}</p>
+          <p className="confirm-modal-message">
+            {message.includes('"') ? (
+              <>
+                {message.split('"')[0]}
+                <span className="build-name-highlight">
+                  "{message.split('"')[1]}"
+                </span>
+                {message.split('"')[2]}
+              </>
+            ) : (
+              message
+            )}
+          </p>
         </div>
         <div className="confirm-modal-footer">
           <button className="confirm-modal-cancel-btn" onClick={onClose}>

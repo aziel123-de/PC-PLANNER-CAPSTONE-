@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Trash } from 'lucide-react';
 
 /**
@@ -13,7 +13,6 @@ export default function SavedBuildCard({ build, onDelete, onLoad, onView, onShar
   if (!build) return null;
   const { id, name, total_price, createdAt, has_issues, warnings = [] } = build;
   const dateStr = createdAt ? new Date(createdAt).toLocaleString() : '';
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (
     <div style={styles.card} className="saved-build-card">
@@ -54,38 +53,14 @@ export default function SavedBuildCard({ build, onDelete, onLoad, onView, onShar
           Share
         </button>
         <button
-          onClick={() => setShowDeleteDialog(true)}
+          onClick={() => onDelete && onDelete(build)}
           className="saved-build-card-btn delete-btn"
         >
           <Trash size={14} /> Delete
         </button>
       </div>
       
-      {showDeleteDialog && (
-        <div className="delete-modal-overlay">
-          <div className="delete-modal-box">
-            <h3>Delete Build</h3>
-            <p>Are you sure you want to delete "{name || 'Untitled Build'}"?</p>
-            <div className="delete-modal-actions">
-              <button 
-                onClick={() => setShowDeleteDialog(false)}
-                className="delete-cancel-btn"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                  onDelete && onDelete(id);
-                  setShowDeleteDialog(false);
-                }}
-                className="delete-confirm-btn"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
