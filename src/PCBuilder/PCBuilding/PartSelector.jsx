@@ -1,7 +1,7 @@
 import './PartSelector.css';
 import Select from 'react-select';
 
-function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex }) {
+function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex }) {
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
   const mapByCanonical = {
@@ -188,13 +188,24 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
           const ramTypes = parseRamTypes(ram.ramType || ram.ram_type || ram.type || ram._raw?.RamType || ram._raw?.Ramtype || ram._raw?.ram_type || ram._raw?.type);
             const mTypes = parseRamTypes(selectedMOBO.ramType || selectedMOBO.ram_type || selectedMOBO.RamType || selectedMOBO._raw?.RamType || selectedMOBO._raw?.ramType || selectedMOBO._raw?.ram_type);
           if (ramTypes.length > 0 && mTypes.length > 0) {
-            return ramTypes.some(rt => mTypes.includes(rt));
+            if (!ramTypes.some(rt => mTypes.includes(rt))) return false;
+          } else {
+            const ramPrimary = ram.ramType || ram.ram_type || ram.type;
+            const moboPrimary = selectedMOBO.ramType || selectedMOBO.ram_type;
+            if (ramPrimary && moboPrimary) {
+              if (!(normalizeStr(ramPrimary).includes(normalizeStr(moboPrimary)) || normalizeStr(moboPrimary).includes(normalizeStr(ramPrimary)))) return false;
+            }
           }
-          const ramPrimary = ram.ramType || ram.ram_type || ram.type;
-          const moboPrimary = selectedMOBO.ramType || selectedMOBO.ram_type;
-          if (ramPrimary && moboPrimary) {
-            return normalizeStr(ramPrimary).includes(normalizeStr(moboPrimary)) || normalizeStr(moboPrimary).includes(normalizeStr(ramPrimary));
+          
+          // Filter by CPU RAM max frequency
+          if (selectedCPU) {
+            const cpuRamMax = selectedCPU.ram_max || selectedCPU._raw?.ram_max || selectedCPU._raw?.RamMax;
+            const ramFreq = ram.frequency_mhz || ram._raw?.frequency_mhz || ram._raw?.Frequency;
+            if (cpuRamMax && ramFreq && Number(ramFreq) > Number(cpuRamMax)) {
+              return false;
+            }
           }
+          
           return true;
         });
         break;
@@ -213,11 +224,23 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
   }
 
   // React-Select expects { value, label } format
-  const reactSelectOptions = options.map(opt => ({
-    value: opt.id,
-    label: `${opt.name} (₱${Number(opt.price || 0).toLocaleString()})`,
-    data: opt
-  }));
+  const reactSelectOptions = options.map(opt => {
+    let label = `${opt.name} (₱${Number(opt.price || 0).toLocaleString()})`;
+    
+    // Add frequency for RAM components
+    if (part.name === "Memory (RAM)") {
+      const frequency = opt._raw?.frequency_mhz || opt.frequency_mhz || opt._raw?.Frequency || opt.frequency;
+      if (frequency) {
+        label = `${opt.name} - ${frequency}MHz (₱${Number(opt.price || 0).toLocaleString()})`;
+      }
+    }
+    
+    return {
+      value: opt.id,
+      label,
+      data: opt
+    };
+  });
 
   // multi-slot support for RAM / M.2 / Storage with dynamic add/remove
   const multiTypes = ['Memory (RAM)', 'M.2 SSD', 'Storage'];
@@ -268,7 +291,16 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, dat
               </div>
               <Select
                 className="PartSelector"
-                value={val ? { value: val.id, label: `${val.name} (₱${Number(val.price || 0).toLocaleString()})`, data: val } : null}
+                value={val ? (() => {
+                  let label = `${val.name} (₱${Number(val.price || 0).toLocaleString()})`;
+                  if (part.name === "Memory (RAM)") {
+                    const frequency = val._raw?.frequency_mhz || val.frequency_mhz || val._raw?.Frequency || val.frequency;
+                    if (frequency) {
+                      label = `${val.name} - ${frequency}MHz (₱${Number(val.price || 0).toLocaleString()})`;
+                    }
+                  }
+                  return { value: val.id, label, data: val };
+                })() : null}
                 onChange={(opt) => handleChangeAt(idx, opt)}
                 options={reactSelectOptions}
                 isSearchable

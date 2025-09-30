@@ -66,30 +66,81 @@ export function analyzeBuild(selectedParts) {
 
   // GPU heuristic index
   const vramInfo = (vramStr)=>{ const s=String(vramStr||'').toUpperCase(); const gb=toNumber(s); let type='GDDR6'; if(s.includes('GDDR7')) type='GDDR7'; else if(s.includes('GDDR6X')) type='GDDR6X'; else if(s.includes('GDDR6')) type='GDDR6'; return { gb, type }; };
-  const gpuIndexSingle = (gpuLike) => { if(!gpuLike) return 0; const cuda = toNumber(getFirst(gpuLike,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(gpuLike,['cuda']); const cu = toNumber(getFirst(gpuLike,'ComputeUnits','compute_units')) || findNumericByKeyPattern(gpuLike,['computeunit','compute_units']); const xe = toNumber(getFirst(gpuLike,'XeCores','xe_cores')) || 0; let boostCandidate = getFirst(gpuLike,'BoostFrequency','BoostClock','Boost','BoostMHz') || findNumericByKeyPattern(gpuLike,['boost','clock','ghz','mhz']); let boostMHz = parseMHz(boostCandidate); if(!boostMHz && typeof boostCandidate==='number' && boostCandidate<1000) boostMHz = boostCandidate*1000; const boostGHz = boostMHz ? boostMHz/1000 : 0; const { gb: vramGB, type: vType } = vramInfo(getFirst(gpuLike,'Vram','VRAM','Memory')); const shaderLike = cuda || (cu*64) || (xe*128) || 0; const vTypeFactor = vType==='GDDR7'?1.12: vType==='GDDR6X'?1.06:1.0; const vramFactor = 1 + Math.min(0.25, Math.max(0, vramGB)/32); return (shaderLike * Math.max(1, boostGHz) * vTypeFactor * vramFactor)/1000; };
-  const GPU_SCALING_WEIGHTS = [1.0,0.70,0.55,0.45];
+  const gpuIndexSingle = (gpuLike) => { 
+    if(!gpuLike) return 0; 
+    const cuda = toNumber(getFirst(gpuLike,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(gpuLike,['cuda']); 
+    const cu = toNumber(getFirst(gpuLike,'ComputeUnits','compute_units')) || findNumericByKeyPattern(gpuLike,['computeunit','compute_units']); 
+    const xe = toNumber(getFirst(gpuLike,'XeCores','xe_cores')) || 0; 
+    let boostCandidate = getFirst(gpuLike,'BoostFrequency','BoostClock','Boost','BoostMHz') || findNumericByKeyPattern(gpuLike,['boost','clock','ghz','mhz']); 
+    let boostMHz = parseMHz(boostCandidate); 
+    if(!boostMHz && typeof boostCandidate==='number' && boostCandidate<1000) boostMHz = boostCandidate*1000; 
+    const boostGHz = boostMHz ? boostMHz/1000 : 0; 
+    const { gb: vramGB, type: vType } = vramInfo(getFirst(gpuLike,'Vram','VRAM','Memory')); 
+    const shaderLike = cuda || (cu*64) || (xe*128) || 0; 
+    
+    // Enhanced factors for high-end GPUs
+    const vTypeFactor = vType==='GDDR7'?1.15: vType==='GDDR6X'?1.08:1.0; 
+    const vramFactor = 1 + Math.min(0.3, Math.max(0, vramGB)/28); // Better VRAM scaling
+    const clockFactor = boostGHz >= 2.5 ? 1.1 : boostGHz >= 2.0 ? 1.05 : 1.0; // Bonus for high clocks
+    const shaderFactor = shaderLike >= 10000 ? 1.1 : shaderLike >= 7000 ? 1.05 : 1.0; // Bonus for high shader count
+    
+    return (shaderLike * Math.max(1, boostGHz) * vTypeFactor * vramFactor * clockFactor * shaderFactor)/1000; 
+  };
+  const GPU_SCALING_WEIGHTS = [1.0,0.75,0.60,0.50]; // Improved multi-GPU scaling
   const combinedGpuIndex = gpuArray.reduce((sum,g,idx)=>{ const base=gpuIndexSingle(g); const weight=GPU_SCALING_WEIGHTS[idx]||0.40; return sum + base*weight; },0);
 
   // CPU heuristic index
-  const cpuIndex = (()=>{ if(!cpuRaw) return 0; const cores = toNumber(getFirst(cpuRaw,'Cores','cores','CoreCount','coreCount')) || findNumericByKeyPattern(cpuRaw,['core','cores','corecount']); const threads = toNumber(getFirst(cpuRaw,'Threads','threads','ThreadCount')) || findNumericByKeyPattern(cpuRaw,['thread','threads','threadcount']); let boostCandidate = getFirst(cpuRaw,'BoostClock','Boost','BoostClockGHz','BoostClockMHz','BaseClock','Base') || findNumericByKeyPattern(cpuRaw,['boost','clock','ghz','mhz']); let boostGHz = parseGHz(boostCandidate); if(!boostGHz){ const keys = Object.keys(cpuRaw||{}); for(const k of keys){ if(k.toLowerCase().includes('mhz')){ const n=toNumber(cpuRaw[k]); if(n>0){ boostGHz=n/1000; break; } } } } const cacheL3 = toNumber(getFirst(cpuRaw,'L3Cache','Cache','cache','L3')) || findNumericByKeyPattern(cpuRaw,['cache']); const effThreads = Math.max(0, threads - cores); const base = (cores * 2 + effThreads) * Math.max(1, boostGHz); const cacheFactor = 1 + Math.min(0.4, cacheL3 / 128); return base * cacheFactor; })();
+  const cpuIndex = (()=>{ 
+    if(!cpuRaw) return 0; 
+    const cores = toNumber(getFirst(cpuRaw,'Cores','cores','CoreCount','coreCount')) || findNumericByKeyPattern(cpuRaw,['core','cores','corecount']); 
+    const threads = toNumber(getFirst(cpuRaw,'Threads','threads','ThreadCount')) || findNumericByKeyPattern(cpuRaw,['thread','threads','threadcount']); 
+    let boostCandidate = getFirst(cpuRaw,'BoostClock','Boost','BoostClockGHz','BoostClockMHz','BaseClock','Base') || findNumericByKeyPattern(cpuRaw,['boost','clock','ghz','mhz']); 
+    let boostGHz = parseGHz(boostCandidate); 
+    if(!boostGHz){ 
+      const keys = Object.keys(cpuRaw||{}); 
+      for(const k of keys){ 
+        if(k.toLowerCase().includes('mhz')){ 
+          const n=toNumber(cpuRaw[k]); 
+          if(n>0){ boostGHz=n/1000; break; } 
+        } 
+      } 
+    } 
+    const cacheL3 = toNumber(getFirst(cpuRaw,'L3Cache','Cache','cache','L3')) || findNumericByKeyPattern(cpuRaw,['cache']); 
+    const effThreads = Math.max(0, threads - cores); 
+    
+    // Enhanced calculation for modern high-end CPUs
+    const coreWeight = cores >= 16 ? 2.5 : cores >= 8 ? 2.2 : 2.0; // Higher weight for more cores
+    const threadWeight = effThreads > 0 ? 1.2 : 1.0; // Bonus for hyperthreading
+    const clockWeight = boostGHz >= 5.0 ? 1.3 : boostGHz >= 4.5 ? 1.2 : 1.0; // Bonus for high clocks
+    
+    const base = (cores * coreWeight + effThreads * threadWeight) * Math.max(1, boostGHz) * clockWeight; 
+    const cacheFactor = 1 + Math.min(0.5, cacheL3 / 100); // Improved cache scaling
+    
+    return base * cacheFactor; 
+  })();
 
   const hasCpuGpu = !!cpuRaw && gpuArray.length>0;
-  const BALANCE_K = 22;
+  const BALANCE_K = 15; // Reduced from 22 to better balance high-end components
   let bottleneckNote = hasCpuGpu ? '' : 'NO DATA';
   let compatSeverity = 'good';
   let ratioAdj = 0;
   if (cpuIndex>0 && combinedGpuIndex>0) {
     ratioAdj = (combinedGpuIndex * BALANCE_K) / cpuIndex;
     const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
-    if (ratioAdj > 2.0) {
-      const pctCpu = clamp(Math.round((ratioAdj - 1) * 60), 3, 40);
+    
+    // Special handling for high-end CPU + GPU combinations
+    const isHighEndCpu = cpuIndex > 200; // i9-14900K and similar high-end CPUs
+    const isHighEndGpu = combinedGpuIndex > 100; // RTX 4090 and similar high-end GPUs
+    
+    if (ratioAdj > 2.5) { // Increased threshold from 2.0 to 2.5
+      const pctCpu = clamp(Math.round((ratioAdj - 1) * 50), 3, 35); // Reduced severity
       bottleneckNote = `Warning: CPU may bottleneck combined GPUs (~${pctCpu}% potential underutilization).`;
-      compatSeverity = ratioAdj > 2.8 ? 'bad' : 'warn';
-    } else if (ratioAdj < 0.6) {
-      const severity = clamp((0.6 - ratioAdj) / 0.6, 0, 1);
-      const pctGpu = clamp(Math.round(severity * 45), 5, 45);
+      compatSeverity = ratioAdj > 3.5 ? 'bad' : 'warn'; // Increased threshold from 2.8 to 3.5
+    } else if (ratioAdj < 0.5) { // Reduced threshold from 0.6 to 0.5
+      const severity = clamp((0.5 - ratioAdj) / 0.5, 0, 1);
+      const pctGpu = clamp(Math.round(severity * 40), 5, 40); // Reduced severity
       bottleneckNote = `Note: GPUs may be performance limiting (~${pctGpu}% GPU-side cap).`;
-      compatSeverity = severity > 0.66 ? 'bad' : 'warn';
+      compatSeverity = severity > 0.7 ? 'bad' : 'warn'; // Increased threshold
     } else {
       bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
     }
@@ -105,8 +156,8 @@ export function analyzeBuild(selectedParts) {
 
   let upgradeRecommendation = '';
   if (cpuIndex>0 && combinedGpuIndex>0) {
-    if (ratioAdj > 2.0) upgradeRecommendation = 'Consider upgrading the CPU to better feed multiple GPUs.';
-    else if (ratioAdj < 0.6) upgradeRecommendation = 'Consider upgrading GPU(s) to better match this CPU.';
+    if (ratioAdj > 2.5) upgradeRecommendation = 'Consider upgrading the CPU to better feed multiple GPUs.';
+    else if (ratioAdj < 0.5) upgradeRecommendation = 'Consider upgrading GPU(s) to better match this CPU.';
   }
   if (ramBottleneck && !upgradeRecommendation) upgradeRecommendation = 'Consider a CPU with higher supported memory speed or using lower-frequency RAM.';
 

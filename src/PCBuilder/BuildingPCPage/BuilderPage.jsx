@@ -65,32 +65,50 @@ function BuilderPage() {
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: '', title: 'Confirm', onConfirm: null });
 
-  // Prefill from a previously loaded build saved in localStorage (if present)
+  // Prefill from a previously loaded build or saved draft
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('loadedBuild');
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      // Expecting keys: mobo, cpu, gpus, rams, m2s, storage, psu, case, keyboard, mouse, headset
-      if (parsed.mobo) setSelectedMOBO(parsed.mobo);
-      if (parsed.cpu) setSelectedCPU(parsed.cpu);
-      if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
-      if (Array.isArray(parsed.rams)) setSelectedRAMs(parsed.rams);
-      if (Array.isArray(parsed.m2s)) setSelectedM2s(parsed.m2s);
-      if (Array.isArray(parsed.storage)) setSelectedStorage(parsed.storage);
-      if (parsed.psu) setSelectedPSU(parsed.psu);
-      if (parsed.case) setSelectedCase(parsed.case);
-      if (parsed.keyboard) setSelectedKeyboard(parsed.keyboard);
-      if (parsed.mouse) setSelectedMouse(parsed.mouse);
-      if (parsed.headset) setSelectedHeadset(parsed.headset);
-      if (parsed.monitor) setSelectedMonitor(parsed.monitor);
-      // Clear after applying so it doesn't reapply on next visit
-      // do not clear loadedBuild until after we evaluate editing metadata
+      // First check for loaded build (from saved builds)
+      const loadedRaw = localStorage.getItem('loadedBuild');
+      if (loadedRaw) {
+        const parsed = JSON.parse(loadedRaw);
+        if (parsed.mobo) setSelectedMOBO(parsed.mobo);
+        if (parsed.cpu) setSelectedCPU(parsed.cpu);
+        if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
+        if (Array.isArray(parsed.rams)) setSelectedRAMs(parsed.rams);
+        if (Array.isArray(parsed.m2s)) setSelectedM2s(parsed.m2s);
+        if (Array.isArray(parsed.storage)) setSelectedStorage(parsed.storage);
+        if (parsed.psu) setSelectedPSU(parsed.psu);
+        if (parsed.case) setSelectedCase(parsed.case);
+        if (parsed.keyboard) setSelectedKeyboard(parsed.keyboard);
+        if (parsed.mouse) setSelectedMouse(parsed.mouse);
+        if (parsed.headset) setSelectedHeadset(parsed.headset);
+        if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+        localStorage.removeItem('loadedBuild');
+        return;
+      }
+      
+      // Otherwise check for draft build (auto-saved when navigating away)
+      const draftRaw = localStorage.getItem('builderDraft');
+      if (draftRaw) {
+        const parsed = JSON.parse(draftRaw);
+        if (parsed.mobo) setSelectedMOBO(parsed.mobo);
+        if (parsed.cpu) setSelectedCPU(parsed.cpu);
+        if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
+        if (Array.isArray(parsed.rams)) setSelectedRAMs(parsed.rams);
+        if (Array.isArray(parsed.m2s)) setSelectedM2s(parsed.m2s);
+        if (Array.isArray(parsed.storage)) setSelectedStorage(parsed.storage);
+        if (parsed.psu) setSelectedPSU(parsed.psu);
+        if (parsed.case) setSelectedCase(parsed.case);
+        if (parsed.keyboard) setSelectedKeyboard(parsed.keyboard);
+        if (parsed.mouse) setSelectedMouse(parsed.mouse);
+        if (parsed.headset) setSelectedHeadset(parsed.headset);
+        if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+      }
     } catch (e) {
       // ignore JSON errors
     }
-    // Clear ephemeral items after capture (editing metadata no longer used)
-    localStorage.removeItem('loadedBuild');
+    // Clear ephemeral items after capture
     localStorage.removeItem('editingBuildId');
     localStorage.removeItem('editingBuildName');
     localStorage.removeItem('editingBuildDescription');
@@ -238,7 +256,7 @@ function BuilderPage() {
       setTempName(name);
       setTempDescription(description);
       
-      // Clear all components after successful save
+      // Clear all components and draft after successful save
       setSelectedMOBO(null);
       setSelectedCPU(null);
       setSelectedGPUs([null]);
@@ -251,6 +269,7 @@ function BuilderPage() {
       setSelectedMouse(null);
       setSelectedHeadset(null);
       setSelectedMonitor(null);
+      localStorage.removeItem('builderDraft');
       
       // Show success modal
       setSaveModalData({
@@ -293,6 +312,7 @@ function BuilderPage() {
         setSelectedMouse(null);
         setSelectedHeadset(null);
         setSelectedMonitor(null);
+        localStorage.removeItem('builderDraft');
         setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null });
       }
     });
@@ -339,6 +359,23 @@ function BuilderPage() {
       setSelectedCase(null);
     }
   }, [selectedMOBO, selectedCase]);
+
+  // Auto-save draft when components change
+  useEffect(() => {
+    const hasAnyComponent = selectedMOBO || selectedCPU || selectedPSU || selectedCase ||
+      (selectedGPUs && selectedGPUs.some(gpu => gpu)) ||
+      (selectedRAMs && selectedRAMs.some(ram => ram)) ||
+      (selectedM2s && selectedM2s.some(m2 => m2)) ||
+      (selectedStorage && selectedStorage.some(storage => storage)) ||
+      selectedKeyboard || selectedMouse || selectedHeadset || selectedMonitor;
+    
+    if (hasAnyComponent) {
+      const draft = buildSnapshot();
+      localStorage.setItem('builderDraft', JSON.stringify(draft));
+    } else {
+      localStorage.removeItem('builderDraft');
+    }
+  }, [selectedMOBO, selectedCPU, selectedGPUs, selectedRAMs, selectedM2s, selectedStorage, selectedPSU, selectedCase, selectedKeyboard, selectedMouse, selectedHeadset, selectedMonitor]);
 
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
@@ -451,6 +488,7 @@ function BuilderPage() {
               selectedValues={selectedRAMs}
               setSelectedValues={setSelectedRAMs}
               selectedMOBO={selectedMOBO}
+              selectedCPU={selectedCPU}
               dataLookup={dataLookup}
             />
             <PartSelector
