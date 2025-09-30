@@ -120,27 +120,48 @@ export function analyzeBuild(selectedParts) {
   })();
 
   const hasCpuGpu = !!cpuRaw && gpuArray.length>0;
-  const BALANCE_K = 15; // Reduced from 22 to better balance high-end components
+  // Check for perfect balance based on performance cores
+  const checkPerfectBalance = (cpuRaw, gpuArray) => {
+    if (!cpuRaw || !gpuArray || gpuArray.length === 0) return false;
+    const cpuCores = toNumber(getFirst(cpuRaw,'Cores','cores','CoreCount','coreCount')) || findNumericByKeyPattern(cpuRaw,['core','cores']);
+    const cpuThreads = toNumber(getFirst(cpuRaw,'Threads','threads','ThreadCount')) || findNumericByKeyPattern(cpuRaw,['thread','threads']);
+    const cpuBoostGHz = parseGHz(getFirst(cpuRaw,'BoostClock','Boost','BoostClockGHz','BoostClockMHz','BaseClock','Base')) || findNumericByKeyPattern(cpuRaw,['boost','clock','ghz','mhz']);
+    const cpuPerformanceScore = cpuCores * (cpuThreads || cpuCores) * Math.max(1, cpuBoostGHz);
+    const firstGpu = gpuArray[0];
+    const cudaCores = toNumber(getFirst(firstGpu,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(firstGpu,['cuda']);
+    const computeUnits = toNumber(getFirst(firstGpu,'ComputeUnits','compute_units')) || findNumericByKeyPattern(firstGpu,['computeunit','compute_units']);
+    const xeCores = toNumber(getFirst(firstGpu,'XeCores','xe_cores')) || 0;
+    let gpuPerformanceCores = 0;
+    if (cudaCores > 0) gpuPerformanceCores = cudaCores;
+    else if (computeUnits > 0) gpuPerformanceCores = computeUnits * 64;
+    else if (xeCores > 0) gpuPerformanceCores = xeCores * 128;
+    if (cpuPerformanceScore === 0 || gpuPerformanceCores === 0) return false;
+    const balanceRatio = gpuPerformanceCores / cpuPerformanceScore;
+    return balanceRatio >= 3.5 && balanceRatio <= 11;
+  };
+
+  const BALANCE_K = 12;
   let bottleneckNote = hasCpuGpu ? '' : 'NO DATA';
   let compatSeverity = 'good';
   let ratioAdj = 0;
+  const isPerfectBalance = checkPerfectBalance(cpuRaw, gpuArray);
+  
   if (cpuIndex>0 && combinedGpuIndex>0) {
     ratioAdj = (combinedGpuIndex * BALANCE_K) / cpuIndex;
     const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
     
-    // Special handling for high-end CPU + GPU combinations
-    const isHighEndCpu = cpuIndex > 200; // i9-14900K and similar high-end CPUs
-    const isHighEndGpu = combinedGpuIndex > 100; // RTX 4090 and similar high-end GPUs
-    
-    if (ratioAdj > 2.5) { // Increased threshold from 2.0 to 2.5
-      const pctCpu = clamp(Math.round((ratioAdj - 1) * 50), 3, 35); // Reduced severity
-      bottleneckNote = `Warning: CPU may bottleneck combined GPUs (~${pctCpu}% potential underutilization).`;
-      compatSeverity = ratioAdj > 3.5 ? 'bad' : 'warn'; // Increased threshold from 2.8 to 3.5
-    } else if (ratioAdj < 0.5) { // Reduced threshold from 0.6 to 0.5
+    if (ratioAdj > 1.8) {
+      const pctCpu = clamp(Math.round((ratioAdj - 1) * 50), 3, 35);
+      bottleneckNote = `Warning: CPU may bottleneck GPU (~${pctCpu}% potential underutilization).`;
+      compatSeverity = ratioAdj > 4.0 ? 'bad' : 'warn';
+    } else if (ratioAdj < 0.5) {
       const severity = clamp((0.5 - ratioAdj) / 0.5, 0, 1);
-      const pctGpu = clamp(Math.round(severity * 40), 5, 40); // Reduced severity
-      bottleneckNote = `Note: GPUs may be performance limiting (~${pctGpu}% GPU-side cap).`;
-      compatSeverity = severity > 0.7 ? 'bad' : 'warn'; // Increased threshold
+      const pctGpu = clamp(Math.round(severity * 40), 5, 40);
+      bottleneckNote = `Note: GPU may be performance limiting (~${pctGpu}% GPU-side cap).`;
+      compatSeverity = severity > 0.7 ? 'bad' : 'warn';
+    } else if (isPerfectBalance) {
+      bottleneckNote = '';
+      compatSeverity = 'good';
     } else {
       bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
     }
