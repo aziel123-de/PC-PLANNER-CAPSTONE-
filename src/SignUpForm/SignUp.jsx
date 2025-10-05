@@ -316,15 +316,13 @@ function SignUp({ onLoginClick }) {
       </form>
       
       {showEmailExistsDialog && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', maxWidth: '400px', textAlign: 'center' }}>
-            <h3 className="registered-alert">Email Already Registered</h3>
-            <p className="registered-message">This email address is already associated with an account. Please use a different email or sign in instead.</p>
-
+        <div className="dialog-overlay">
+          <div className="dialog-content">
+            <h3>Email Already Registered</h3>
+            <p>That email's already in use. Try another one or sign in.</p>
             <button
               onClick={() => setShowEmailExistsDialog(false)}
-              className="registered-ok-button alert-ok-button"
-              
+              className="dialog-ok-btn"
             >
               OK
             </button>

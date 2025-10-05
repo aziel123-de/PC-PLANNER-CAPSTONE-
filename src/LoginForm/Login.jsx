@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Login.css';
 import { FaRegEye, FaRegEyeSlash,  FaArrowLeft } from 'react-icons/fa';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { auth } from '../firebase.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,6 +11,11 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Sign out any existing Firebase session when login page loads
+    signOut(auth).catch(() => {});
+  }, []);
 
   
 

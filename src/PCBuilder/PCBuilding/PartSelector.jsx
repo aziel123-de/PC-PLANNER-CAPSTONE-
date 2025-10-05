@@ -227,6 +227,14 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
   const reactSelectOptions = options.map(opt => {
     let label = `${opt.name} (₱${Number(opt.price || 0).toLocaleString()})`;
     
+    // Add socket for Motherboard
+    if (part.name === "Motherboard (MOBO)") {
+      const socket = opt.socket || opt._raw?.socket || opt._raw?.Socket;
+      if (socket) {
+        label = `${opt.name} - ${socket} (₱${Number(opt.price || 0).toLocaleString()})`;
+      }
+    }
+    
     // Add frequency for RAM components
     if (part.name === "Memory (RAM)") {
       const frequency = opt._raw?.frequency_mhz || opt.frequency_mhz || opt._raw?.Frequency || opt.frequency;

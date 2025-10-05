@@ -183,6 +183,8 @@ const handleLogin = async (req, res) => {
     const [rows] = await conn.query('SELECT id,email,username,hash,profile_picture,createdAt FROM users WHERE email = ?', [email.toLowerCase()]);
     if (!rows.length) return res.status(401).json({ error: 'invalid credentials' });
     const row = rows[0];
+    // Allow login if hash exists and matches
+    if (!row.hash) return res.status(401).json({ error: 'invalid credentials' });
     const match = bcrypt.compareSync(password, row.hash);
     if (!match) return res.status(401).json({ error: 'invalid credentials' });
     const token = jwt.sign({ sub: row.id, email: row.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -309,20 +311,44 @@ app.post(`${API_PREFIX}/auth/firebase`, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     // Check if user exists by email
-    const [rows] = await conn.query('SELECT id,email,username,profile_picture FROM users WHERE email = ?', [email.toLowerCase()]);
+    const [rows] = await conn.query('SELECT id,email,username,profile_picture,hash,salt FROM users WHERE email = ?', [email.toLowerCase()]);
     
     let user;
     if (rows.length) {
-      // User exists, update Firebase UID if needed
+      // User exists - merge accounts by linking Firebase UID
       user = rows[0];
-      await conn.query('UPDATE users SET firebase_uid = ? WHERE id = ?', [uid, user.id]);
+      // Update Firebase UID and optionally update profile picture if not set
+      const updates = [];
+      const params = [];
+      
+      updates.push('firebase_uid = ?');
+      params.push(uid);
+      
+      // Only update profile picture if user doesn't have one and Firebase provides one
+      if (!user.profile_picture && photoURL) {
+        updates.push('profile_picture = ?');
+        params.push(photoURL);
+      }
+      
+      // Only update username if user doesn't have one and Firebase provides one
+      if (!user.username && displayName) {
+        updates.push('username = ?');
+        params.push(displayName);
+      }
+      
+      params.push(user.id);
+      await conn.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+      
+      // Fetch updated user data
+      const [updated] = await conn.query('SELECT id,email,username,profile_picture FROM users WHERE id = ?', [user.id]);
+      user = updated[0];
     } else {
-      // Create new user
+      // Create new user with Firebase authentication
       const id = uuidv4();
       const createdAt = new Date();
       await conn.query(
         'INSERT INTO users (id,email,username,firebase_uid,profile_picture,salt,hash,createdAt) VALUES (?,?,?,?,?,?,?,?)',
-        [id, email.toLowerCase(), displayName || null, uid, photoURL || null, '', '', createdAt]
+        [id, email.toLowerCase(), displayName || null, uid, photoURL || null, null, null, createdAt]
       );
       user = { id, email: email.toLowerCase(), username: displayName, profile_picture: photoURL, createdAt };
     }

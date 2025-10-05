@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,15 +11,12 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// debug (remove after)
-console.log('FIREBASE CONFIG debug:', {
-  apiKeyPresent: Boolean(firebaseConfig.apiKey),
-  apiKeyPrefix: firebaseConfig.apiKey ? firebaseConfig.apiKey.slice(0,8) : null,
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
-  storageBucket: firebaseConfig.storageBucket
-});
-
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Disable automatic Firebase persistence - users must manually login each time
+setPersistence(auth, browserSessionPersistence).catch((error) => {
+  console.error('Firebase persistence error:', error);
+});
+
 export default app;
