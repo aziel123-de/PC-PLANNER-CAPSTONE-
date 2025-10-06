@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import PROCESSOR from '../Components/PROCESSOR';
-import GRAPHICS from '../Components/GRAPHICS';
-import Mobo from '../Components/Mobo';
-import Ram from '../Components/Ram';
-import Storage from '../Components/Storage';
-import PSU from '../Components/PSU';
-import Case from '../Components/Case';
-import Monitor from '../Components/Monitor';
-import Keyboard from '../Components/Keyboard';
-import Mouse from '../Components/Mouse';
+import PROCESSOR from '../LearnComponents/PROCESSOR';
+import GRAPHICS from '../LearnComponents/GRAPHICS';
+import Mobo from '../LearnComponents/Mobo';
+import Ram from '../LearnComponents/Ram';
+import Storage from '../LearnComponents/Storage';
+import PSU from '../LearnComponents/PSU';
+import Case from '../LearnComponents/Case';
+import Monitor from '../LearnComponents/Monitor';
+import Keyboard from '../LearnComponents/Keyboard';
+import Mouse from '../LearnComponents/Mouse';
 import './ComponentsPage.css';
 import Navbar from '../Navigation/Navbar.jsx';
 
