@@ -161,12 +161,6 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
             <button className="google-button" type="button" onClick={handleGoogle}>
               <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="Google" />
             </button>
-            <button className="facebook" type="button">
-              <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" />
-            </button>
-            <button className="twitter" type="button">
-              <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" />
-            </button>
           </div>
         </div>
 
