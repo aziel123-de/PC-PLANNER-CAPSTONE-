@@ -192,14 +192,19 @@ export function analyzeBuild(selectedParts) {
   const psuWatt = psuRaw ? getNumericFrom(psuRaw,'Watt','Wattage','wattage','Power','Capacity','RatedPower','Output') : 0;
   const totalRequiredPower = Math.round(cpuTDP + gpuPowerTotal);
   const requiredWithHeadroom = Math.round(totalRequiredPower * 1.2);
+  const minRecommendedPSU = Math.max(500, Math.round(totalRequiredPower * 1.25));
+  const maxRecommendedPSU = Math.max(750, Math.round(totalRequiredPower * 1.6));
   const showPowerWarning = psuWatt>0 && requiredWithHeadroom > psuWatt;
-  const powerWarningText = showPowerWarning ? `Power Warning: PSU ${psuWatt}W is less than estimated required ${requiredWithHeadroom}W (includes 20% headroom). CPU ${cpuTDP||0}W + GPUs ${gpuPowerTotal||0}W = ${totalRequiredPower}W.` : '';
+  const showOverpoweredWarning = psuWatt>0 && psuWatt > maxRecommendedPSU;
+  const isInRecommendedRange = psuWatt>0 && psuWatt >= minRecommendedPSU && psuWatt <= maxRecommendedPSU;
+  const powerWarningText = showPowerWarning ? `Power Warning: PSU ${psuWatt}W is insufficient. Recommended range: ${minRecommendedPSU}W - ${maxRecommendedPSU}W (CPU ${cpuTDP||0}W + GPUs ${gpuPowerTotal||0}W = ${totalRequiredPower}W base).` : showOverpoweredWarning ? `Note: PSU ${psuWatt}W exceeds recommended range (${minRecommendedPSU}W - ${maxRecommendedPSU}W). While functional, a lower wattage PSU would be more cost-effective.` : '';
   const powerCause = (()=>{ const c=cpuTDP||0; const g=gpuPowerTotal||0; if(c===0 && g===0) return 'unknown'; const total=c+g; if(total===0) return 'unknown'; const cShare=c/total; const gShare=g/total; if(cShare>=0.65) return 'cpu'; if(gShare>=0.65) return 'gpu'; return 'both'; })();
 
   // Build warnings
   const warnings = [];
   if (ramBottleneck) warnings.push(ramBottleneckNote);
   if (showPowerWarning) warnings.push(powerWarningText);
+  if (showOverpoweredWarning) warnings.push(powerWarningText);
   // Always include bottleneck note when severity is bad, and include for warn even if it begins with 'Note:'
   if (compatSeverity === 'bad') {
     if (bottleneckNote) warnings.push(bottleneckNote);
@@ -220,8 +225,8 @@ export function analyzeBuild(selectedParts) {
   const gpuCount = gpuArray.length;
   if(gpuCount > allowedGpu) warnings.push('More GPUs than motherboard supports');
 
-  // Treat any non-good severity OR showPowerWarning OR ramBottleneck as an issue even if note filtered earlier
-  const hasIssues = warnings.length>0 || compatSeverity !== 'good' || ramBottleneck || showPowerWarning;
+  // Treat any non-good severity OR showPowerWarning OR ramBottleneck as an issue (overpowered PSU is just informational)
+  const hasIssues = compatSeverity !== 'good' || ramBottleneck || showPowerWarning;
 
   return {
     warnings,
@@ -233,7 +238,7 @@ export function analyzeBuild(selectedParts) {
     bottleneckNote,
     upgradeRecommendation,
     ram: { highestRamFrequency, cpuMaxMemSpeed, ramBottleneck, ramBottleneckNote },
-    power: { cpuTDP, gpuPowerTotal, psuWatt, totalRequiredPower, requiredWithHeadroom, showPowerWarning, powerWarningText, powerCause }
+    power: { cpuTDP, gpuPowerTotal, psuWatt, totalRequiredPower, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, powerCause }
   };
 }
 

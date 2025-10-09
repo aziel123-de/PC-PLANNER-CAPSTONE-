@@ -17,11 +17,15 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
   const analysis = analyzeBuild(selectedParts);
   const { compatSeverity, bottleneckNote, upgradeRecommendation, ram, power } = analysis;
   const { ramBottleneck, ramBottleneckNote } = ram;
-  const { showPowerWarning, powerWarningText, psuWatt, requiredWithHeadroom, cpuTDP, gpuPowerTotal, totalRequiredPower, powerCause } = {
+  const { showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, psuWatt, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, cpuTDP, gpuPowerTotal, totalRequiredPower, powerCause } = {
     showPowerWarning: power.showPowerWarning,
+    showOverpoweredWarning: power.showOverpoweredWarning,
+    isInRecommendedRange: power.isInRecommendedRange,
     powerWarningText: power.powerWarningText,
     psuWatt: power.psuWatt,
     requiredWithHeadroom: power.requiredWithHeadroom,
+    minRecommendedPSU: power.minRecommendedPSU,
+    maxRecommendedPSU: power.maxRecommendedPSU,
     cpuTDP: power.cpuTDP,
     gpuPowerTotal: power.gpuPowerTotal,
     totalRequiredPower: power.totalRequiredPower,
@@ -91,7 +95,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
         </div>
 
         {/* Power Supply Check */}
-        {(showPowerWarning || (process.env.NODE_ENV !== 'production')) && (
+        {(showPowerWarning || showOverpoweredWarning || psuSelected || (process.env.NODE_ENV !== 'production')) && (
           <div className="compat-card">
             <div className="compat-card-header">
               <div className="compat-card-title">
@@ -99,16 +103,16 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
               </div>
               <div className="compat-badges">
                 <div
-                  className={`compat-badge ${!psuSelected ? 'compat-unknown' : (showPowerWarning ? 'compat-bad' : 'compat-good')}`}
+                  className={`compat-badge ${!psuSelected ? 'compat-unknown' : (showPowerWarning ? 'compat-bad' : showOverpoweredWarning ? 'compat-warn' : isInRecommendedRange ? 'compat-good' : 'compat-good')}`}
                 >
-                    {!psuSelected ? 'NO DATA' : (showPowerWarning ? 'INSUFFICIENT' : 'SUFFICIENT')}
+                    {!psuSelected ? 'NO DATA' : (showPowerWarning ? 'INSUFFICIENT' : showOverpoweredWarning ? 'OVERPOWERED' : isInRecommendedRange ? 'RECOMMENDED' : 'SUFFICIENT')}
                   </div>
-                {showPowerWarning && (
+                {(showPowerWarning || showOverpoweredWarning) && (
                   <div className={`compat-badge compat-warn compat-secondary`}>
                     {powerCause === 'cpu' ? 'CPU' : powerCause === 'gpu' ? 'GPU' : powerCause === 'both' ? 'CPU+GPU' : 'N/A'}
                   </div>
                 )}
-                {process.env.NODE_ENV !== 'production' && psuSelected && !showPowerWarning && (
+                {process.env.NODE_ENV !== 'production' && psuSelected && !showPowerWarning && !showOverpoweredWarning && (
                   <div className={`compat-badge compat-info compat-secondary`}>
                     INFO
                   </div>
@@ -119,11 +123,11 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
               <p className="compat-description">
                 {!psuSelected
                   ? 'PSU not selected.'
-                  : showPowerWarning
+                  : showPowerWarning || showOverpoweredWarning
                     ? powerWarningText
-                    : process.env.NODE_ENV !== 'production'
-                      ? `Power Check: PSU ${psuWatt || 'N/A'}W vs required ${requiredWithHeadroom}W (CPU ${cpuTDP || 0}W + GPUs ${gpuPowerTotal || 0}W = ${totalRequiredPower}W). ${psuWatt ? (requiredWithHeadroom > psuWatt ? 'Not enough.' : 'Sufficient.') : 'PSU not selected.'}`
-                      : ''
+                    : isInRecommendedRange
+                      ? `Excellent choice! PSU ${psuWatt}W is within the recommended range (${minRecommendedPSU}W - ${maxRecommendedPSU}W). This provides adequate power with headroom for future upgrades.`
+                      : `PSU ${psuWatt}W is sufficient. Recommended range: ${minRecommendedPSU}W - ${maxRecommendedPSU}W for optimal efficiency and upgrade headroom (CPU ${cpuTDP || 0}W + GPUs ${gpuPowerTotal || 0}W = ${totalRequiredPower}W base).`
                 }
               </p>
             </div>
