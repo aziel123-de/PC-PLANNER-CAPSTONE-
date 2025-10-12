@@ -169,9 +169,16 @@ export default function BuilderPageEdit(){
     const warnings = analysis.warnings || [];
     const has_issues = analysis.hasIssues;
     
+    // Check if we're editing an existing build
+    const editingBuildId = localStorage.getItem('editingBuildId');
+    const isEditing = !!editingBuildId;
+    
     try {
-      const resp = await fetch('/api/builds', {
-        method: 'POST',
+      const url = isEditing ? `/api/builds/${editingBuildId}` : '/api/builds';
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const resp = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
       });
@@ -189,7 +196,7 @@ export default function BuilderPageEdit(){
       
       // Don't clear components - keep them for continued editing
       
-      setSaveModalData({ buildId: data.id || '(id unknown)', buildName: name, hasIssues: has_issues, warnings: warnings });
+      setSaveModalData({ buildId: data.id || editingBuildId || '(id unknown)', buildName: name, hasIssues: has_issues, warnings: warnings });
       setShowSaveModal(true);
     } catch (e) {
       console.error('Save build failed', e);
