@@ -336,6 +336,15 @@ body {
     z-index: 1002; /* Ensure header stays on top */
   }
 
+  .desktop-nav {
+    display: none !important; /* Hide desktop nav on mobile */
+  }
+
+  .hamburger {
+    display: block !important; /* Show hamburger on mobile */
+    z-index: 1003; /* Above header */
+  }
+
   .logo {
     width: 40px;
     height: 40px;
@@ -367,10 +376,6 @@ body {
     padding: 0.5rem 0.75rem;
     min-width: 60px; /* Ensure minimum button width */
   }
-
-  .hamburger {
-    z-index: 1003; /* Above header */
-  }
 }
 
 /* Medium Mobile Devices (481px - 768px) */
@@ -385,12 +390,12 @@ body {
   }
 
   .hamburger {
-    display: block;
+    display: block !important;
     z-index: 1003; /* Above header */
   }
 
   .desktop-nav {
-    display: none;
+    display: none !important;
   }
 
   .slide-down-menu {

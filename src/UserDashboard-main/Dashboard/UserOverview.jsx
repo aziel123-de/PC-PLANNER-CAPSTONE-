@@ -48,6 +48,15 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
 
   const [activeSection, setActiveSection] = useState('overview');
+
+  // Check URL parameters on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+    if (section && ['overview', 'saved', 'history'].includes(section)) {
+      setActiveSection(section);
+    }
+  }, []);
   const [savedBuilds, setSavedBuilds] = useState([]);
   const [buildHistory, setBuildHistory] = useState([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

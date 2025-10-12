@@ -111,7 +111,16 @@ function CommunityList() {
               <p className='subtitle-header-prebuilt'>Discover Great PC Builds from our Community</p>
             </div>
             <div className="header-actions">
-              
+              <button className="share-build-btn" onClick={() => {
+                const token = localStorage.getItem('token');
+                if (!token || token === 'null' || token === 'undefined') {
+                  window.location.href = '/login';
+                } else {
+                  window.location.href = '/dashboard?section=saved';
+                }
+              }}>
+                SHARE BUILD
+              </button>
               <button className="refresh-btn" disabled={loading} onClick={() => setRefreshIndex(i => i + 1)}>
                 <span className="refresh-icon">↻</span>
                 {loading ? 'Refreshing...' : 'Refresh'}
