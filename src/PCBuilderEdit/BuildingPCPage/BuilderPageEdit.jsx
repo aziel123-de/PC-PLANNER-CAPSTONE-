@@ -67,11 +67,14 @@ export default function BuilderPageEdit(){
       if (parsed.mouse) setSelectedMouse(parsed.mouse);
       if (parsed.headset) setSelectedHeadset(parsed.headset);
       if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+      
+      // Load existing build name and description for editing
+      const buildName = localStorage.getItem('editingBuildName');
+      const buildDescription = localStorage.getItem('editingBuildDescription');
+      if (buildName) setTempName(buildName);
+      if (buildDescription) setTempDescription(buildDescription);
     } catch (e) {}
     localStorage.removeItem('loadedBuild');
-    localStorage.removeItem('editingBuildId');
-    localStorage.removeItem('editingBuildName');
-    localStorage.removeItem('editingBuildDescription');
   }, []);
 
   const buildSummaryParts = {
@@ -155,11 +158,8 @@ export default function BuilderPageEdit(){
       return;
     }
 
-    if (!tempName) {
-      setShowNameModal(true);
-      return;
-    }
-    await performSaveBuild(tempName, tempDescription);
+    // Always show name modal to allow editing of name and description
+    setShowNameModal(true);
   };
 
   const performSaveBuild = async (name, description) => {
@@ -182,11 +182,12 @@ export default function BuilderPageEdit(){
       }
       
       const data = await resp.json();
-      setTempName(name); setTempDescription(description);
       
-      setSelectedMOBO(null); setSelectedCPU(null); setSelectedGPUs([null]); setSelectedRAMs([null]);
-      setSelectedM2s([null]); setSelectedStorage([null]); setSelectedPSU(null); setSelectedCase(null);
-      setSelectedKeyboard(null); setSelectedMouse(null); setSelectedHeadset(null); setSelectedMonitor(null);
+      // Keep the last saved name and description for next save
+      setTempName(name);
+      setTempDescription(description);
+      
+      // Don't clear components - keep them for continued editing
       
       setSaveModalData({ buildId: data.id || '(id unknown)', buildName: name, hasIssues: has_issues, warnings: warnings });
       setShowSaveModal(true);
