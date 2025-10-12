@@ -244,8 +244,11 @@ function UserSettings({ onBack, onLogout, userId }) {
         const uploadResult = await uploadResponse.json();
         console.log('Upload successful:', uploadResult);
         
-        // Update the displayed profile picture
-        setProfilePictureUrl(uploadResult.profile_picture);
+        // Update the displayed profile picture with full URL for server deployment
+        const profilePictureUrl = uploadResult.profile_picture.startsWith('http') 
+          ? uploadResult.profile_picture 
+          : `${window.location.origin}${uploadResult.profile_picture}`;
+        setProfilePictureUrl(profilePictureUrl);
         
         // Update localStorage user data
         try {

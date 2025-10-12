@@ -67,11 +67,14 @@ export default function BuilderPageEdit(){
       if (parsed.mouse) setSelectedMouse(parsed.mouse);
       if (parsed.headset) setSelectedHeadset(parsed.headset);
       if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+      
+      // Load existing build name and description for editing
+      const buildName = localStorage.getItem('editingBuildName');
+      const buildDescription = localStorage.getItem('editingBuildDescription');
+      if (buildName) setTempName(buildName);
+      if (buildDescription) setTempDescription(buildDescription);
     } catch (e) {}
     localStorage.removeItem('loadedBuild');
-    localStorage.removeItem('editingBuildId');
-    localStorage.removeItem('editingBuildName');
-    localStorage.removeItem('editingBuildDescription');
   }, []);
 
   const buildSummaryParts = {
@@ -136,6 +139,31 @@ export default function BuilderPageEdit(){
     keyboard: selectedKeyboard, mouse: selectedMouse, headset: selectedHeadset, monitor: selectedMonitor
   });
 
+  const handleChangeBuildName = async (buildId, newName) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    try {
+      const parts = buildSnapshot();
+      const total_price = computeTotalPrice();
+      const resp = await fetch(`/api/builds/${buildId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: newName, parts, total_price })
+      });
+      
+      if (resp.ok) {
+        // Update the modal data to reflect the new name
+        setSaveModalData(prev => ({ ...prev, buildName: newName }));
+        setAlertModal({ show: true, message: 'Build name updated successfully!', title: 'Success' });
+      } else {
+        setAlertModal({ show: true, message: 'Failed to update build name.', title: 'Error' });
+      }
+    } catch (e) {
+      setAlertModal({ show: true, message: 'Error updating build name.', title: 'Error' });
+    }
+  };
+
   const handleSaveBuild = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -169,9 +197,16 @@ export default function BuilderPageEdit(){
     const warnings = analysis.warnings || [];
     const has_issues = analysis.hasIssues;
     
+    // Check if we're editing an existing build
+    const editingBuildId = localStorage.getItem('editingBuildId');
+    const isEditing = !!editingBuildId;
+    
     try {
-      const resp = await fetch('/api/builds', {
-        method: 'POST',
+      const url = isEditing ? `/api/builds/${editingBuildId}` : '/api/builds';
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const resp = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
       });
@@ -182,11 +217,26 @@ export default function BuilderPageEdit(){
       }
       
       const data = await resp.json();
-      setTempName(name); setTempDescription(description);
       
-      setSelectedMOBO(null); setSelectedCPU(null); setSelectedGPUs([null]); setSelectedRAMs([null]);
-      setSelectedM2s([null]); setSelectedStorage([null]); setSelectedPSU(null); setSelectedCase(null);
-      setSelectedKeyboard(null); setSelectedMouse(null); setSelectedHeadset(null); setSelectedMonitor(null);
+      // Clear editing context after successful save
+      localStorage.removeItem('editingBuildId');
+      localStorage.removeItem('editingBuildName');
+      localStorage.removeItem('editingBuildDescription');
+      
+      // Clear temp name to force name modal on next save
+      setTempName('');
+      setTempDescription('');
+      
+      // Don't clear components - keep them for continued editing
+      
+      // Show success modal with build info
+      setSaveModalData({
+        buildId: data.id || '',
+        buildName: name,
+        hasIssues: has_issues,
+        warnings: warnings
+      });
+      setShowSaveModal(true);
       
       setSaveModalData({ buildId: data.id || '(id unknown)', buildName: name, hasIssues: has_issues, warnings: warnings });
       setShowSaveModal(true);
@@ -284,7 +334,7 @@ export default function BuilderPageEdit(){
       </main>
       
       <BuildNameModal isOpen={showNameModal} onClose={() => setShowNameModal(false)} onSave={handleNameModalSave} initialName={tempName} initialDescription={tempDescription} />
-      <SaveBuildModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} buildId={saveModalData.buildId} buildName={saveModalData.buildName} hasIssues={saveModalData.hasIssues} warnings={saveModalData.warnings} />
+      <SaveBuildModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} buildId={saveModalData.buildId} buildName={saveModalData.buildName} hasIssues={saveModalData.hasIssues} warnings={saveModalData.warnings} onChangeName={handleChangeBuildName} />
       <AlertModal isOpen={alertModal.show} onClose={() => setAlertModal({ show: false, message: '', title: 'Alert' })} title={alertModal.title} message={alertModal.message} />
       <ConfirmModal isOpen={confirmModal.show} onClose={() => setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null })} onConfirm={confirmModal.onConfirm} title={confirmModal.title} message={confirmModal.message} />
     </>

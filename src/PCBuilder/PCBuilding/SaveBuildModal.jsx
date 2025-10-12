@@ -1,13 +1,27 @@
 import React from 'react';
 import './SaveBuildModal.css';
 
-function SaveBuildModal({ isOpen, onClose, buildId, buildName, hasIssues, warnings }) {
+function SaveBuildModal({ isOpen, onClose, buildId, buildName, hasIssues, warnings, onChangeName }) {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [newName, setNewName] = React.useState(buildName || '');
+  
+  React.useEffect(() => {
+    setNewName(buildName || '');
+  }, [buildName]);
+  
   if (!isOpen) return null;
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+  
+  const handleSaveName = () => {
+    if (newName.trim() && onChangeName) {
+      onChangeName(buildId, newName.trim());
+    }
+    setIsEditing(false);
   };
 
   return (
@@ -38,7 +52,23 @@ function SaveBuildModal({ isOpen, onClose, buildId, buildName, hasIssues, warnin
           
           <div className="build-id-section">
             <span className="build-id-label">Build Name:</span>
-            <span className="build-id-value">{buildName || 'Untitled Build'}</span>
+            {isEditing ? (
+              <div className="build-name-edit">
+                <input 
+                  type="text" 
+                  value={newName} 
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="build-name-input"
+                />
+                <button onClick={handleSaveName} className="save-name-btn">Save</button>
+                <button onClick={() => setIsEditing(false)} className="cancel-name-btn">Cancel</button>
+              </div>
+            ) : (
+              <div className="build-name-display">
+                <span className="build-id-value">{buildName || 'Untitled Build'}</span>
+                <button onClick={() => setIsEditing(true)} className="edit-name-btn">Edit</button>
+              </div>
+            )}
           </div>
           
           {hasIssues && warnings && warnings.length > 0 ? (
