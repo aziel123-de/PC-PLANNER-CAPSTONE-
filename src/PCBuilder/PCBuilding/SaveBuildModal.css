@@ -133,6 +133,69 @@
   color: #1f2937;
 }
 
+.build-name-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.build-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.build-name-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+}
+
+.edit-name-btn,
+.save-name-btn,
+.cancel-name-btn {
+  padding: 2px 8px;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-name-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.edit-name-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.save-name-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.save-name-btn:hover {
+  background-color: #059669;
+}
+
+.cancel-name-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.cancel-name-btn:hover {
+  background-color: #dc2626;
+}
+
 .warnings-section {
   margin-top: 12px;
 }

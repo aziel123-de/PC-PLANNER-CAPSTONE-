@@ -93,6 +93,10 @@ function ComponentSpecs({ part }) {
 
   // fallback: include any other primitive top-level fields from part or raw
   const seen = new Set(['id','name','price','type','_raw', ...displayOrder.map(([,k])=>k)]);
+  // Add common field variations to prevent duplicates
+  seen.add('form_factor'); seen.add('FormFactor'); seen.add('formfactor');
+  seen.add('ram_type'); seen.add('RamType'); seen.add('ramtype'); seen.add('Ramtype');
+  seen.add('ram_max'); seen.add('RamMax'); seen.add('rammax');
   const collectPrimitives = (obj) => {
     if (!obj || typeof obj !== 'object') return;
     for (const [k, v] of Object.entries(obj)) {
@@ -103,6 +107,7 @@ function ComponentSpecs({ part }) {
       const f = format(v);
       if (f) entries.push([String(k).replace(/([A-Z])/g, ' $1').replace(/^./, s=>s.toUpperCase()), f]);
       seen.add(k);
+      seen.add(low);
     }
   };
 
