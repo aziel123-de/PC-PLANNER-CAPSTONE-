@@ -198,6 +198,11 @@ export default function BuilderPageEdit(){
       
       setSaveModalData({ buildId: data.id || editingBuildId || '(id unknown)', buildName: name, hasIssues: has_issues, warnings: warnings });
       setShowSaveModal(true);
+      
+      // Redirect to dashboard saved builds after successful save
+      setTimeout(() => {
+        window.location.href = '/dashboard?section=saved';
+      }, 2000);
     } catch (e) {
       console.error('Save build failed', e);
       setAlertModal({ show: true, message: 'Save failed: ' + (e.message || 'Unknown error'), title: 'Save Error' });
