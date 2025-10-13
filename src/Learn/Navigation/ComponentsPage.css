@@ -126,3 +126,16 @@
   text-decoration: none;
   transition: background-color 120ms ease, box-shadow 160ms ease;
 }
+
+/* Consistent page height with ComponentPage */
+.components-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.components-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

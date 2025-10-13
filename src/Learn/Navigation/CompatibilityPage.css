@@ -101,3 +101,10 @@
 /* Checklist: revert to simple bullets for a wiki feel */
 .vertical-checklist { list-style: disc; margin-left: 1.25rem; padding: 0; }
 .vertical-checklist li::before { content: none; }
+
+/* Consistent page height with ComponentPage */
+.compatibility-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

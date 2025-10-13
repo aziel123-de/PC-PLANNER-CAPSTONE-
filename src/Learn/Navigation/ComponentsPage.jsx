@@ -28,6 +28,8 @@ const components = [
 function ComponentsPage() {
   const [openId, setOpenId] = useState(null);
   const results = components; // show the full list
+  
+
 
   return (
     <div className="components-page">

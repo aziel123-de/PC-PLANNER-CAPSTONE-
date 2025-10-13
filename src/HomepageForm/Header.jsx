@@ -8,8 +8,7 @@ import { SiPcgamingwiki } from 'react-icons/si';
 import { CgComponents } from 'react-icons/cg';
 import { GiBrain } from 'react-icons/gi';
 import { Link, useNavigate } from 'react-router-dom';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../firebase.js';
+
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,24 +57,12 @@ function Header() {
   };
 
   useEffect(() => {
-    // listen for manual auth changes (localStorage updates) for non-Firebase login
+    // listen for manual auth changes (localStorage updates)
     const handler = (e) => setAuthUser(e?.detail || null);
     window.addEventListener('authChanged', handler);
 
-    // also keep Firebase state if project uses it
-    let unsub;
-    try {
-      unsub = onAuthStateChanged(auth, (user) => {
-        if (user) setAuthUser(user);
-      });
-    } catch (e) {
-      // firebase not configured or not used
-      unsub = null;
-    }
-
     return () => {
       window.removeEventListener('authChanged', handler);
-      if (typeof unsub === 'function') unsub();
     };
   }, []);
 
@@ -135,15 +122,12 @@ function Header() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-  // clear local storage user and notify listeners
-  try {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-  } catch (e) {}
-  window.dispatchEvent(new CustomEvent('authChanged', { detail: null }));
-  setUserMenuOpen(false);
-  navigate('/');
+      // clear local storage user and notify listeners
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      window.dispatchEvent(new CustomEvent('authChanged', { detail: null }));
+      setUserMenuOpen(false);
+      navigate('/');
     } catch (e) {
       console.warn('Logout failed', e);
     }

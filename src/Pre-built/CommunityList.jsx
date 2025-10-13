@@ -29,7 +29,13 @@ function CommunityList() {
       const res = await fetch(`${API_PREFIX}`);
       if (!res.ok) throw new Error('Failed to load builds');
       const data = await res.json();
-      setBuilds(data);
+      // Sort by score (upvotes - downvotes) in descending order (highest first)
+      const sortedData = data.sort((a, b) => {
+        const scoreA = (a.up_votes || 0) - (a.down_votes || 0);
+        const scoreB = (b.up_votes || 0) - (b.down_votes || 0);
+        return scoreB - scoreA; // Descending order
+      });
+      setBuilds(sortedData);
     } catch (e) {
       setError(e.message || 'Error');
     } finally {
@@ -182,7 +188,9 @@ function CommunityList() {
                 </div>
                 
                 <p className="description-text">
-                  {build.description || 'No description provided.'}
+                  {(build.description || 'No description provided.').length > 100 
+                    ? (build.description || 'No description provided.').substring(0, 100) + '...' 
+                    : (build.description || 'No description provided.')}
                 </p>
 
                 <div className="button-row">

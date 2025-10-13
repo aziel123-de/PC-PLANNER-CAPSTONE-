@@ -77,3 +77,10 @@
 
 .vertical-card ul { margin: 0 0 6px 1.25rem; padding: 0; color: #374151; line-height: 1.7; }
 .vertical-card li { margin: 0 0 6px; }
+
+/* Consistent page height with ComponentPage */
+.bottlenecks-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

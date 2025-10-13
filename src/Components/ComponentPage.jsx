@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import ComponentCard from "./ComponentCard";
 import './ComponentPage.css';
 import { FiFilter } from 'react-icons/fi';
-import { FaSortAlphaDown, FaDollarSign } from 'react-icons/fa';
+import { FaSortAlphaDown, FaDollarSign, FaArrowUp } from 'react-icons/fa';
 
 import { useComponents } from '../contexts/ComponentsContext.jsx';
 
@@ -24,6 +24,7 @@ function ComponentPage() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [sortBy, setSortBy] = useState(null); // 'alpha' | 'price' | null
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' | 'desc'
+
   const { dataLookup, loading } = useComponents();
 
   const filters = [
@@ -64,10 +65,19 @@ function ComponentPage() {
     }).filter(cat => Array.isArray(cat.arr) && cat.arr.length > 0);
   }, [normalizedQuery, filter, sortBy, sortOrder, dataLookup]);
 
+
+
+  const scrollToTop = () => {
+    console.log('Scroll to top clicked!');
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
+  };
+
   return (
     <>
       {/* Header*/}
-      <div className="component-page" style={{ paddingTop: 20 }}>
+      <div className="component-page" style={{ paddingTop: 20, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <div className="componentdb-header">
           
             <h2 className="componentdb-title">Component Database</h2>
@@ -177,28 +187,37 @@ function ComponentPage() {
         {loading && (
           <div className="no-results">Loading components...</div>
         )}
-        {!loading && visibleCategories.length === 0 && (
-          <div className="no-results">No components found.</div>
-        )}
+        <div style={{ flex: 1 }}>
+          {!loading && visibleCategories.length === 0 && (
+            <div className="no-results">No components found.</div>
+          )}
 
-        {visibleCategories.map(({ key, title, arr }) => (
-          <section
-            key={key}
+          {visibleCategories.map(({ key, title, arr }) => (
+            <section
+              key={key}
+              className={`component-section component-section--${key}`}
+            >
+              <h2>{title}</h2>
+              <div className="component-grid">
+                {arr.map((component, idx) => (
+                  <ComponentCard
+                    key={component.id ?? `${key}-${idx}`}
+                    component={component}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
 
-             
-            className={`component-section component-section--${key}`}
-          >
-            <h2>{title}</h2>
-            <div className="component-grid">
-              {arr.map((component, idx) => (
-                <ComponentCard
-                  key={component.id ?? `${key}-${idx}`}
-                  component={component}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+        {/* Scroll to top button */}
+        <button 
+          className="scroll-to-top-btn" 
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+        >
+          <FaArrowUp />
+        </button>
       </div>
     </>
   );

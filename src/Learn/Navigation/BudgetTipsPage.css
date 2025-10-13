@@ -170,3 +170,10 @@ h1 {
 /* Build header/actions removed */
 
 /* ---- end added styles ---- */
+
+/* Consistent page height with ComponentPage */
+.budget-tips-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
