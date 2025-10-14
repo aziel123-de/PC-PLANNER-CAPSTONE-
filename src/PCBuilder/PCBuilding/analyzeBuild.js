@@ -120,50 +120,120 @@ export function analyzeBuild(selectedParts) {
   })();
 
   const hasCpuGpu = !!cpuRaw && gpuArray.length>0;
-  // Check for perfect balance based on performance cores
-  const checkPerfectBalance = (cpuRaw, gpuArray) => {
-    if (!cpuRaw || !gpuArray || gpuArray.length === 0) return false;
+  // Check CPU-GPU compatibility based on core counts and GPU specifications
+  const checkCpuGpuCompatibility = (cpuRaw, gpuArray) => {
+    if (!cpuRaw || !gpuArray || gpuArray.length === 0) return { compatible: false, severity: 'good', note: '' };
+    
     const cpuCores = toNumber(getFirst(cpuRaw,'Cores','cores','CoreCount','coreCount')) || findNumericByKeyPattern(cpuRaw,['core','cores']);
-    const cpuThreads = toNumber(getFirst(cpuRaw,'Threads','threads','ThreadCount')) || findNumericByKeyPattern(cpuRaw,['thread','threads']);
-    const cpuBoostGHz = parseGHz(getFirst(cpuRaw,'BoostClock','Boost','BoostClockGHz','BoostClockMHz','BaseClock','Base')) || findNumericByKeyPattern(cpuRaw,['boost','clock','ghz','mhz']);
-    const cpuPerformanceScore = cpuCores * (cpuThreads || cpuCores) * Math.max(1, cpuBoostGHz);
+    if (cpuCores === 0) return { compatible: false, severity: 'good', note: '' };
+    
     const firstGpu = gpuArray[0];
     const cudaCores = toNumber(getFirst(firstGpu,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(firstGpu,['cuda']);
     const computeUnits = toNumber(getFirst(firstGpu,'ComputeUnits','compute_units')) || findNumericByKeyPattern(firstGpu,['computeunit','compute_units']);
     const xeCores = toNumber(getFirst(firstGpu,'XeCores','xe_cores')) || 0;
-    let gpuPerformanceCores = 0;
-    if (cudaCores > 0) gpuPerformanceCores = cudaCores;
-    else if (computeUnits > 0) gpuPerformanceCores = computeUnits * 64;
-    else if (xeCores > 0) gpuPerformanceCores = xeCores * 128;
-    if (cpuPerformanceScore === 0 || gpuPerformanceCores === 0) return false;
-    const balanceRatio = gpuPerformanceCores / cpuPerformanceScore;
-    return balanceRatio >= 3.5 && balanceRatio <= 11;
+    
+    let compatible = false;
+    let severity = 'good';
+    let note = '';
+    
+    // CUDA Cores (NVIDIA) compatibility
+    if (cudaCores > 0) {
+      if (cpuCores === 4 && cudaCores >= 800 && cudaCores <= 1500) {
+        compatible = true;
+      } else if (cpuCores === 6 && cudaCores >= 1600 && cudaCores <= 6000) {
+        compatible = true;
+      } else if (cpuCores === 8 && cudaCores >= 6000 && cudaCores <= 12000) {
+        compatible = true;
+      } else if (cpuCores > 9 && cudaCores >= 12000 && cudaCores <= 20000) {
+        compatible = true;
+      } else {
+        compatible = false;
+        if (cudaCores > 20000 || (cpuCores === 4 && cudaCores > 1500) || (cpuCores === 6 && cudaCores > 6000) || (cpuCores === 8 && cudaCores > 12000)) {
+          severity = (cpuCores === 4 && cudaCores >= 6000) ? 'bad' : 'warn';
+          note = `GPU with ${cudaCores} CUDA cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+        } else {
+          severity = 'warn';
+          note = `${cpuCores}-core CPU may be overpowered for GPU with ${cudaCores} CUDA cores. Consider upgrading GPU.`;
+        }
+      }
+    }
+    // Computing Units (AMD Radeon) compatibility
+    else if (computeUnits > 0) {
+      if (cpuCores === 4 && computeUnits >= 16 && computeUnits <= 30) {
+        compatible = true;
+      } else if (cpuCores === 6 && computeUnits >= 30 && computeUnits <= 54) {
+        compatible = true;
+      } else if (cpuCores === 8 && computeUnits >= 55 && computeUnits <= 84) {
+        compatible = true;
+      } else if (cpuCores > 9 && computeUnits >= 85 && computeUnits <= 100) {
+        compatible = true;
+      } else {
+        compatible = false;
+        if (computeUnits > 100 || (cpuCores === 4 && computeUnits > 30) || (cpuCores === 6 && computeUnits > 54) || (cpuCores === 8 && computeUnits > 84)) {
+          severity = (cpuCores === 4 && computeUnits >= 55) ? 'bad' : 'warn';
+          note = `GPU with ${computeUnits} compute units may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+        } else {
+          severity = 'warn';
+          note = `${cpuCores}-core CPU may be overpowered for GPU with ${computeUnits} compute units. Consider upgrading GPU.`;
+        }
+      }
+    }
+    // Xe Cores (Intel GPU) compatibility
+    else if (xeCores > 0) {
+      if (cpuCores === 4 && xeCores >= 4 && xeCores <= 8) {
+        compatible = true;
+      } else if (cpuCores === 6 && xeCores >= 8 && xeCores <= 16) {
+        compatible = true;
+      } else if (cpuCores === 8 && xeCores >= 24 && xeCores <= 32) {
+        compatible = true;
+      } else if (cpuCores > 9 && xeCores >= 32 && xeCores <= 45) {
+        compatible = true;
+      } else {
+        compatible = false;
+        if (xeCores > 45 || (cpuCores === 4 && xeCores > 8) || (cpuCores === 6 && xeCores > 16) || (cpuCores === 8 && xeCores > 32)) {
+          severity = (cpuCores === 4 && xeCores >= 24) ? 'bad' : 'warn';
+          note = `GPU with ${xeCores} Xe cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+        } else {
+          severity = 'warn';
+          note = `${cpuCores}-core CPU may be overpowered for GPU with ${xeCores} Xe cores. Consider upgrading GPU.`;
+        }
+      }
+    }
+    
+    return { compatible, severity, note };
   };
 
   const BALANCE_K = 12;
   let bottleneckNote = hasCpuGpu ? '' : 'NO DATA';
   let compatSeverity = 'good';
   let ratioAdj = 0;
-  const isPerfectBalance = checkPerfectBalance(cpuRaw, gpuArray);
+  const cpuGpuCompat = checkCpuGpuCompatibility(cpuRaw, gpuArray);
   
   if (cpuIndex>0 && combinedGpuIndex>0) {
     ratioAdj = (combinedGpuIndex * BALANCE_K) / cpuIndex;
     const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
     
-    if (ratioAdj > 1.8) {
-      const pctCpu = clamp(Math.round((ratioAdj - 1) * 50), 3, 35);
-      bottleneckNote = `Warning: CPU may bottleneck GPU (~${pctCpu}% potential underutilization).`;
-      compatSeverity = ratioAdj > 4.0 ? 'bad' : 'warn';
-    } else if (ratioAdj < 0.5) {
-      const severity = clamp((0.5 - ratioAdj) / 0.5, 0, 1);
-      const pctGpu = clamp(Math.round(severity * 40), 5, 40);
-      bottleneckNote = `Note: GPU may be performance limiting (~${pctGpu}% GPU-side cap).`;
-      compatSeverity = severity > 0.7 ? 'bad' : 'warn';
-    } else if (isPerfectBalance) {
-      bottleneckNote = '';
+    // Use new compatibility check first
+    if (cpuGpuCompat.note) {
+      bottleneckNote = cpuGpuCompat.note;
+      compatSeverity = cpuGpuCompat.severity;
+    } else if (cpuGpuCompat.compatible) {
+      bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
       compatSeverity = 'good';
     } else {
-      bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
+      // Fallback to original ratio-based logic
+      if (ratioAdj > 1.8) {
+        const pctCpu = clamp(Math.round((ratioAdj - 1) * 50), 3, 35);
+        bottleneckNote = `Warning: CPU may bottleneck GPU (~${pctCpu}% potential underutilization).`;
+        compatSeverity = ratioAdj > 4.0 ? 'bad' : 'warn';
+      } else if (ratioAdj < 0.5) {
+        const severity = clamp((0.5 - ratioAdj) / 0.5, 0, 1);
+        const pctGpu = clamp(Math.round(severity * 40), 5, 40);
+        bottleneckNote = `Note: GPU may be performance limiting (~${pctGpu}% GPU-side cap).`;
+        compatSeverity = severity > 0.7 ? 'bad' : 'warn';
+      } else {
+        bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
+      }
     }
   } else if (hasCpuGpu) {
     bottleneckNote = 'NO DATA';
