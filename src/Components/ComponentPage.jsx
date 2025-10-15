@@ -10,6 +10,7 @@ import { useComponents } from '../contexts/ComponentsContext.jsx';
 const CATEGORY_META = [
   { key: "motherboard", title: "Motherboards", type: 'mobo' },
   { key: "cpu", title: "CPUs", type: 'cpu' },
+  { key: "cpu-cooler", title: "CPU Coolers", type: 'cpuCooler' },
   { key: "gpu", title: "GPUs", type: 'gpu' },
   { key: "psu", title: "PSUs", type: 'psu' },
   { key: "ram", title: "RAM", type: 'ram' },

@@ -127,7 +127,20 @@ function CommunityList() {
               }}>
                 SHARE BUILD
               </button>
-              <button className="refresh-btn" disabled={loading} onClick={() => setRefreshIndex(i => i + 1)}>
+              <button className="refresh-btn" disabled={loading} onClick={(e) => {
+                const icon = e.currentTarget.querySelector('.refresh-icon');
+                e.target.style.background = '#10b981';
+                e.target.style.color = 'white';
+                icon.style.transform = 'rotate(180deg)';
+                setTimeout(() => {
+                  if (!loading) {
+                    e.target.style.background = 'white';
+                    e.target.style.color = 'black';
+                  }
+                  icon.style.transform = 'rotate(0deg)';
+                }, 200);
+                setRefreshIndex(i => i + 1);
+              }}>
                 <span className="refresh-icon">↻</span>
                 {loading ? 'Refreshing...' : 'Refresh'}
               </button>
@@ -169,7 +182,7 @@ function CommunityList() {
                 </div>
                 
                 <div className="card-top-row">
-                  <h3 className="card-title">{build.title}</h3>
+                  <h3 className="card-title">{build.title?.split(' ').slice(0, 3).join(' ') || build.title}</h3>
                   <div className="card-right">
                     <div className="votes">
                       <FaCaretUp className="vote-triangle" />
