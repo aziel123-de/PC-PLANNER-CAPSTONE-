@@ -1069,7 +1069,10 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   border: 1px solid #e5e7eb;
   max-width: 300px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  position: relative; /* ensure absolute children are positioned relative to the card */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .card-top-row {
@@ -1216,6 +1219,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 .button-row {
   display: flex;
   gap: 0.5rem;
+  margin-top: auto;
 }
 
 .details-btn {
