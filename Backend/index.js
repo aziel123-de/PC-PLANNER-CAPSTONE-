@@ -497,6 +497,7 @@ app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
   const { type } = req.params || {};
   const map = {
     cpu: 'cpu',
+    'cpu-cooler': 'cpu_cooler',
     gpu: 'gpu',
     psu: 'psu',
     mobo: 'mobo',

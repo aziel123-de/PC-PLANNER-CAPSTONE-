@@ -11,6 +11,7 @@ import analyzeBuild from '../../PCBuilder/PCBuilding/analyzeBuild';
 export default function BuilderPageEdit(){
   const [selectedMOBO, setSelectedMOBO] = useState(null);
   const [selectedCPU, setSelectedCPU] = useState(null);
+  const [selectedCPUCooler, setSelectedCPUCooler] = useState(null);
   const [selectedGPUs, setSelectedGPUs] = useState([null]);
   const [selectedRAMs, setSelectedRAMs] = useState([null]);
   const [selectedM2s, setSelectedM2s] = useState([null]);
@@ -33,14 +34,14 @@ export default function BuilderPageEdit(){
   useEffect(() => {
     let mounted = true;
     async function load() {
-      const types = ['cpu','gpu','psu','mobo','ram','storage','m2','case','keyboard','mouse','headset','monitor'];
+      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','keyboard','mouse','headset','monitor'];
       const map = {};
       for (const t of types) {
         try {
           const resp = await fetch(`/api/components/${t}`);
           if (!resp.ok) throw new Error('fetch failed');
           const json = await resp.json();
-          const key = t === 'case' ? 'case' : t;
+          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t;
           map[key] = Array.isArray(json) ? json : [];
         } catch (e) {}
       }
@@ -57,6 +58,7 @@ export default function BuilderPageEdit(){
       const parsed = JSON.parse(raw);
       if (parsed.mobo) setSelectedMOBO(parsed.mobo);
       if (parsed.cpu) setSelectedCPU(parsed.cpu);
+      if (parsed.cpuCooler) setSelectedCPUCooler(parsed.cpuCooler);
       if (Array.isArray(parsed.gpus)) setSelectedGPUs(parsed.gpus);
       if (Array.isArray(parsed.rams)) setSelectedRAMs(parsed.rams);
       if (Array.isArray(parsed.m2s)) setSelectedM2s(parsed.m2s);
@@ -78,7 +80,7 @@ export default function BuilderPageEdit(){
   }, []);
 
   const buildSummaryParts = {
-    mobo: selectedMOBO, cpu: selectedCPU, gpus: selectedGPUs, rams: selectedRAMs,
+    mobo: selectedMOBO, cpu: selectedCPU, cpuCooler: selectedCPUCooler, gpus: selectedGPUs, rams: selectedRAMs,
     m2s: selectedM2s, storage: selectedStorage, psu: selectedPSU, case: selectedCase,
     keyboard: selectedKeyboard, mouse: selectedMouse, headset: selectedHeadset, monitor: selectedMonitor,
   };
@@ -112,6 +114,7 @@ export default function BuilderPageEdit(){
     const items = [];
     if (selectedMOBO) items.push(selectedMOBO);
     if (selectedCPU) items.push(selectedCPU);
+    if (selectedCPUCooler) items.push(selectedCPUCooler);
     (selectedGPUs || []).forEach(x => x && items.push(x));
     (selectedRAMs || []).forEach(x => x && items.push(x));
     (selectedM2s || []).forEach(x => x && items.push(x));
@@ -133,7 +136,7 @@ export default function BuilderPageEdit(){
   };
 
   const buildSnapshot = () => ({
-    mobo: selectedMOBO, cpu: selectedCPU, gpus: (selectedGPUs || []).filter(Boolean),
+    mobo: selectedMOBO, cpu: selectedCPU, cpuCooler: selectedCPUCooler, gpus: (selectedGPUs || []).filter(Boolean),
     rams: (selectedRAMs || []).filter(Boolean), m2s: (selectedM2s || []).filter(Boolean),
     storage: (selectedStorage || []).filter(Boolean), psu: selectedPSU, case: selectedCase,
     keyboard: selectedKeyboard, mouse: selectedMouse, headset: selectedHeadset, monitor: selectedMonitor
@@ -146,7 +149,7 @@ export default function BuilderPageEdit(){
       return;
     }
 
-    const hasComponents = selectedMOBO || selectedCPU || selectedPSU || selectedCase ||
+    const hasComponents = selectedMOBO || selectedCPU || selectedCPUCooler || selectedPSU || selectedCase ||
       (selectedGPUs && selectedGPUs.some(gpu => gpu)) ||
       (selectedRAMs && selectedRAMs.some(ram => ram)) ||
       (selectedM2s && selectedM2s.some(m2 => m2)) ||
@@ -219,7 +222,7 @@ export default function BuilderPageEdit(){
       show: true, title: 'Clear All Components',
       message: 'Are you sure you want to clear all components? This action cannot be undone.',
       onConfirm: () => {
-        setSelectedMOBO(null); setSelectedCPU(null); setSelectedGPUs([null]); setSelectedRAMs([null]);
+        setSelectedMOBO(null); setSelectedCPU(null); setSelectedCPUCooler(null); setSelectedGPUs([null]); setSelectedRAMs([null]);
         setSelectedM2s([null]); setSelectedStorage([null]); setSelectedPSU(null); setSelectedCase(null);
         setSelectedKeyboard(null); setSelectedMouse(null); setSelectedHeadset(null); setSelectedMonitor(null);
         setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null });
@@ -258,6 +261,7 @@ export default function BuilderPageEdit(){
               }
             }} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Processor (CPU)" }} selectedValue={selectedCPU} setSelectedValue={setSelectedCPU} selectedMOBO={selectedMOBO} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "CPU Cooler" }} selectedValue={selectedCPUCooler} setSelectedValue={setSelectedCPUCooler} selectedCPU={selectedCPU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Graphics Card (GPU)" }} selectedValue={selectedGPUs[0]} setSelectedValue={(value) => {
               const updated = [...selectedGPUs]; updated[0] = value; setSelectedGPUs(updated);
             }} dataLookup={dataLookup} selectedGPUs={selectedGPUs} />

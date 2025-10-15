@@ -7,6 +7,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
   const mapByCanonical = {
     mobo: dataLookup?.mobo || [],
     cpu: dataLookup?.cpu || [],
+    cpucooler: dataLookup?.cpuCooler || [],
     gpu: dataLookup?.gpu || [],
     psu: dataLookup?.psu || [],
     ram: dataLookup?.ram || [],
@@ -24,6 +25,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     if (mapByCanonical[partName]) return mapByCanonical[partName];
     // substring logic
     if (partName.includes('motherboard') || partName.includes('mobo')) return mapByCanonical.mobo;
+    if (partName.includes('cooler')) return mapByCanonical.cpucooler;
     if (partName.includes('processor') || partName.includes('cpu')) return mapByCanonical.cpu;
     if (partName.includes('graphics') || partName.includes('gpu')) return mapByCanonical.gpu;
     if (partName.includes('power') || partName.includes('psu')) return mapByCanonical.psu;
@@ -182,6 +184,17 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
           }
           return true;
         });
+        break;
+      case "CPU Cooler":
+        if (selectedCPU) {
+          const cpuSocket = selectedCPU.socket || selectedCPU._raw?.Socket || selectedCPU._raw?.socket;
+          if (cpuSocket) {
+            options = options.filter(cooler => {
+              const coolerSocket = cooler.socket || cooler._raw?.Socket || cooler._raw?.socket;
+              return coolerSocket ? socketMatch(coolerSocket, cpuSocket) : true;
+            });
+          }
+        }
         break;
       case "Memory (RAM)":
         options = options.filter(ram => {

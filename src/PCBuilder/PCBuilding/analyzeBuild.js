@@ -55,6 +55,8 @@ export function analyzeBuild(selectedParts) {
   const cpu = extractFirstPart(selectedParts,['cpu','cpus','CPU','processor']) || selectedParts?.cpu || null;
   const firstGpu = extractFirstPart(selectedParts,['gpus','gpu','GPU','graphics']) || (selectedParts?.gpus && selectedParts.gpus[0]) || null;
   const cpuRaw = cpu?._raw||cpu||null; const gpuRaw = firstGpu?._raw||firstGpu||null;
+  const cpuCooler = extractFirstPart(selectedParts,['cpuCooler','cpu_cooler','CPU_Cooler']) || selectedParts?.cpuCooler || null;
+  const cpuCoolerRaw = cpuCooler?._raw||cpuCooler||null;
   const gpuArray = Array.isArray(selectedParts?.gpus) ? selectedParts.gpus.filter(Boolean).map(g=>g._raw||g) : (gpuRaw ? [gpuRaw] : []);
 
   // RAM vs CPU support
@@ -182,11 +184,11 @@ export function analyzeBuild(selectedParts) {
     else if (xeCores > 0) {
       if (cpuCores === 4 && xeCores >= 4 && xeCores <= 8) {
         compatible = true;
-      } else if (cpuCores === 6 && xeCores >= 8 && xeCores <= 16) {
+      } else if (cpuCores === 6 && xeCores >= 9 && xeCores <= 16) {
         compatible = true;
       } else if (cpuCores === 8 && xeCores >= 24 && xeCores <= 32) {
         compatible = true;
-      } else if (cpuCores > 9 && xeCores >= 32 && xeCores <= 45) {
+      } else if (cpuCores > 9 && xeCores >= 33 && xeCores <= 45) {
         compatible = true;
       } else {
         compatible = false;
@@ -202,18 +204,12 @@ export function analyzeBuild(selectedParts) {
     
     return { compatible, severity, note };
   };
-
-  const BALANCE_K = 12;
+ 
   let bottleneckNote = hasCpuGpu ? '' : 'NO DATA';
   let compatSeverity = 'good';
-  let ratioAdj = 0;
   const cpuGpuCompat = checkCpuGpuCompatibility(cpuRaw, gpuArray);
   
-  if (cpuIndex>0 && combinedGpuIndex>0) {
-    ratioAdj = (combinedGpuIndex * BALANCE_K) / cpuIndex;
-    const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
-    
-    // Use new compatibility check first
+  if (hasCpuGpu) {
     if (cpuGpuCompat.note) {
       bottleneckNote = cpuGpuCompat.note;
       compatSeverity = cpuGpuCompat.severity;
@@ -221,36 +217,16 @@ export function analyzeBuild(selectedParts) {
       bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
       compatSeverity = 'good';
     } else {
-      // Fallback to original ratio-based logic
-      if (ratioAdj > 1.8) {
-        const pctCpu = clamp(Math.round((ratioAdj - 1) * 50), 3, 35);
-        bottleneckNote = `Warning: CPU may bottleneck GPU (~${pctCpu}% potential underutilization).`;
-        compatSeverity = ratioAdj > 4.0 ? 'bad' : 'warn';
-      } else if (ratioAdj < 0.5) {
-        const severity = clamp((0.5 - ratioAdj) / 0.5, 0, 1);
-        const pctGpu = clamp(Math.round(severity * 40), 5, 40);
-        bottleneckNote = `Note: GPU may be performance limiting (~${pctGpu}% GPU-side cap).`;
-        compatSeverity = severity > 0.7 ? 'bad' : 'warn';
-      } else {
-        bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
-      }
+      bottleneckNote = 'NO DATA';
     }
-  } else if (hasCpuGpu) {
-    bottleneckNote = 'NO DATA';
-  } else {
-    bottleneckNote = 'NO DATA';
-  }
+  } 
   if (ramBottleneck && compatSeverity === 'good' && cpuIndex>0 && combinedGpuIndex>0) {
     compatSeverity = 'warn';
     if (bottleneckNote.startsWith('Good balance')) bottleneckNote += ' (RAM bottleneck detected)';
   }
 
   let upgradeRecommendation = '';
-  if (cpuIndex>0 && combinedGpuIndex>0) {
-    if (ratioAdj > 2.5) upgradeRecommendation = 'Consider upgrading the CPU to better feed multiple GPUs.';
-    else if (ratioAdj < 0.5) upgradeRecommendation = 'Consider upgrading GPU(s) to better match this CPU.';
-  }
-  if (ramBottleneck && !upgradeRecommendation) upgradeRecommendation = 'Consider a CPU with higher supported memory speed or using lower-frequency RAM.';
+  if (ramBottleneck) upgradeRecommendation = 'Consider a CPU with higher supported memory speed or using lower-frequency RAM.';
 
   // Power logic
   const getNumericFrom = (obj, ...keys) => { if(!obj) return 0; return toNumber(getFirst(obj,...keys)); };
@@ -303,7 +279,6 @@ export function analyzeBuild(selectedParts) {
     hasIssues,
     cpuIndex,
     combinedGpuIndex,
-    ratioAdj,
     compatSeverity,
     bottleneckNote,
     upgradeRecommendation,
