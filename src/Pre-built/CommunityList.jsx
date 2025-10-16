@@ -31,11 +31,20 @@ function CommunityList() {
       const res = await fetch(`${API_PREFIX}`);
       if (!res.ok) throw new Error('Failed to load builds');
       const data = await res.json();
-      // Sort by score (upvotes - downvotes) in descending order (highest first)
+      // Sort with pcplannermain@gmail.com builds at top, then by score
       const sortedData = data.sort((a, b) => {
+        // Check for PC Planner identification by full name
+        const isPcPlannerA = a.username === 'PCPlannerMain' || a.full_name === 'PCPlannerMain';
+        const isPcPlannerB = b.username === 'PCPlannerMain' || b.full_name === 'PCPlannerMain';
+        
+        // PC Planner builds always go first
+        if (isPcPlannerA && !isPcPlannerB) return -1;
+        if (!isPcPlannerA && isPcPlannerB) return 1;
+        
+        // If both or neither are PC Planner builds, sort by score
         const scoreA = (a.up_votes || 0) - (a.down_votes || 0);
         const scoreB = (b.up_votes || 0) - (b.down_votes || 0);
-        return scoreB - scoreA; // Descending order
+        return scoreB - scoreA;
       });
       setAllBuilds(sortedData);
       setBuilds(filterBuildsByPrice(sortedData, selectedPriceRange));
@@ -61,20 +70,14 @@ function CommunityList() {
 
   const filterBuildsByPrice = (buildsToFilter, range) => {
     if (range === 'all') return buildsToFilter;
-    
     return buildsToFilter.filter(build => {
       const price = build.total_price || 0;
       switch (range) {
-        case '20000-30000':
-          return price >= 20000 && price <= 30000;
-        case '40000-60000':
-          return price >= 40000 && price <= 60000;
-        case '60000-100000':
-          return price >= 60000 && price <= 100000;
-        case '100000+':
-          return price >= 100000;
-        default:
-          return true;
+        case '20000-30000': return price >= 20000 && price <= 30000;
+        case '40000-60000': return price >= 40000 && price <= 60000;
+        case '60000-100000': return price >= 60000 && price <= 100000;
+        case '100000+': return price >= 100000;
+        default: return true;
       }
     });
   };
@@ -83,7 +86,6 @@ function CommunityList() {
     setSelectedPriceRange(range);
     setBuilds(filterBuildsByPrice(allBuilds, range));
   };
-
 
   const openModal = (id) => { setModalBuildId(id); lockScroll(); };
   const closeModal = () => { setModalBuildId(null); unlockScroll(); };
@@ -136,7 +138,6 @@ function CommunityList() {
   return (
     <div className="community-builds-wrapper" style={{ padding: '1.25rem 1rem 3rem', maxWidth: 1220, margin: '0 auto' }}>
 
-
       <section className="community-panel">
         <div className="community-header">
           <div className="header-content">
@@ -145,6 +146,17 @@ function CommunityList() {
               <p className='subtitle-header-prebuilt'>Discover Great PC Builds from our Community</p>
             </div>
             <div className="header-actions">
+              <select 
+                value={selectedPriceRange}
+                onChange={(e) => handlePriceRangeChange(e.target.value)}
+                className="modern-price-filter"
+              >
+                <option value="all">All Prices</option>
+                <option value="20000-30000">₱20K - ₱30K</option>
+                <option value="40000-60000">₱40K - ₱60K</option>
+                <option value="60000-100000">₱60K - ₱100K</option>
+                <option value="100000+">₱100K+</option>
+              </select>
               <button className="share-build-btn" onClick={() => {
                 const token = localStorage.getItem('token');
                 if (!token || token === 'null' || token === 'undefined') {
@@ -172,47 +184,7 @@ function CommunityList() {
                 <span className="refresh-icon">↻</span>
                 {loading ? 'Refreshing...' : 'Refresh'}
               </button>
-              <select 
-                value={selectedPriceRange}
-                onChange={(e) => handlePriceRangeChange(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  background: 'white',
-                  cursor: 'pointer',
-                  minWidth: '160px'
-                }}
-              >
-                <option value="all">All Price Ranges</option>
-                <option value="20000-30000">₱20K - ₱30K</option>
-                <option value="40000-60000">₱40K - ₱60K</option>
-                <option value="60000-100000">₱60K - ₱100K</option>
-                <option value="100000+">₱100K+</option>
-              </select>
             </div>
-          </div>
-          <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Filter by Price:</label>
-            <select 
-              value={selectedPriceRange}
-              onChange={(e) => handlePriceRangeChange(e.target.value)}
-              style={{
-                padding: '6px 12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px',
-                background: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="all">All</option>
-              <option value="20000-30000">₱20,000 - ₱30,000</option>
-              <option value="40000-60000">₱40,000 - �60,000</option>
-              <option value="60000-100000">₱60,000 - ₱100,000</option>
-              <option value="100000+">₱100,000+</option>
-            </select>
           </div>
         </div>
 

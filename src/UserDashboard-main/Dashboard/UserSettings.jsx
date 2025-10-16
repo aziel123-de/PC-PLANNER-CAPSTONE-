@@ -13,6 +13,7 @@ function UserSettings({ onBack, onLogout, userId }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showReservedNameModal, setShowReservedNameModal] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [userCollapsed, setUserCollapsed] = useState(false);
@@ -117,6 +118,12 @@ function UserSettings({ onBack, onLogout, userId }) {
     
     // Prevent email changes
     if (name === 'email') {
+      return;
+    }
+    
+    // Prevent non-authorized users from using PCPlannerMain
+    if (name === 'fullName' && value === 'PCPlannerMain' && formData.email !== 'pcplannermain@gmail.com') {
+      setShowReservedNameModal(true);
       return;
     }
     
@@ -382,6 +389,24 @@ function UserSettings({ onBack, onLogout, userId }) {
                     className="success-ok-btn"
                   >
                     OK
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Reserved Name Modal */}
+          {showReservedNameModal && (
+            <div className="success-modal-overlay">
+              <div className="success-modal-box">
+                <h3>⚠️ Reserved Name</h3>
+                <p>The name "PCPlannerMain" is reserved for official PC Planner accounts only and cannot be used by regular users.</p>
+                <div className="success-modal-actions">
+                  <button 
+                    onClick={() => setShowReservedNameModal(false)}
+                    className="success-ok-btn"
+                  >
+                    Understood
                   </button>
                 </div>
               </div>
