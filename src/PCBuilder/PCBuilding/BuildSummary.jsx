@@ -15,7 +15,8 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
 
   // Centralized analysis
   const analysis = analyzeBuild(selectedParts);
-  const { compatSeverity, bottleneckNote, upgradeRecommendation, ram, power } = analysis;
+  const { compatSeverity, bottleneckNote, laymanExplanation, upgradeRecommendation, ram, power } = analysis;
+  const usageScores = analysis.usageScores || { gaming: 0, office: 0, productivity: 0 };
   const { ramBottleneck, ramBottleneckNote } = ram;
   const { showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, psuWatt, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, cpuTDP, gpuPowerTotal, totalRequiredPower, powerCause } = {
     showPowerWarning: power.showPowerWarning,
@@ -43,21 +44,6 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
         <div className="ProgressFill" style={{ width: `${progress}%` }}></div>
       </div>
 
-      <div className='SelectedComponentsBox'>
-        {allParts.map((part, index) =>
-          part ? (
-            <div className="ComponentCard" key={index}>
-              <ComponentSpecs
-                part={part}
-                type={part.type || part.componentType || "Component"}
-              />
-            </div>
-          ) : null
-        )}
-      </div>
-
-      <h1 className='Price'>Estimated Price: ₱{basePrice.toLocaleString()} - ₱{upperPrice.toLocaleString()}</h1>
-      
       {/* Enhanced Compatibility Section */}
       <div className="compatibility-section">
         <div className="compatibility-header">
@@ -78,6 +64,13 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
           </div>
           <div className="compat-card-content">
             <p className="compat-description">{!hasCpuGpu ? 'NO DATA' : bottleneckNote}</p>
+            {laymanExplanation && (
+              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057' }}>
+                  💡 <strong>In simple terms:</strong> {laymanExplanation}
+                </p>
+              </div>
+            )}
             {ramBottleneck && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div className="compat-badge compat-warn compat-secondary">RAM BOTTLENECK</div>
@@ -133,7 +126,63 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
             </div>
           </div>
         )}
+
+        {/* Usage Suitability Status Bars */}
+        <div className="compat-card">
+          <div className="compat-card-header">
+            <div className="compat-card-title">
+              <span>Build Suitability</span>
+            </div>
+          </div>
+          <div className="compat-card-content">
+            {(usageScores.gaming > 0 || usageScores.office > 0 || usageScores.productivity > 0) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ minWidth: 80, fontSize: '0.85rem', fontWeight: 500 }}>Gaming:</span>
+                  <div style={{ flex: 1, height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={{ width: `${usageScores.gaming}%`, height: '100%', backgroundColor: usageScores.gaming >= 80 ? '#10b981' : usageScores.gaming >= 60 ? '#f59e0b' : '#ef4444', transition: 'width 0.3s ease' }}></div>
+                  </div>
+                  <span style={{ minWidth: 35, fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>{usageScores.gaming}%</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ minWidth: 80, fontSize: '0.85rem', fontWeight: 500 }}>Office Use:</span>
+                  <div style={{ flex: 1, height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={{ width: `${usageScores.office}%`, height: '100%', backgroundColor: usageScores.office >= 80 ? '#10b981' : usageScores.office >= 60 ? '#f59e0b' : '#ef4444', transition: 'width 0.3s ease' }}></div>
+                  </div>
+                  <span style={{ minWidth: 35, fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>{usageScores.office}%</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ minWidth: 80, fontSize: '0.85rem', fontWeight: 500 }}>Productivity:</span>
+                  <div style={{ flex: 1, height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, overflow: 'hidden' }}>
+                    <div style={{ width: `${usageScores.productivity}%`, height: '100%', backgroundColor: usageScores.productivity >= 80 ? '#10b981' : usageScores.productivity >= 60 ? '#f59e0b' : '#ef4444', transition: 'width 0.3s ease' }}></div>
+                  </div>
+                  <span style={{ minWidth: 35, fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>{usageScores.productivity}%</span>
+                </div>
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>
+                Finish the build to see the status bar
+              </p>
+            )}
+          </div>
+        </div>
       </div>
+
+      <div className='SelectedComponentsBox'>
+        {allParts.map((part, index) =>
+          part ? (
+            <div className="ComponentCard" key={index}>
+              <ComponentSpecs
+                part={part}
+                type={part.type || part.componentType || "Component"}
+              />
+            </div>
+          ) : null
+        )}
+      </div>
+
+      <h1 className='Price'>Estimated Price: ₱{basePrice.toLocaleString()} - ₱{upperPrice.toLocaleString()}</h1>
+      <p className='vat-note'>Note: Please note that the total price does not include the 12% VAT: ₱{Math.round(basePrice * 0.12).toLocaleString()} - ₱{Math.round(upperPrice * 0.12).toLocaleString()}</p>
 
       {/* Save Build and Clear Buttons */}
       <div style={{ marginTop: 20, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>

@@ -193,27 +193,6 @@ function CommunityList() {
               </select>
             </div>
           </div>
-          <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Filter by Price:</label>
-            <select 
-              value={selectedPriceRange}
-              onChange={(e) => handlePriceRangeChange(e.target.value)}
-              style={{
-                padding: '6px 12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px',
-                background: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="all">All</option>
-              <option value="20000-30000">₱20,000 - ₱30,000</option>
-              <option value="40000-60000">₱40,000 - �60,000</option>
-              <option value="60000-100000">₱60,000 - ₱100,000</option>
-              <option value="100000+">₱100,000+</option>
-            </select>
-          </div>
         </div>
 
         {error && (

@@ -7,6 +7,7 @@ import BuildNameModal from '../PCBuilding/BuildNameModal';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import analyzeBuild from '../PCBuilding/analyzeBuild';
+import { FaArrowUp } from 'react-icons/fa';
 
 function BuilderPage() {
   const [selectedMOBO, setSelectedMOBO] = useState(null);
@@ -387,6 +388,14 @@ function BuilderPage() {
 
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
+  const scrollToTop = () => {
+    console.log('Scroll to top clicked!');
+    // Try multiple scroll methods to ensure it works
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
   return (
     <>
       <main className='PC-Builder-Content' style={{ paddingTop: 20 }}>
@@ -569,6 +578,41 @@ function BuilderPage() {
         title={confirmModal.title}
         message={confirmModal.message}
       />
+
+      {/* Scroll to Top Button */}
+      <button 
+        onClick={scrollToTop}
+        aria-label="Scroll to top"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '50px',
+          height: '50px',
+          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '50%',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '18px',
+          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+          zIndex: 9999,
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
+          e.target.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+          e.target.style.transform = 'translateY(0)';
+        }}
+      >
+        <FaArrowUp />
+      </button>
     </>
   );
 }

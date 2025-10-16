@@ -137,25 +137,33 @@ export function analyzeBuild(selectedParts) {
     let compatible = false;
     let severity = 'good';
     let note = '';
+    let laymanNote = '';
+    let usageScores = { gaming: 0, office: 0, productivity: 0 };
     
     // CUDA Cores (NVIDIA) compatibility
     if (cudaCores > 0) {
       if (cpuCores === 4 && cudaCores >= 800 && cudaCores <= 1500) {
         compatible = true;
+        usageScores = { gaming: 60, office: 90, productivity: 50 };
       } else if (cpuCores === 6 && cudaCores >= 1600 && cudaCores <= 6000) {
         compatible = true;
+        usageScores = { gaming: 85, office: 50, productivity: 70 };
       } else if (cpuCores === 8 && cudaCores >= 6000 && cudaCores <= 12000) {
         compatible = true;
+        usageScores = { gaming: 95, office: 70, productivity: 90 };
       } else if (cpuCores > 9 && cudaCores >= 12000 && cudaCores <= 20000) {
         compatible = true;
+        usageScores = { gaming: 85, office: 50, productivity: 95 };
       } else {
         compatible = false;
         if (cudaCores > 20000 || (cpuCores === 4 && cudaCores > 1500) || (cpuCores === 6 && cudaCores > 6000) || (cpuCores === 8 && cudaCores > 12000)) {
           severity = (cpuCores === 4 && cudaCores >= 6000) ? 'bad' : 'warn';
           note = `GPU with ${cudaCores} CUDA cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+          laymanNote = 'Your graphics card is too powerful for your processor. This means your processor might slow down your graphics card, preventing you from getting the best gaming performance.';
         } else {
           severity = 'warn';
           note = `${cpuCores}-core CPU may be overpowered for GPU with ${cudaCores} CUDA cores. Consider upgrading GPU.`;
+          laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         }
       }
     }
@@ -163,20 +171,26 @@ export function analyzeBuild(selectedParts) {
     else if (computeUnits > 0) {
       if (cpuCores === 4 && computeUnits >= 16 && computeUnits <= 30) {
         compatible = true;
+        usageScores = { gaming: 60, office: 90, productivity: 50 };
       } else if (cpuCores === 6 && computeUnits >= 30 && computeUnits <= 54) {
         compatible = true;
+        usageScores = { gaming: 85, office: 50, productivity: 70 };
       } else if (cpuCores === 8 && computeUnits >= 55 && computeUnits <= 84) {
         compatible = true;
+        usageScores = { gaming: 95, office: 70, productivity: 90 };
       } else if (cpuCores > 9 && computeUnits >= 85 && computeUnits <= 100) {
         compatible = true;
+        usageScores = { gaming: 85, office: 50, productivity: 95 };
       } else {
         compatible = false;
         if (computeUnits > 100 || (cpuCores === 4 && computeUnits > 30) || (cpuCores === 6 && computeUnits > 54) || (cpuCores === 8 && computeUnits > 84)) {
           severity = (cpuCores === 4 && computeUnits >= 55) ? 'bad' : 'warn';
           note = `GPU with ${computeUnits} compute units may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+          laymanNote = 'Your graphics card is too powerful for your processor. This means your processor might slow down your graphics card, preventing you from getting the best gaming performance.';
         } else {
           severity = 'warn';
           note = `${cpuCores}-core CPU may be overpowered for GPU with ${computeUnits} compute units. Consider upgrading GPU.`;
+          laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         }
       }
     }
@@ -184,40 +198,54 @@ export function analyzeBuild(selectedParts) {
     else if (xeCores > 0) {
       if (cpuCores === 4 && xeCores >= 4 && xeCores <= 8) {
         compatible = true;
+        usageScores = { gaming: 60, office: 90, productivity: 50 };
       } else if (cpuCores === 6 && xeCores >= 9 && xeCores <= 16) {
         compatible = true;
+        usageScores = { gaming: 85, office: 50, productivity: 70 };
       } else if (cpuCores === 8 && xeCores >= 24 && xeCores <= 32) {
         compatible = true;
+        usageScores = { gaming: 95, office: 70, productivity: 90 };
       } else if (cpuCores > 9 && xeCores >= 33 && xeCores <= 45) {
         compatible = true;
+        usageScores = { gaming: 85, office: 50, productivity: 95 };
       } else {
         compatible = false;
         if (xeCores > 45 || (cpuCores === 4 && xeCores > 8) || (cpuCores === 6 && xeCores > 16) || (cpuCores === 8 && xeCores > 32)) {
           severity = (cpuCores === 4 && xeCores >= 24) ? 'bad' : 'warn';
           note = `GPU with ${xeCores} Xe cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+          laymanNote = 'Your graphics card is too powerful for your processor. This means your processor might slow down your graphics card, preventing you from getting the best gaming performance.';
         } else {
           severity = 'warn';
           note = `${cpuCores}-core CPU may be overpowered for GPU with ${xeCores} Xe cores. Consider upgrading GPU.`;
+          laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         }
       }
     }
     
-    return { compatible, severity, note };
+    return { compatible, severity, note, laymanNote, usageScores };
   };
  
   let bottleneckNote = hasCpuGpu ? '' : 'NO DATA';
+  let laymanExplanation = '';
+  let usageScores = { gaming: 0, office: 0, productivity: 0 };
   let compatSeverity = 'good';
   const cpuGpuCompat = checkCpuGpuCompatibility(cpuRaw, gpuArray);
   
   if (hasCpuGpu) {
+    // Always provide default usage scores if we have CPU+GPU
+    usageScores = { gaming: 75, office: 80, productivity: 70 };
+    
     if (cpuGpuCompat.note) {
       bottleneckNote = cpuGpuCompat.note;
+      laymanExplanation = cpuGpuCompat.laymanNote || '';
+      usageScores = cpuGpuCompat.usageScores || usageScores;
       compatSeverity = cpuGpuCompat.severity;
     } else if (cpuGpuCompat.compatible) {
       bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
+      usageScores = cpuGpuCompat.usageScores || usageScores;
       compatSeverity = 'good';
     } else {
-      bottleneckNote = 'NO DATA';
+      bottleneckNote = 'Configuration detected but specific compatibility ranges not found.';
     }
   } 
   if (ramBottleneck && compatSeverity === 'good' && cpuIndex>0 && combinedGpuIndex>0) {
@@ -281,6 +309,8 @@ export function analyzeBuild(selectedParts) {
     combinedGpuIndex,
     compatSeverity,
     bottleneckNote,
+    laymanExplanation,
+    usageScores,
     upgradeRecommendation,
     ram: { highestRamFrequency, cpuMaxMemSpeed, ramBottleneck, ramBottleneckNote },
     power: { cpuTDP, gpuPowerTotal, psuWatt, totalRequiredPower, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, powerCause }
