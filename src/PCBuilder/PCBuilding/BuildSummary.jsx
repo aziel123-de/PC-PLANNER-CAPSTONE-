@@ -182,7 +182,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
       </div>
 
       <h1 className='Price'>Estimated Price: ₱{basePrice.toLocaleString()} - ₱{upperPrice.toLocaleString()}</h1>
-      <p className='vat-note'>Note: Please note that the total price does not include the 12% VAT: ₱{Math.round(basePrice * 0.12).toLocaleString()} - ₱{Math.round(upperPrice * 0.12).toLocaleString()}</p>
+      <p className='vat-note'>Note: The total price already includes the 12% VAT: ₱{Math.round(basePrice * 0.12).toLocaleString()} - ₱{Math.round(upperPrice * 0.12).toLocaleString()}</p>
 
       {/* Save Build and Clear Buttons */}
       <div style={{ marginTop: 20, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
