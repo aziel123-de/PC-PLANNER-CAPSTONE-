@@ -12,6 +12,7 @@ import ShareSavedBuildModal from './ShareSavedBuildModal';
 import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import Footer from '../../HomepageForm/Footer';
+import FirstTimePopup from './FirstTimePopup';
 
 
 
@@ -67,6 +68,8 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
   const [justSharedId, setJustSharedId] = useState(null);
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: '', title: 'Confirm', onConfirm: null });
+  const [showFirstTimePopup, setShowFirstTimePopup] = useState(false);
+  const [buildsLoaded, setBuildsLoaded] = useState(false);
 
   // Calculate average build cost and price range
   const calculateAverageCost = () => {
@@ -138,6 +141,17 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   
 
+  // Show popup if user has no saved builds (only after builds are loaded)
+  useEffect(() => {
+    if (buildsLoaded) {
+      if (savedBuilds.length === 0) {
+        setShowFirstTimePopup(true);
+      } else {
+        setShowFirstTimePopup(false);
+      }
+    }
+  }, [savedBuilds, buildsLoaded]);
+
   // Load saved builds from backend on mount
   useEffect(() => {
     let mounted = true;
@@ -148,10 +162,14 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
         const resp = await fetch('/api/builds', { headers: { Authorization: `Bearer ${token}` } });
         if (!resp.ok) throw new Error('fetch builds failed');
         const json = await resp.json();
-        if (mounted) setSavedBuilds(Array.isArray(json) ? json : []);
+        if (mounted) {
+          setSavedBuilds(Array.isArray(json) ? json : []);
+          setBuildsLoaded(true);
+        }
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn('Failed to load builds', e.message);
+        if (mounted) setBuildsLoaded(true);
       }
     }
     loadBuilds();
@@ -225,6 +243,28 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
 
   const getButtonClass = (section) =>
     `sidebar-button ${activeSection === section ? 'active' : ''}`;
+
+  const handleFirstTimePopupClose = () => {
+    setShowFirstTimePopup(false);
+  };
+
+  const handleNewUser = () => {
+    handleFirstTimePopupClose();
+    // Navigate to pre-built systems or show pre-built options
+    navigate('/prebuilt');
+  };
+
+  const handleExperiencedUser = () => {
+    handleFirstTimePopupClose();
+    // Navigate to custom builder
+    navigate('/builder');
+  };
+
+  const handleLearnMore = () => {
+    handleFirstTimePopupClose();
+    // Navigate to learn page
+    navigate('/learn');
+  };
 
   return (
        <div className="header-parent">
@@ -552,6 +592,15 @@ function UserOverview({ onClickSettings, onLogout, onClickSignIn, onClickSignUp,
         message={confirmModal.message}
         confirmText="Delete"
         cancelText="Cancel"
+      />
+      
+      {/* First Time Popup */}
+      <FirstTimePopup
+        isOpen={showFirstTimePopup}
+        onClose={handleFirstTimePopupClose}
+        onNewUser={handleNewUser}
+        onExperiencedUser={handleExperiencedUser}
+        onLearnMore={handleLearnMore}
       />
     </div>
     
