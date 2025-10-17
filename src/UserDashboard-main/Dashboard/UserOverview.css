@@ -112,7 +112,7 @@ body.hide-global-header .header {
     flex-direction: column;
     background: #0e1a40;
     position: fixed;
-    top: 84px;
+    top: 75px;
     right: 0;
     width: 280px;
     height: calc(100vh - 84px);

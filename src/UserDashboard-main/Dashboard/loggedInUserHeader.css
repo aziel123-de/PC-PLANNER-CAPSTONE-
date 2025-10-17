@@ -87,10 +87,10 @@
 /* Modern Mobile Navigation - Same as Header.css */
 .mobile-nav {
   position: fixed;
-  top: 0;
+  top: 70px;
   right: 0;
   width: min(320px, 75vw);
-  height: 100vh;
+  height: calc(100vh - 70px);
   background: linear-gradient(180deg, rgba(14, 26, 64, 0.95) 0%, rgba(6, 12, 36, 0.98) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -100,7 +100,7 @@
   z-index: 998;
   display: flex;
   flex-direction: column;
-  padding: 90px 1.5rem 2rem 1.5rem;
+  padding: 1rem 1.5rem 2rem 1.5rem;
   box-sizing: border-box;
   overflow-y: auto;
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
@@ -166,33 +166,39 @@
 }
 
 .header-nav {
-  display: flex;
+   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem 0;
-  flex: 1;
+  gap: 0.5rem; /* Reduced gap for better spacing */
+  animation: fadeIn 0.4s ease forwards;
+  margin-right: 1rem;
+  flex: 1; /* Take up available space */
+  margin-top: 2rem;
+  overflow-y: hidden; /* Prevent navigation from scrolling */
+  position: relative;
 }
 
 .header-nav-link {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: left;
   text-decoration: none;
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
-  padding: 1rem 1.25rem;
+  padding: 1rem;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
   border-radius: 12px;
-  margin: 0.5rem 0;
+  margin: 0;
   font-size: 1rem;
   min-height: 48px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  gap: 12px;
+  justify-content: flex-start;
 }
+
+
 
 .header-nav-link:hover,
 .header-nav-link:focus {
