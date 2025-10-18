@@ -299,6 +299,7 @@ body {
   bottom: 0 !important;
 }
 
+
 /* Mobile-First Responsive Design */
 /* Extra Small Mobile Devices (296px and below) */
 @media (max-width: 296px) {
@@ -597,6 +598,14 @@ body {
   .navM {
     animation: none;
   }
+}
+
+/* HR styling in slide-down menu */
+.navM hr {
+  width: 80%;
+  margin: 0.5rem auto;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* small avatar used in header */

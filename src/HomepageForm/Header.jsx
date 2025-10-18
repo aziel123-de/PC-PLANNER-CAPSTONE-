@@ -202,7 +202,7 @@ function Header() {
           </Link>
           <hr />
           {!authUser && (
-            <button className="sign-in" onClick={() => { closeMenu(); navigate('/login'); }} style={{ marginTop: '40px', marginBottom: '12px', width: '100%', height: '44px' }}>
+            <button className="sign-in" onClick={() => { closeMenu(); navigate('/login'); }} style={{ margin: '12px 0', width: '100%', height: '44px' }}>
               Sign In <PiSignInBold style={{ marginLeft: 5, verticalAlign: 'middle' }} />
             </button>
           )}
