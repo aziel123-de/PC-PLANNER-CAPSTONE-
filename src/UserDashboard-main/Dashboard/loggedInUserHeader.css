@@ -4,7 +4,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  padding: 1rem 1rem;
+  padding: 1.5rem 1rem;
   background-color: #0e1a40;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -14,8 +14,29 @@
   width: 100%;
   z-index: 999;
   box-sizing: border-box;
-  min-height: 50px;
-  margin-bottom: 2rem;
+  min-height: 85px;
+
+}
+.slide-down-menu {
+  position: fixed !important;
+  top: 85px !important;
+  right: 0;
+  width: min(300px, 70vw);
+  height: calc(100vh - 79px) !important;
+  background-color: #0e1a40;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 998;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 1rem 1rem 2rem 1rem;
+  box-sizing: border-box;
+  overflow-y: hidden;
+}
+
+.slide-down-menu.show {
+  transform: translateX(0);
 }
 
 .header-logo-container {
@@ -85,27 +106,6 @@
 }
 
 /* Slide Down Menu */
-.slide-down-menu {
-  position: fixed !important;
-  top: 69px !important;
-  right: 0;
-  width: min(300px, 70vw);
-  height: calc(100vh - 70px) !important;
-  background-color: #0e1a40;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding: 2rem 1rem 2rem 1rem;
-  box-sizing: border-box;
-  overflow-y: hidden;
-}
-
-.slide-down-menu.show {
-  transform: translateX(0);
-}
 
 /* Overlay for mobile menu */
 .mobile-nav-overlay {
@@ -169,7 +169,7 @@
   animation: fadeIn 0.4s ease forwards;
   margin-right: 1rem;
   flex: 1;
-  margin-top: 2rem;
+  margin-top: 0;
   overflow-y: hidden;
   position: relative;
 }
@@ -411,59 +411,3 @@
 
 
 /* Extra Small Devices (297px and below) */
-@media (max-width: 297px) {
-  .header-bar {
-    padding: 0.5rem 0.5rem;
-    min-height: 50px;
-  }
-  
-  .header-logo {
-    height: 30px;
-  }
-  
-  .header-title {
-    font-size: 0.9rem;
-    margin-left: 8px;
-  }
-  
-  .hamburger-db {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .slide-down-menu {
-    width: 100vw;
-    top: 50px !important;
-    height: calc(100vh - 50px) !important;
-    padding: 1.5rem 1rem;
-    margin-top: 0;
-    right: 0;
-    left: 0;
-  }
-  
-  .navM {
-    margin-top: 0.5rem;
-    margin-right: 0;
-  }
-  
-  .navM-link {
-    padding: 0.65rem 0.5rem;
-    font-size: 0.9rem;
-    min-height: 42px;
-  }
-  
-  .mobile-link {
-    padding: 1rem 0.75rem;
-    font-size: 0.9rem;
-    margin-left: 0;
-    margin-bottom: 0.75rem;
-  }
-  
-  .mobile-actions {
-    padding-top: 1.5rem;
-  }
-  
-  .header-dropdown-content {
-    width: 240px;
-  }
-}

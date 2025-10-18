@@ -18,7 +18,7 @@ html, body {
 
 /* when the global header is present, add top padding so content isn't hidden under it */
 .with-global-header .main-content {
-  padding-top: 76px; /* adjust to header height */
+  padding-top: 86px; /* 70px min-height + 1.5rem (24px) padding = ~94px, adjusted to 86px */
 }
 
 /* dashboard uses its own layout, so no global padding applied there */
