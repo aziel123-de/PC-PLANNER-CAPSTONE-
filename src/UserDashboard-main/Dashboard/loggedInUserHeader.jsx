@@ -5,7 +5,9 @@ import logo from '../../HomepageForm/LOGO.png';
 import { FaBars, FaTimes, FaHome } from 'react-icons/fa';
 import { SiPcgamingwiki } from 'react-icons/si';
 import { TbDeviceDesktopCog } from 'react-icons/tb';
+import { RxDashboard } from 'react-icons/rx';
 import { CgComponents } from 'react-icons/cg';
+import { GrUserSettings } from 'react-icons/gr';
 import { GiBrain } from 'react-icons/gi';
 import { ChevronDown, User, Mail, Settings, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -112,7 +114,8 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                     <FaHome size={14} style={{ marginRight: 6 }} /> Dashboard
                   </button>
                   <button className="dropdown-btn" onClick={() => { setOpenDropdown(false); onClickSettings && onClickSettings(); navigate('/settings'); }}>
-                    <Settings size={14} /> Account Settings
+                    <Settings size={14} />
+                    Account Settings
                   </button>
                   <button
                     className="dropdown-btn logout"
@@ -148,7 +151,8 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
           </div>
         </nav>
       )}
-
+      
+      
       {/* Visual overlay */}
       <div className={`overlay ${menuOpen ? 'show' : ''}`}></div>
 
@@ -179,8 +183,13 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
           <div className="mobile-actions">
             {authUser ? (
               <>
-                <button className="mobile-link" onClick={() => { closeMenu(); navigate('/dashboard'); }}>Dashboard</button>
-                <button className="mobile-link" onClick={() => { closeMenu(); navigate('/settings'); }}>Settings</button>
+                <button className="mobile-link" onClick={() => { closeMenu(); navigate('/dashboard'); }}>
+                  <RxDashboard size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Dashboard
+                </button>
+                <hr></hr>
+                <button className="mobile-link" onClick={() => { closeMenu(); navigate('/settings'); }}>
+                  <GrUserSettings size={14} style={{ marginRight: 12 }} /> Settings
+                  </button>
                 <button className="mobile-link logout" onClick={() => { setShowConfirm(true); }}>
                   Logout
                 </button>
