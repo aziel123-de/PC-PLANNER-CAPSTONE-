@@ -19,10 +19,10 @@
 }
 .slide-down-menu {
   position: fixed !important;
-  top: 85px !important;
+  top: 70px !important;
   right: 0;
   width: min(300px, 70vw);
-  height: calc(100vh - 79px) !important;
+  height: calc(100vh - 20px) !important;
   background-color: #0e1a40;
   transform: translateX(100%);
   transition: transform 0.3s ease;
@@ -33,6 +33,7 @@
   padding: 1rem 1rem 2rem 1rem;
   box-sizing: border-box;
   overflow-y: hidden;
+  margin-top: 0.5rem;
 }
 
 .slide-down-menu.show {
@@ -408,6 +409,9 @@
   }
   
 }
+@media (max-width: 480px) {
 
+  
+}
 
 /* Extra Small Devices (297px and below) */

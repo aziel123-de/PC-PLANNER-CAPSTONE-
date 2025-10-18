@@ -302,11 +302,20 @@ body {
 
 /* Mobile-First Responsive Design */
 /* Extra Small Mobile Devices (296px and below) */
-@media (max-width: 296px) {
+@media (min-width: 296px) {
   .slide-down-menu {
     left: 0;
     right: auto;
     width: 100vw;
+  }
+  .header {
+    position: fixed; /* Ensure header stays fixed on mobile */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem 1rem;
+    min-height: 80px; /* Reduced header height */
+    z-index: 1002; /* Ensure header stays on top */
   }
 }
 
@@ -327,7 +336,7 @@ body {
     left: 0;
     right: 0;
     padding: 0.5rem 1rem;
-    min-height: 50px; /* Reduced header height */
+    min-height: 80px; /* Reduced header height */
     z-index: 1002; /* Ensure header stays on top */
   }
 
@@ -446,7 +455,7 @@ body {
     left: 0;
     right: 0;
     padding: 0.75rem 1.5rem;
-    min-height: 50px;
+    min-height: 70px;
     z-index: 1002; /* Above slide menu */
   }
 }

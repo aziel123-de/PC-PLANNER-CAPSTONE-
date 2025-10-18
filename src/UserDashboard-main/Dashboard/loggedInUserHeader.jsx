@@ -178,7 +178,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
           <Link to="/learn" className="navM-link" onClick={closeMenu}>
             <GiBrain size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Learn
           </Link>
-          <hr />
+          
 
           <div className="mobile-actions">
             {authUser ? (
@@ -186,7 +186,7 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                 <button className="mobile-link" onClick={() => { closeMenu(); navigate('/dashboard'); }}>
                   <RxDashboard size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} /> Dashboard
                 </button>
-                <hr></hr>
+                
                 <button className="mobile-link" onClick={() => { closeMenu(); navigate('/settings'); }}>
                   <GrUserSettings size={14} style={{ marginRight: 12 }} /> Settings
                   </button>
