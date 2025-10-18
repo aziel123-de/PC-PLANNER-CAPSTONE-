@@ -201,10 +201,15 @@ function Header() {
             <GiBrain size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Learn
           </Link>
           <hr />
+          {!authUser && (
+            <button className="sign-in" onClick={() => { closeMenu(); navigate('/login'); }} style={{ marginTop: '40px', marginBottom: '12px', width: '100%', height: '44px' }}>
+              Sign In <PiSignInBold style={{ marginLeft: 5, verticalAlign: 'middle' }} />
+            </button>
+          )}
         </nav>
 
-        <div className="menu-buttons">
-          {authUser ? (
+        {authUser && (
+          <div className="menu-buttons">
             <div className="menu-user-block">
               <div style={{ marginLeft: 0 }}>
                 <div style={{ color: '#fff', fontWeight: 700 }}>
@@ -216,15 +221,8 @@ function Header() {
                 </div>
               </div>
             </div>
-          ) : (
-            <>
-              <button className="sign-in" onClick={() => { closeMenu(); navigate('/login'); }}>
-                Sign In <PiSignInBold style={{ marginLeft: 5, verticalAlign: 'middle' }} />
-              </button>
-             
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

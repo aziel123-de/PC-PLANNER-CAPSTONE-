@@ -183,6 +183,7 @@
   width: 100%;
   justify-content: center;
   padding: 0.75rem 1rem;
+ 
 }
 
 /* Allow body scroll even when menu is open */
@@ -227,8 +228,7 @@ body {
 }
 
 /* Sign In / Sign Up Buttons */
-.sign-in,
-.sign-up {
+.sign-in {
   padding: clamp(0.3rem, 1.5vw, 0.5rem) clamp(0.8rem, 2vw, 1rem); /* Responsive padding */
   border-radius: 4px;
   cursor: pointer;
@@ -240,6 +240,7 @@ body {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+ 
 }
 
 .sign-in {
@@ -299,6 +300,15 @@ body {
 }
 
 /* Mobile-First Responsive Design */
+/* Extra Small Mobile Devices (296px and below) */
+@media (max-width: 296px) {
+  .slide-down-menu {
+    left: 0;
+    right: auto;
+    width: 100vw;
+  }
+}
+
 /* Small Mobile Devices (320px - 480px) */
 @media (max-width: 480px) {
   .main-content {
@@ -354,11 +364,11 @@ body {
     min-height: 48px; /* Larger touch target for mobile */
   }
 
-  .sign-in,
-  .sign-up {
-    margin-right: 0.5rem;
+  .sign-in {
+    margin-right: 1rem;
     padding: 0.5rem 0.75rem;
     min-width: 60px; /* Ensure minimum button width */
+    
   }
 }
 
@@ -411,7 +421,7 @@ body {
   }
 
   .hamburger {
-    display: block !important;
+    display: flex !important;
     z-index: 1003; /* Above header */
   }
 
@@ -440,15 +450,52 @@ body {
   }
 }
 
-/* Desktop and Large Screens (901px+) */
-@media (min-width: 901px) {
+/* Medium Desktop (901px - 1024px) */
+@media (min-width: 901px) and (max-width: 1024px) {
   .main-content {
-    padding-top: 80px !important; /* Desktop padding for reduced header */
+    padding-top: 80px !important;
   }
 
   .hero {
-    padding-top: 1.5rem !important; /* Desktop padding for hero */
-    min-height: 500px !important; /* Standard desktop hero height */
+    padding-top: 1.5rem !important;
+    min-height: 500px !important;
+  }
+
+  .hamburger {
+    display: flex !important;
+    z-index: 1003;
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .slide-down-menu {
+    display: flex !important;
+    padding: 90px 1rem 2rem 1rem;
+    z-index: 998;
+  }
+
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem clamp(1rem, 2vw, 2rem);
+    min-height: 50px;
+    z-index: 1002;
+  }
+}
+
+/* Large Desktop (1025px+) */
+@media (min-width: 1025px) {
+  .main-content {
+    padding-top: 80px !important;
+  }
+
+  .hero {
+    padding-top: 1.5rem !important;
+    min-height: 500px !important;
   }
 
   .hamburger {
@@ -472,46 +519,24 @@ body {
   }
 
   .header {
-    position: fixed; /* Ensure header stays fixed on desktop */
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     padding: 1rem clamp(1rem, 2vw, 2rem);
     min-height: 50px;
-    z-index: 1002; /* Ensure header is always on top */
+    z-index: 1002;
   }
 }
 
 /* Responsive breakpoints for mobile menu display */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .hamburger {
-    display: block;
+    display: flex;
   }
 
   .desktop-nav {
     display: none;
-  }
-}
-
-/* Force show desktop nav on larger screens */
-@media (min-width: 901px) {
-  .hamburger {
-    display: none !important;
-  }
-
-  .desktop-nav {
-    display: flex !important;
-  }
-
-  .slide-down-menu {
-    display: none !important;
-    transform: translateX(100%) !important;
-  }
-
-  .overlay {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
   }
 }
 
@@ -601,10 +626,10 @@ body {
 }
 
 /* responsive: show hamburger (with avatar if logged) on small screens */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .desktop-nav { display: none; }
   .desktop-user { display: none; }
-  .hamburger { display: flex; align-items: center; gap: 6px; background: transparent; border: none; }
+  .hamburger { display: flex !important; align-items: center; gap: 6px; background: transparent; border: none; }
 
   /* show avatar inside hamburger when available */
   .hamburger-avatar { display: block; }
@@ -614,8 +639,9 @@ body {
 }
 
 /* keep desktop nav visible on larger screens */
-@media (min-width: 901px) {
-  .hamburger { display: none; }
+@media (min-width: 1025px) {
+  .hamburger { display: none !important; }
+  .desktop-nav { display: flex !important; }
 }
 
 /* user dropdown styles (keep as before) */
