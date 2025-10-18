@@ -67,58 +67,21 @@ function Header() {
   }, []);
 
   useEffect(() => {
-    let lastScrollTop = 0;
-
-    const handleScroll = () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
-      if (scrollTop > lastScrollTop && scrollTop > 50) {
-        if (menuOpen) {
-          setMenuOpen(false);
-          setClosedByScroll(true);
-        }
-      } else if (scrollTop < lastScrollTop - 10) {
-        if (!menuOpen && closedByScroll) {
-          setMenuOpen(true);
-          setClosedByScroll(false);
-        }
-      }
-      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    };
-
-    const handleWheel = (e) => {
-      if (e.deltaY > 0) {
-        if (menuOpen) {
-          setMenuOpen(false);
-          setClosedByScroll(true);
-        }
-      } else if (e.deltaY < 0) {
-        if (!menuOpen && closedByScroll) {
-          setMenuOpen(true);
-          setClosedByScroll(false);
-        }
-      }
-    };
-
     const handleClickOutside = (e) => {
       if (menuOpen && !e.target.closest('.slide-down-menu') && !e.target.closest('.hamburger')) {
         setMenuOpen(false);
-        setClosedByScroll(false);
       }
       if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
       }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("wheel", handleWheel, { passive: true });
     document.addEventListener("click", handleClickOutside);
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("wheel", handleWheel);
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [menuOpen, closedByScroll, userMenuOpen]);
+  }, [menuOpen, userMenuOpen]);
 
   const handleLogout = async () => {
     try {

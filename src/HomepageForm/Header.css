@@ -147,7 +147,7 @@
 
 /* Slide Down Menu */
 .slide-down-menu {
-  position: fixed;
+  position: fixed !important;
   top: 0;
   right: 0;
   width: min(300px, 70vw);

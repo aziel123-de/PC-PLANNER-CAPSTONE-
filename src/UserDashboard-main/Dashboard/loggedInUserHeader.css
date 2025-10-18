@@ -84,29 +84,26 @@
   pointer-events: auto;
 }
 
-/* Modern Mobile Navigation - Same as Header.css */
-.mobile-nav {
-  position: fixed;
-  top: 70px;
+/* Slide Down Menu */
+.slide-down-menu {
+  position: fixed !important;
+  top: 70px !important;
   right: 0;
-  width: min(320px, 75vw);
-  height: calc(100vh - 70px);
-  background: linear-gradient(180deg, rgba(14, 26, 64, 0.95) 0%, rgba(6, 12, 36, 0.98) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  width: min(300px, 70vw);
+  height: calc(100vh - 70px) !important;
+  background-color: #0e1a40;
   transform: translateX(100%);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s ease;
   z-index: 998;
   display: flex;
   flex-direction: column;
-  padding: 1rem 1.5rem 2rem 1.5rem;
+  justify-content: flex-start;
+  padding: 2rem 1rem 2rem 1rem;
   box-sizing: border-box;
-  overflow-y: auto;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+  overflow-y: hidden;
 }
 
-.mobile-nav.open {
+.slide-down-menu.show {
   transform: translateX(0);
 }
 
@@ -165,48 +162,118 @@
   margin-bottom: 1rem;
 }
 
-.header-nav {
-   display: flex;
+.navM {
+  display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Reduced gap for better spacing */
+  gap: 0.5rem;
   animation: fadeIn 0.4s ease forwards;
   margin-right: 1rem;
-  flex: 1; /* Take up available space */
+  flex: 1;
   margin-top: 2rem;
-  overflow-y: hidden; /* Prevent navigation from scrolling */
+  overflow-y: hidden;
   position: relative;
+}
+
+.navM hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin: 0;
+  width: 100%;
+}
+
+.header-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: fadeIn 0.4s ease forwards;
+  margin-right: 1rem;
+  flex: 1;
+  margin-top: 2rem;
+  overflow-y: hidden;
+  position: relative;
+}
+
+.header-nav hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 0;
+  width: 100%;
 }
 
 .header-nav-link {
   position: relative;
   display: flex;
-  align-items: left;
+  align-items: center;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffffff;
   font-weight: 500;
-  padding: 1rem;
+  padding: 0.75rem;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   z-index: 1;
-  border-radius: 12px;
+  border-radius: 0;
   margin: 0;
   font-size: 1rem;
   min-height: 48px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  justify-content: flex-start;
+  background: transparent;
+  border: none;
 }
-
-
 
 .header-nav-link:hover,
 .header-nav-link:focus {
   color: #ffffff;
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
-  transform: translateX(8px);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+  text-shadow: 0 0 8px #00cfff;
+  background-color: rgba(0, 207, 255, 0.1);
+}
+
+.navM-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+  border-radius: 8px;
+  margin: 0.25rem 0;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  min-height: 44px;
+}
+
+.navM-link:hover,
+.navM-link:focus {
+  color: #ffffff;
+  text-shadow: 0 0 8px #00cfff;
+  background-color: rgba(0, 207, 255, 0.1);
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+.menu-buttons .sign-in {
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  background-color: #3575ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.menu-buttons .sign-in:hover {
+  background-color: rgb(7, 10, 151);
 }
 
 .mobile-actions {
@@ -235,7 +302,6 @@
   background: rgba(59, 130, 246, 0.2);
   border-color: rgba(59, 130, 246, 0.3);
   color: #ffffff;
-  transform: translateX(4px);
 }
 
 .mobile-link.logout {

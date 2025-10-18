@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import './loggedInUserHeader.css';
 import profDefault from './profDefault.webp';
 import logo from '../../HomepageForm/LOGO.png';
 import { FaBars, FaTimes, FaHome } from 'react-icons/fa';
@@ -148,24 +149,32 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
         </nav>
       )}
 
+      {/* Visual overlay */}
+      <div className={`overlay ${menuOpen ? 'show' : ''}`}></div>
+
       {/* Mobile Navigation */}
-      <div className={`mobile-nav ${menuOpen ? 'open' : ''}`}>
-        <nav className="header-nav" ref={headerNavRef}>
-          <Link to="/" className="header-nav-link" onClick={closeMenu}>
-            <FaHome size={20} />Home
+      <div className={`slide-down-menu ${menuOpen ? 'show' : ''}`}>
+        <nav className="navM" ref={headerNavRef}>
+          <Link to="/" className="navM-link" onClick={closeMenu}>
+            <FaHome size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Home
           </Link>
-          <Link to="/builder" className="header-nav-link" onClick={closeMenu}>
-            <SiPcgamingwiki size={20} />PC Builder
+          <hr />
+          <Link to="/builder" className="navM-link" onClick={closeMenu}>
+            <SiPcgamingwiki size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> PC Builder
           </Link>
-          <Link to="/prebuilt" className="header-nav-link" onClick={closeMenu}>
-            <TbDeviceDesktopCog size={20} />Pre-built PCs
+          <hr />
+          <Link to="/prebuilt" className="navM-link" onClick={closeMenu}>
+            <TbDeviceDesktopCog size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Pre-built PCs
           </Link>
-          <Link to="/components" className="header-nav-link" onClick={closeMenu}>
-            <CgComponents size={20} />Components
+          <hr />
+          <Link to="/components" className="navM-link" onClick={closeMenu}>
+            <CgComponents size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Components
           </Link>
-          <Link to="/learn" className="header-nav-link" onClick={closeMenu}>
-            <GiBrain size={20} />Learn
+          <hr />
+          <Link to="/learn" className="navM-link" onClick={closeMenu}>
+            <GiBrain size={20} style={{ marginRight: 12, verticalAlign: 'middle' }} /> Learn
           </Link>
+          <hr />
 
           <div className="mobile-actions">
             {authUser ? (
@@ -175,17 +184,6 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
                 <button className="mobile-link logout" onClick={() => { setShowConfirm(true); }}>
                   Logout
                 </button>
-                {showConfirm && (
-                  <div className="signout-modal-overlay">
-                    <div className="signout-modal-box">
-                      <p className="signout-modal-message">Are you sure you want to log out?</p>
-                      <div className="signout-modal-actions">
-                        <button onClick={handleLogout} className="signout-confirm-btn">Yes</button>
-                        <button onClick={() => setShowConfirm(false)} className="signout-cancel-btn">Cancel</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </>
             ) : (
               <>
@@ -196,6 +194,19 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
           </div>
         </nav>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showConfirm && (
+        <div className="signout-modal-overlay">
+          <div className="signout-modal-box">
+            <p className="signout-modal-message">Are you sure you want to log out?</p>
+            <div className="signout-modal-actions">
+              <button onClick={handleLogout} className="signout-confirm-btn">Yes</button>
+              <button onClick={() => setShowConfirm(false)} className="signout-cancel-btn">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
