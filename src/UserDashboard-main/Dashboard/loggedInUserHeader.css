@@ -220,11 +220,12 @@
   border: none;
 }
 
-.header-nav-link:hover,
+
+
+.header-nav-link:active,
 .header-nav-link:focus {
-  color: #ffffff;
-  text-shadow: 0 0 8px #00cfff;
-  background-color: rgba(0, 207, 255, 0.1);
+  background-color: transparent;
+  outline: none;
 }
 
 .navM-link {
