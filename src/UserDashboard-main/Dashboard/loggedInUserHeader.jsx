@@ -37,6 +37,21 @@ function LoggedInUserHeader({ isSmallScreen, onClickSettings, onLogout, onClickS
     return () => window.removeEventListener('authChanged', handler);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuOpen && 
+          hamburgerRef.current && !hamburgerRef.current.contains(e.target) &&
+          headerNavRef.current && !headerNavRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const closeMenu = () => setMenuOpen(false);
