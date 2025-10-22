@@ -22,6 +22,7 @@ export default function BuilderPageEdit(){
   const [selectedMouse, setSelectedMouse] = useState(null);
   const [selectedHeadset, setSelectedHeadset] = useState(null);
   const [selectedMonitor, setSelectedMonitor] = useState(null);
+  const [selectedCaseFans, setSelectedCaseFans] = useState([null]);
   const [dataLookup, setDataLookup] = useState(null);
   const [tempName, setTempName] = useState('');
   const [tempDescription, setTempDescription] = useState('');
@@ -34,14 +35,14 @@ export default function BuilderPageEdit(){
   useEffect(() => {
     let mounted = true;
     async function load() {
-      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','keyboard','mouse','headset','monitor'];
+      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','case-fans','keyboard','mouse','headset','monitor'];
       const map = {};
       for (const t of types) {
         try {
           const resp = await fetch(`/api/components/${t}`);
           if (!resp.ok) throw new Error('fetch failed');
           const json = await resp.json();
-          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t;
+          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t === 'case-fans' ? 'caseFans' : t;
           map[key] = Array.isArray(json) ? json : [];
         } catch (e) {}
       }
@@ -69,6 +70,7 @@ export default function BuilderPageEdit(){
       if (parsed.mouse) setSelectedMouse(parsed.mouse);
       if (parsed.headset) setSelectedHeadset(parsed.headset);
       if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+      if (Array.isArray(parsed.caseFans)) setSelectedCaseFans(parsed.caseFans);
       
       // Load existing build name and description for editing
       const buildName = localStorage.getItem('editingBuildName');
@@ -83,6 +85,7 @@ export default function BuilderPageEdit(){
     mobo: selectedMOBO, cpu: selectedCPU, cpuCooler: selectedCPUCooler, gpus: selectedGPUs, rams: selectedRAMs,
     m2s: selectedM2s, storage: selectedStorage, psu: selectedPSU, case: selectedCase,
     keyboard: selectedKeyboard, mouse: selectedMouse, headset: selectedHeadset, monitor: selectedMonitor,
+    caseFans: selectedCaseFans,
   };
 
   const getField = (obj, ...keys) => {
@@ -125,6 +128,7 @@ export default function BuilderPageEdit(){
     if (selectedMouse) items.push(selectedMouse);
     if (selectedHeadset) items.push(selectedHeadset);
     if (selectedMonitor) items.push(selectedMonitor);
+    (selectedCaseFans || []).forEach(x => x && items.push(x));
     return items;
   };
 
@@ -139,7 +143,8 @@ export default function BuilderPageEdit(){
     mobo: selectedMOBO, cpu: selectedCPU, cpuCooler: selectedCPUCooler, gpus: (selectedGPUs || []).filter(Boolean),
     rams: (selectedRAMs || []).filter(Boolean), m2s: (selectedM2s || []).filter(Boolean),
     storage: (selectedStorage || []).filter(Boolean), psu: selectedPSU, case: selectedCase,
-    keyboard: selectedKeyboard, mouse: selectedMouse, headset: selectedHeadset, monitor: selectedMonitor
+    keyboard: selectedKeyboard, mouse: selectedMouse, headset: selectedHeadset, monitor: selectedMonitor,
+    caseFans: (selectedCaseFans || []).filter(Boolean)
   });
 
   const handleSaveBuild = async () => {
@@ -154,6 +159,7 @@ export default function BuilderPageEdit(){
       (selectedRAMs && selectedRAMs.some(ram => ram)) ||
       (selectedM2s && selectedM2s.some(m2 => m2)) ||
       (selectedStorage && selectedStorage.some(storage => storage)) ||
+      (selectedCaseFans && selectedCaseFans.some(fan => fan)) ||
       selectedKeyboard || selectedMouse || selectedHeadset || selectedMonitor;
 
     if (!hasComponents) {
@@ -225,6 +231,7 @@ export default function BuilderPageEdit(){
         setSelectedMOBO(null); setSelectedCPU(null); setSelectedCPUCooler(null); setSelectedGPUs([null]); setSelectedRAMs([null]);
         setSelectedM2s([null]); setSelectedStorage([null]); setSelectedPSU(null); setSelectedCase(null);
         setSelectedKeyboard(null); setSelectedMouse(null); setSelectedHeadset(null); setSelectedMonitor(null);
+        setSelectedCaseFans([null]);
         setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null });
       }
     });
@@ -288,6 +295,13 @@ export default function BuilderPageEdit(){
             <PartSelector part={{ name: "Storage" }} slotCount={storageSlotsCount || 6} selectedValues={selectedStorage} setSelectedValues={setSelectedStorage} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
+            <PartSelector
+              part={{ name: "Case Fans" }}
+              slotCount={6}
+              selectedValues={selectedCaseFans}
+              setSelectedValues={setSelectedCaseFans}
+              dataLookup={dataLookup}
+            />
             <h1 style={{ textAlign: 'left' }}>Peripherals</h1>
             <PartSelector part={{ name: "Keyboard" }} selectedValue={selectedKeyboard} setSelectedValue={setSelectedKeyboard} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Mouse" }} selectedValue={selectedMouse} setSelectedValue={setSelectedMouse} dataLookup={dataLookup} />

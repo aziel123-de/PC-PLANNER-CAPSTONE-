@@ -505,6 +505,7 @@ app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
     storage: 'storage',
     m2: 'm2',
     case: 'pc_case',
+    'case-fans': 'case_fans',
     keyboard: 'keyboard',
     mouse: 'mouse',
     headset: 'headset',

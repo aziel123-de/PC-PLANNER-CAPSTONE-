@@ -23,12 +23,13 @@ function BuilderPage() {
   const [selectedMouse, setSelectedMouse] = useState(null);
   const [selectedHeadset, setSelectedHeadset] = useState(null);
   const [selectedMonitor, setSelectedMonitor] = useState(null);
+  const [selectedCaseFans, setSelectedCaseFans] = useState([null]); // Start with one fan slot
   const [dataLookup, setDataLookup] = useState(null);
 
   useEffect(() => {
     let mounted = true;
     async function load() {
-      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','keyboard','mouse','headset','monitor'];
+      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','case-fans','keyboard','mouse','headset','monitor'];
       const map = {};
       for (const t of types) {
         try {
@@ -36,7 +37,7 @@ function BuilderPage() {
           if (!resp.ok) throw new Error('fetch failed');
           const json = await resp.json();
           // normalize key for lookup
-          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t;
+          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t === 'case-fans' ? 'caseFans' : t;
           map[key] = Array.isArray(json) ? json : [];
         } catch (e) {
           // ignore; fallback will occur in PartSelector
@@ -87,6 +88,7 @@ function BuilderPage() {
         if (parsed.mouse) setSelectedMouse(parsed.mouse);
         if (parsed.headset) setSelectedHeadset(parsed.headset);
         if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+        if (Array.isArray(parsed.caseFans)) setSelectedCaseFans(parsed.caseFans);
         localStorage.removeItem('loadedBuild');
         return;
       }
@@ -108,6 +110,7 @@ function BuilderPage() {
         if (parsed.mouse) setSelectedMouse(parsed.mouse);
         if (parsed.headset) setSelectedHeadset(parsed.headset);
         if (parsed.monitor) setSelectedMonitor(parsed.monitor);
+        if (Array.isArray(parsed.caseFans)) setSelectedCaseFans(parsed.caseFans);
       }
     } catch (e) {
       // ignore JSON errors
@@ -133,6 +136,7 @@ function BuilderPage() {
     mouse: selectedMouse,
     headset: selectedHeadset,
     monitor: selectedMonitor,
+    caseFans: selectedCaseFans,
   };
 
   // helper to read a field with multiple possible capitalizations and from _raw
@@ -178,6 +182,7 @@ function BuilderPage() {
     if (selectedMouse) items.push(selectedMouse);
     if (selectedHeadset) items.push(selectedHeadset);
     if (selectedMonitor) items.push(selectedMonitor);
+    (selectedCaseFans || []).forEach(x => x && items.push(x));
     return items;
   };
 
@@ -204,7 +209,8 @@ function BuilderPage() {
     keyboard: selectedKeyboard,
     mouse: selectedMouse,
     headset: selectedHeadset,
-    monitor: selectedMonitor
+    monitor: selectedMonitor,
+    caseFans: (selectedCaseFans || []).filter(Boolean)
   });
 
   const handleSaveBuild = async () => {
@@ -220,6 +226,7 @@ function BuilderPage() {
       (selectedRAMs && selectedRAMs.some(ram => ram)) ||
       (selectedM2s && selectedM2s.some(m2 => m2)) ||
       (selectedStorage && selectedStorage.some(storage => storage)) ||
+      (selectedCaseFans && selectedCaseFans.some(fan => fan)) ||
       selectedKeyboard || selectedMouse || selectedHeadset || selectedMonitor;
 
     if (!hasComponents) {
@@ -277,6 +284,7 @@ function BuilderPage() {
       setSelectedMouse(null);
       setSelectedHeadset(null);
       setSelectedMonitor(null);
+      setSelectedCaseFans([null]);
       localStorage.removeItem('builderDraft');
       
       // Show success modal
@@ -321,6 +329,7 @@ function BuilderPage() {
         setSelectedMouse(null);
         setSelectedHeadset(null);
         setSelectedMonitor(null);
+        setSelectedCaseFans([null]);
         localStorage.removeItem('builderDraft');
         setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null });
       }
@@ -376,6 +385,7 @@ function BuilderPage() {
       (selectedRAMs && selectedRAMs.some(ram => ram)) ||
       (selectedM2s && selectedM2s.some(m2 => m2)) ||
       (selectedStorage && selectedStorage.some(storage => storage)) ||
+      (selectedCaseFans && selectedCaseFans.some(fan => fan)) ||
       selectedKeyboard || selectedMouse || selectedHeadset || selectedMonitor;
     
     if (hasAnyComponent) {
@@ -384,7 +394,7 @@ function BuilderPage() {
     } else {
       localStorage.removeItem('builderDraft');
     }
-  }, [selectedMOBO, selectedCPU, selectedCPUCooler, selectedGPUs, selectedRAMs, selectedM2s, selectedStorage, selectedPSU, selectedCase, selectedKeyboard, selectedMouse, selectedHeadset, selectedMonitor]);
+  }, [selectedMOBO, selectedCPU, selectedCPUCooler, selectedGPUs, selectedRAMs, selectedM2s, selectedStorage, selectedPSU, selectedCase, selectedCaseFans, selectedKeyboard, selectedMouse, selectedHeadset, selectedMonitor]);
 
   const isLoggedIn = Boolean(localStorage.getItem('token'));
 
@@ -525,6 +535,13 @@ function BuilderPage() {
             />
             <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
+            <PartSelector
+              part={{ name: "Case Fans" }}
+              slotCount={6}
+              selectedValues={selectedCaseFans}
+              setSelectedValues={setSelectedCaseFans}
+              dataLookup={dataLookup}
+            />
             <h1 style={{ textAlign: 'left' }}>Peripherals</h1>
             <PartSelector part={{ name: "Keyboard" }} selectedValue={selectedKeyboard} setSelectedValue={setSelectedKeyboard} dataLookup={dataLookup} />
             <PartSelector part={{ name: "Mouse" }} selectedValue={selectedMouse} setSelectedValue={setSelectedMouse} dataLookup={dataLookup} />

@@ -14,6 +14,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     storage: dataLookup?.storage || [],
     m2: dataLookup?.m2 || [],
     case: dataLookup?.case || [],
+    casefans: dataLookup?.caseFans || [],
     keyboard: dataLookup?.keyboard || [],
     mouse: dataLookup?.mouse || [],
     headset: dataLookup?.headset || [],
@@ -32,7 +33,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     if (partName.includes('memory') || partName.includes('ram')) return mapByCanonical.ram;
     if (partName.includes('m.2') || partName.includes('nvme') || partName === 'm2') return mapByCanonical.m2;
     if (partName.includes('storage') || partName.includes('hdd') || partName.includes('ssd')) return mapByCanonical.storage;
-    if (partName.includes('case')) return mapByCanonical.case;
+    if (partName.includes('case') && !partName.includes('fan')) return mapByCanonical.case;
+    if (partName.includes('fan') || partName.includes('case fan')) return mapByCanonical.casefans;
     if (partName.includes('keyboard')) return mapByCanonical.keyboard;
     if (partName.includes('mouse')) return mapByCanonical.mouse;
     if (partName.includes('headset') || partName.includes('headphone')) return mapByCanonical.headset;
@@ -263,8 +265,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     };
   });
 
-  // multi-slot support for RAM / M.2 / Storage with dynamic add/remove
-  const multiTypes = ['Memory (RAM)', 'M.2 SSD', 'Storage'];
+  // multi-slot support for RAM / M.2 / Storage / Case Fans with dynamic add/remove
+  const multiTypes = ['Memory (RAM)', 'M.2 SSD', 'Storage', 'Case Fans'];
   const isMulti = multiTypes.includes(part.name) && Array.isArray(selectedValues);
 
   if (isMulti) {
