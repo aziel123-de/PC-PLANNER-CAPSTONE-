@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import './ComponentCard.css';
 
 /**
@@ -12,6 +12,10 @@ import './ComponentCard.css';
  */
 function ComponentCard({ component }) {
   const item = component || null;
+  const [img, setImg] = useState(() => (item?.image || null));
+  const [imgSrcLink, setImgSrcLink] = useState(null);
+  const [loadingImg, setLoadingImg] = useState(false);
+  const [imgError, setImgError] = useState(null);
 
   if (!item) {
     return (
@@ -22,16 +26,68 @@ function ComponentCard({ component }) {
     );
   }
 
+  // Attempt to auto-fetch an image if none is provided, based on item.name
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!item || !item.name) return;
+      if (item.image) return; // already have image
+      // simple per-session cache via window.__imgCache
+      const key = `img:${item.name}`;
+      try {
+        setLoadingImg(true);
+        setImgError(null);
+        const cache = (typeof window !== 'undefined') ? (window.__imgCache = window.__imgCache || new Map()) : null;
+        if (cache && cache.has(key)) {
+          const c = cache.get(key);
+          if (active) { setImg(c.image_url || c.link || null); setImgSrcLink(c.source_url || c.contextLink || c.link || null); }
+          return;
+        }
+        // Use backend DB-backed ensure endpoint
+        const base = import.meta?.env?.VITE_BACKEND_URL || '';
+        const url = `${base}/api/items/${encodeURIComponent(item.id || 0)}/image?name=${encodeURIComponent(item.name)}`;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(`image search failed: ${r.status}`);
+        const data = await r.json();
+        if (active) {
+          // data is a row from item_images or normalized payload
+          const imgUrl = data.image_url || data.link || null;
+          const srcUrl = data.source_url || data.contextLink || data.link || null;
+          setImg(imgUrl);
+          setImgSrcLink(srcUrl);
+          if (cache) cache.set(key, data);
+        }
+      } catch (e) {
+        if (active) setImgError(e.message || String(e));
+      } finally {
+        if (active) setLoadingImg(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  // re-run if the name changes
+  }, [item?.name]);
+
   // Render component card
   return (
     <div className="component-card">
       <h2>{item.name}</h2>
 
-      {item.image && (
-        <div className="component-image">
-          <img src={item.image} alt={item.name} />
-        </div>
-      )}
+      <div className="component-image">
+        {img ? (
+          imgSrcLink ? (
+            <a href={imgSrcLink} target="_blank" rel="noopener noreferrer">
+              <img src={img} alt={item.name} />
+            </a>
+          ) : (
+            <img src={img} alt={item.name} />
+          )
+        ) : (
+          <div className="component-image--placeholder">
+            {loadingImg ? 'Loading image…' : (imgError ? 'No image found' : 'No image')}
+          </div>
+        )}
+      </div>
 
       <ul>
         {Object.entries(item).map(([key, value]) => {

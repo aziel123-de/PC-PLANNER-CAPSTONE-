@@ -54,6 +54,183 @@ const upload = multer({
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const API_PREFIX = '/api';
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || process.env.GOOGLE_CSE_KEY || '';
+const GOOGLE_CSE_CX = process.env.GOOGLE_CSE_CX || process.env.GOOGLE_SEARCH_CX || '';
+const SERPER_API_KEY = process.env.SERPER_API_KEY || '';
+
+// simple in-memory cache for image lookups (best-effort, resets on restart)
+const imageCache = new Map();
+
+async function httpFetch(url, options) {
+  if (typeof fetch !== 'undefined') return fetch(url, options);
+  const { default: nodeFetch } = await import('node-fetch');
+  return nodeFetch(url, options);
+}
+
+// Image search proxy to avoid exposing Google keys to the client
+app.get(`${API_PREFIX}/images/search`, async (req, res) => {
+  try {
+    const q = (req.query.q || req.query.query || '').toString().trim();
+    if (!q) return res.status(400).json({ error: 'missing query' });
+
+    const cacheKey = q.toLowerCase();
+    const cached = imageCache.get(cacheKey);
+    if (cached && (Date.now() - cached.t) < 1000 * 60 * 60 * 12) { // 12h cache
+      return res.json(cached.data);
+    }
+
+    let payload = { link: null };
+
+    if (SERPER_API_KEY) {
+      // Prefer Serper.dev images endpoint
+      const url = `https://google.serper.dev/images?q=${encodeURIComponent(q)}`;
+      const r = await httpFetch(url, { headers: { 'X-API-KEY': SERPER_API_KEY } });
+      if (!r.ok) {
+        const text = await r.text().catch(()=> '');
+        return res.status(502).json({ error: 'image search failed', provider: 'serper', status: r.status, body: text });
+      }
+      const data = await r.json();
+      // Serper images response typically has an array like data.images
+      const first = (data && (data.images || data.image_results || data.results || data.items) && (data.images || data.image_results || data.results || data.items)[0]) || null;
+      if (first) {
+        payload = {
+          link: first.imageUrl || first.link || null,
+          contextLink: first.source || first.pageUrl || first.link || null,
+          thumbnailLink: first.thumbnailUrl || null,
+          width: first.width || null,
+          height: first.height || null
+        };
+      }
+    } else if (GOOGLE_API_KEY && GOOGLE_CSE_CX) {
+      const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(q)}&searchType=image&num=1&safe=high&key=${encodeURIComponent(GOOGLE_API_KEY)}&cx=${encodeURIComponent(GOOGLE_CSE_CX)}`;
+      const r = await httpFetch(url);
+      if (!r.ok) {
+        const text = await r.text().catch(()=> '');
+        return res.status(502).json({ error: 'image search failed', provider: 'google', status: r.status, body: text });
+      }
+      const data = await r.json();
+      const item = (data && Array.isArray(data.items) && data.items[0]) || null;
+      payload = item ? {
+        link: item.link,
+        contextLink: item.image?.contextLink || item.image?.context || null,
+        thumbnailLink: item.image?.thumbnailLink || null,
+        width: item.image?.width || null,
+        height: item.image?.height || null
+      } : { link: null };
+    } else {
+      return res.status(400).json({ error: 'image search not configured' });
+    }
+
+    imageCache.set(cacheKey, { t: Date.now(), data: payload });
+    return res.json(payload);
+  } catch (err) {
+    console.error('image search error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+// ================== Persistent item images (DB-cached) ==================
+
+function assertSerperConfigured() {
+  if (!SERPER_API_KEY) {
+    const err = new Error('image search not configured');
+    err.status = 400;
+    throw err;
+  }
+}
+
+async function searchSerperFirstImage(q) {
+  const url = `https://google.serper.dev/images?q=${encodeURIComponent(q)}`;
+  const r = await httpFetch(url, { headers: { 'X-API-KEY': SERPER_API_KEY } });
+  if (!r.ok) {
+    const text = await r.text().catch(()=> '');
+    const e = new Error(`serper error ${r.status}`);
+    e.meta = text;
+    e.status = 502;
+    throw e;
+  }
+  const data = await r.json();
+  const list = data?.images || data?.image_results || data?.results || data?.items || [];
+  const first = Array.isArray(list) ? list[0] : null;
+  if (!first) return null;
+  return {
+    image_url: first.imageUrl || first.link || first.thumbnailUrl || null,
+    source_url: first.pageUrl || first.source || first.link || null,
+    width: first.width || null,
+    height: first.height || null,
+    provider: 'serper'
+  };
+}
+
+// Ensure a stored image for an item by id and name; create if missing
+app.get(`${API_PREFIX}/items/:id/image`, async (req, res) => {
+  const itemId = parseInt(req.params.id, 10) || 0;
+  const name = (req.query.name || '').toString().trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT * FROM item_images WHERE item_id=? AND name=? LIMIT 1', [itemId, name]);
+    if (rows.length && rows[0].image_url) return res.json(rows[0]);
+
+    assertSerperConfigured();
+    const img = await searchSerperFirstImage(name);
+    if (!img || !img.image_url) return res.status(404).json({ error: 'no image found' });
+    const now = new Date();
+    await conn.query(
+      `INSERT INTO item_images (item_id,name,image_url,source_url,width,height,provider,created_at,updated_at)
+       VALUES (?,?,?,?,?,?,?, ?, ?)
+       ON DUPLICATE KEY UPDATE image_url=VALUES(image_url), source_url=VALUES(source_url), width=VALUES(width), height=VALUES(height), provider=VALUES(provider), updated_at=VALUES(updated_at)`,
+      [itemId, name, img.image_url, img.source_url, img.width, img.height, img.provider, now, now]
+    );
+    const [after] = await conn.query('SELECT * FROM item_images WHERE item_id=? AND name=? LIMIT 1', [itemId, name]);
+    return res.json(after[0] || { image_url: img.image_url, source_url: img.source_url, width: img.width, height: img.height, provider: img.provider });
+  } catch (e) {
+    const status = e.status || 500;
+    console.error('ensure item image error', e.message||e);
+    return res.status(status).json({ error: e.message || 'server error' });
+  } finally { conn.release(); }
+});
+
+// Fetch stored image by id/name only (no fetch if missing)
+app.get(`${API_PREFIX}/items/:id/image/stored`, async (req, res) => {
+  const itemId = parseInt(req.params.id, 10) || 0;
+  const name = (req.query.name || '').toString().trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  try {
+    const [rows] = await pool.query('SELECT * FROM item_images WHERE item_id=? AND name=? LIMIT 1', [itemId, name]);
+    if (!rows.length) return res.status(404).json({ error: 'not found' });
+    return res.json(rows[0]);
+  } catch (e) {
+    console.error('get stored item image error', e.message||e);
+    return res.status(500).json({ error: 'server error' });
+  }
+});
+
+// Force refresh image from provider and update DB
+app.post(`${API_PREFIX}/items/:id/image/refresh`, async (req, res) => {
+  const itemId = parseInt(req.params.id, 10) || 0;
+  const name = (req.body?.name || req.query?.name || '').toString().trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const conn = await pool.getConnection();
+  try {
+    assertSerperConfigured();
+    const img = await searchSerperFirstImage(name);
+    if (!img || !img.image_url) return res.status(404).json({ error: 'no image found' });
+    const now = new Date();
+    await conn.query(
+      `INSERT INTO item_images (item_id,name,image_url,source_url,width,height,provider,created_at,updated_at)
+       VALUES (?,?,?,?,?,?,?, ?, ?)
+       ON DUPLICATE KEY UPDATE image_url=VALUES(image_url), source_url=VALUES(source_url), width=VALUES(width), height=VALUES(height), provider=VALUES(provider), updated_at=VALUES(updated_at)`,
+      [itemId, name, img.image_url, img.source_url, img.width, img.height, img.provider, now, now]
+    );
+    const [after] = await conn.query('SELECT * FROM item_images WHERE item_id=? AND name=? LIMIT 1', [itemId, name]);
+    return res.json(after[0] || { image_url: img.image_url, source_url: img.source_url, width: img.width, height: img.height, provider: img.provider });
+  } catch (e) {
+    const status = e.status || 500;
+    console.error('refresh item image error', e.message||e);
+    return res.status(status).json({ error: e.message || 'server error' });
+  } finally { conn.release(); }
+});
 
 // helper to extract user ID from JWT bearer token
 function getUserIdFromRequest(req) {
@@ -147,6 +324,22 @@ async function ensureSchema() {
       INDEX(token_hash),
       INDEX(user_id),
       CONSTRAINT fk_pr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
+
+    // Ensure item_images table (fallback if migrations not run)
+    await conn.query(`CREATE TABLE IF NOT EXISTS item_images (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      item_id INT NOT NULL DEFAULT 0,
+      name VARCHAR(255) NOT NULL,
+      image_url VARCHAR(1024) NOT NULL,
+      source_url VARCHAR(1024),
+      width INT NULL,
+      height INT NULL,
+      provider VARCHAR(32) NOT NULL DEFAULT 'serper',
+      created_at DATETIME NOT NULL,
+      updated_at DATETIME NOT NULL,
+      UNIQUE KEY uniq_item_name (item_id, name),
+      KEY idx_name (name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   } finally {
     conn.release();
@@ -479,7 +672,8 @@ app.post(`${API_PREFIX}/users/:id/profile-picture`, (req, res) => {
 
 const port = process.env.PORT || 5050;
 ensureSchema().then(() => {
-  app.listen(port, '127.0.0.1', () => console.log('Backend listening on 127.0.0.1:' + port));
+  // Bind to 0.0.0.0 so the server is reachable externally in containers/Render
+  app.listen(port, '0.0.0.0', () => console.log('Backend listening on 0.0.0.0:' + port));
 }).catch(err => {
   console.error('Schema setup failed', err);
   process.exit(1);
