@@ -1,9 +1,42 @@
 import './PartSelector.css';
 import Select from 'react-select';
+import psuImage from '../../assets/psu.png';
+import moboImage from '../../assets/mobo.png';
+import cpuImage from '../../assets/cpu.png';
+import coolerImage from '../../assets/cooler.png';
+import gpuImage from '../../assets/gpu.png';
+import m2Image from '../../assets/m2.png';
+import mouseImage from '../../assets/mouse.png';
+import ramImage from '../../assets/ram.png';
+import headsetImage from '../../assets/headset.png';
+import keyboardImage from '../../assets/keyboard.png';
+import monitorImage from '../../assets/monitor.png';
+import caseImage from '../../assets/case.png';
+import storageImage from '../../assets/storage.png';
+
+
 
 function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex }) {
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
+  
+  const getPartImage = () => {
+    if (partName.includes('motherboard') || partName.includes('mobo')) return moboImage;
+    if (partName.includes('cooler')) return coolerImage;
+    if (partName.includes('processor') || partName.includes('cpu')) return cpuImage;
+    if (partName.includes('graphics') || partName.includes('gpu')) return gpuImage;
+    if (partName.includes('memory') || partName.includes('ram')) return ramImage;
+    if (partName.includes('storage') || partName.includes('storage')) return storageImage;
+    if (partName.includes('ssd')  || partName.includes('m2')) return m2Image;
+    if (partName.includes('power') || partName.includes('psu')) return psuImage;
+    if (partName.includes('case')|| partName.includes('case')) return caseImage;
+    if (partName.includes('monitorr') || partName.includes('monitor')) return monitorImage;
+    if (partName.includes('keyboard') || partName.includes('keyboard')) return keyboardImage;
+    if (partName.includes('mouse') || partName.includes('mouse')) return mouseImage;
+    if (partName.includes('headset') || partName.includes('headset')) return headsetImage;
+    return '/images/default.png';
+  };
+
   const mapByCanonical = {
     mobo: dataLookup?.mobo || [],
     cpu: dataLookup?.cpu || [],
@@ -290,12 +323,16 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
 
     return (
       <div className="PartSelectorContainer">
-        <h1>{part.name}</h1>
-        <h4>Select {part.name} for your build</h4>
-        {options.length === 0 && (
-          <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
-        )}
-        <div className="MultiSlotWrapper">
+        <div className="PartIconPlaceholder">
+          <img src={getPartImage()} alt={part.name} className="PartIconImage" />
+        </div>
+        <div className="PartSelectorContent">
+          <h1>{part.name}</h1>
+          <h4>Select {part.name} for your build</h4>
+          {options.length === 0 && (
+            <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
+          )}
+          <div className="MultiSlotWrapper">
           {valuesArr.map((val, idx) => (
             <div key={idx} className="SlotSelect">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -354,6 +391,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
               </button>
             </div>
           )}
+          </div>
         </div>
       </div>
     );
@@ -361,12 +399,16 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
 
   return (
     <div className="PartSelectorContainer">
-      <h1>{part.name}</h1>
-      <h4>Select a {part.name} for your build</h4>
-      {options.length === 0 && (
-        <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
-      )}
-      <Select
+      <div className="PartIconPlaceholder">
+        <img src={getPartImage()} alt={part.name} className="PartIconImage" />
+      </div>
+      <div className="PartSelectorContent">
+        <h1>{part.name}</h1>
+        <h4>Select a {part.name} for your build</h4>
+        {options.length === 0 && (
+          <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
+        )}
+        <Select
         className="PartSelector"
         value={selectedValue ? {
           value: selectedValue.id,
@@ -383,6 +425,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
         menuHeight={200}
         maxMenuHeight={200}
       />
+      </div>
     </div>
   );
 }
