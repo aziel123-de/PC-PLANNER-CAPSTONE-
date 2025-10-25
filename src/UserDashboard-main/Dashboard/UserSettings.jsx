@@ -64,7 +64,10 @@ function UserSettings({ onBack, onLogout, userId }) {
             profilePicture: null
           });
           if (userData.profile_picture) {
-            setProfilePictureUrl(userData.profile_picture);
+            const picUrl = userData.profile_picture.startsWith('http') 
+              ? userData.profile_picture 
+              : `${window.location.origin}${userData.profile_picture}`;
+            setProfilePictureUrl(picUrl);
           }
         } else {
           const error = await response.json();
@@ -251,8 +254,11 @@ function UserSettings({ onBack, onLogout, userId }) {
         const uploadResult = await uploadResponse.json();
         console.log('Upload successful:', uploadResult);
         
-        // Update the displayed profile picture
-        setProfilePictureUrl(uploadResult.profile_picture);
+        // Update the displayed profile picture with proper URL
+        const picUrl = uploadResult.profile_picture.startsWith('http') 
+          ? uploadResult.profile_picture 
+          : `${window.location.origin}${uploadResult.profile_picture}`;
+        setProfilePictureUrl(picUrl);
         
         // Update localStorage user data
         try {
