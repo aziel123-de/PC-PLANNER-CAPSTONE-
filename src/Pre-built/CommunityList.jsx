@@ -4,6 +4,7 @@ import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import CommunityBuildModal from './CommunityBuildModal';
 import AlertModal from '../components/AlertModal';
 import { FaUser, FaEye, FaDownload, FaTrash, FaCaretUp, FaDollarSign, FaClock, FaTools, FaWrench } from 'react-icons/fa';
+import { TbFileUpload } from 'react-icons/tb';
 
 /* Assumptions:
    - Auth token stored in localStorage under 'token'
@@ -24,6 +25,16 @@ function CommunityList() {
   const [modalBuildId, setModalBuildId] = useState(null); // placeholder until modal is implemented
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, buildId: null, buildTitle: '' });
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
+  const [uploadedImages, setUploadedImages] = useState({});
+
+  const handleImageUpload = (buildId, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setUploadedImages(prev => ({ ...prev, [buildId]: imageUrl }));
+      // TODO: Upload file to server
+    }
+  };
 
   const fetchBuilds = useCallback(async () => {
     setLoading(true); setError(null);
@@ -191,55 +202,68 @@ function CommunityList() {
           <div className="builds-showcase">
             {builds.map(build => (
               <div key={build.id} className="build-card">
-                <div className="creator-row">
-                  <div className="profile-picture">
-                    {build.profile_picture ? (
-                      <img 
-                        src={build.profile_picture} 
-                        alt={`${build.username}'s profile`}
-                        className="profile-img"
-                      />
-                    ) : (
-                      <div className="profile-placeholder">
-                        <FaUser className="placeholder-icon" />
-                      </div>
-                    )}
-                  </div>
-                  <span className="creator-name">{build.username || 'hazel sadangsal'}</span>
-                </div>
-                
-                <div className="card-top-row">
-                  <h3 className="card-title">{build.title?.split(' ').slice(0, 3).join(' ') || build.title}</h3>
-                  <div className="card-right">
-                    <div className="votes">
-                      <FaCaretUp className="vote-triangle" />
-                      <span className="vote-count">{(build.up_votes || 0) - (build.down_votes || 0)}</span>
+                <div className="card-header-gradient">
+                  <div className="header-left">
+                    <div className="profile-avatar">
+                      {build.profile_picture ? (
+                        <img src={build.profile_picture} alt={build.username} className="avatar-img" />
+                      ) : (
+                        <div className="avatar-placeholder">{(build.username || 'U').substring(0, 2).toUpperCase()}</div>
+                      )}
                     </div>
-                    {currentUserId && currentUserId === build.user_id && (
-                      <button className="delete-button" onClick={() => handleDelete(build.id, build.title)}>
-                        <FaTrash />
-                      </button>
-                    )}
+                    <span className="username-text">{build.username || 'User'}</span>
+                  </div>
+                  <div className="header-right">
+                    <div className="vote-badge">
+                      <FaCaretUp className="vote-icon" />
+                      <span>{(build.up_votes || 0) - (build.down_votes || 0)}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="price-box">
-                  ₱{build.total_price?.toLocaleString() || '5,995'}
-                </div>
-                
-                <p className="description-text">
-                  {(build.description || 'No description provided.').length > 100 
-                    ? (build.description || 'No description provided.').substring(0, 100) + '...' 
-                    : (build.description || 'No description provided.')}
-                </p>
+                <div className="card-body">
+                  <div className="image-upload-area">
+                    {build.build_image || uploadedImages[build.id] ? (
+                      <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
+                    ) : (
+                      currentUserId && currentUserId === build.user_id ? (
+                        <label htmlFor={`upload-${build.id}`} className="upload-placeholder" style={{ cursor: 'pointer', width: '100%' }}>
+                          <input
+                            id={`upload-${build.id}`}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => handleImageUpload(build.id, e)}
+                          />
+                          <div className="upload-icon-box">
+                            <TbFileUpload className="upload-icon" />
+                          </div>
+                          <p className="upload-text">Click to upload image</p>
+                        </label>
+                      ) : (
+                        <div className="upload-placeholder">
+                          <div className="upload-icon-box">
+                            <TbFileUpload className="upload-icon" />
+                          </div>
+                          <p className="upload-text">No image uploaded</p>
+                        </div>
+                      )
+                    )}
+                  </div>
 
-                <div className="button-row">
-                  <button className="details-btn" onClick={() => openModal(build.id)}>
-                    View Details
-                  </button>
-                  <button className="load-builds-btn" onClick={() => loadIntoBuilder(build)}>
-                    Load Builds
-                  </button>
+                  <h3 className="build-title">{build.title || 'Untitled Build'}</h3>
+                  <div className="build-price">₱ {build.total_price?.toLocaleString() || '0'}</div>
+                  <p className="build-description">{build.description || 'No description provided.'}</p>
+                </div>
+
+                <div className="card-footer">
+                  {currentUserId && currentUserId === build.user_id && (
+                    <button className="save-btn" onClick={() => handleDelete(build.id, build.title)}>
+                      <FaTrash /> Delete
+                    </button>
+                  )}
+                  <button className="details-btn-new" onClick={() => openModal(build.id)}>Details</button>
+                  <button className="load-btn" onClick={() => loadIntoBuilder(build)}>Load</button>
                 </div>
               </div>
             ))}
