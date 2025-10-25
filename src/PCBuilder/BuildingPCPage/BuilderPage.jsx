@@ -8,6 +8,20 @@ import AlertModal from '../../components/AlertModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import analyzeBuild from '../PCBuilding/analyzeBuild';
 import { FaArrowUp } from 'react-icons/fa';
+import moboIcon from '../../assets/mobo.png';
+import cpuIcon from '../../assets/cpu.png';
+import coolerIcon from '../../assets/cooler.png';
+import gpuIcon from '../../assets/gpu.png';
+import ramIcon from '../../assets/ram.png';
+import m2Icon from '../../assets/m.2.png';
+import storageIcon from '../../assets/storage.png';
+import psuIcon from '../../assets/psu.png';
+import caseIcon from '../../assets/case.png';
+import casefanIcon from '../../assets/casefan.png';
+import keyboardIcon from '../../assets/keyboard.png';
+import mouseIcon from '../../assets/mouse.png';
+import headsetIcon from '../../assets/headset.png';
+import monitorIcon from '../../assets/monitor.png';
 
 function BuilderPage() {
   const [selectedMOBO, setSelectedMOBO] = useState(null);
@@ -446,9 +460,10 @@ function BuilderPage() {
                 }
               }}
               dataLookup={dataLookup}
+              partIcon={moboIcon}
             />
-            <PartSelector part={{ name: "Processor (CPU)" }} selectedValue={selectedCPU} setSelectedValue={setSelectedCPU} selectedMOBO={selectedMOBO} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "CPU Cooler" }} selectedValue={selectedCPUCooler} setSelectedValue={setSelectedCPUCooler} selectedCPU={selectedCPU} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Processor (CPU)" }} selectedValue={selectedCPU} setSelectedValue={setSelectedCPU} selectedMOBO={selectedMOBO} dataLookup={dataLookup} partIcon={cpuIcon} />
+            <PartSelector part={{ name: "CPU Cooler" }} selectedValue={selectedCPUCooler} setSelectedValue={setSelectedCPUCooler} selectedCPU={selectedCPU} dataLookup={dataLookup} partIcon={coolerIcon} />
             <PartSelector
               part={{ name: "Graphics Card (GPU)" }}
               selectedValue={selectedGPUs[0]}
@@ -459,6 +474,7 @@ function BuilderPage() {
               }}
               dataLookup={dataLookup}
               selectedGPUs={selectedGPUs}
+              partIcon={gpuIcon}
             />
             {selectedGPUs.slice(1).map((gpu, index) => (
               <div key={`gpu-${index + 1}`}>
@@ -485,6 +501,7 @@ function BuilderPage() {
                   }}
                   dataLookup={dataLookup}
                   selectedGPUs={selectedGPUs}
+                  partIcon={gpuIcon}
                 />
               </div>
             ))}
@@ -518,6 +535,7 @@ function BuilderPage() {
               selectedMOBO={selectedMOBO}
               selectedCPU={selectedCPU}
               dataLookup={dataLookup}
+              partIcon={ramIcon}
             />
             <PartSelector
               part={{ name: "M.2 SSD" }}
@@ -525,6 +543,7 @@ function BuilderPage() {
               selectedValues={selectedM2s}
               setSelectedValues={setSelectedM2s}
               dataLookup={dataLookup}
+              partIcon={m2Icon}
             />
             <PartSelector
               part={{ name: "Storage" }}
@@ -532,21 +551,23 @@ function BuilderPage() {
               selectedValues={selectedStorage}
               setSelectedValues={setSelectedStorage}
               dataLookup={dataLookup}
+              partIcon={storageIcon}
             />
-            <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} />
+            <PartSelector part={{ name: "Power Supply (PSU)" }} selectedValue={selectedPSU} setSelectedValue={setSelectedPSU} dataLookup={dataLookup} partIcon={psuIcon} />
+            <PartSelector part={{ name: "Case" }} selectedValue={selectedCase} setSelectedValue={setSelectedCase} dataLookup={dataLookup} selectedMOBO={selectedMOBO} partIcon={caseIcon} />
             <PartSelector
               part={{ name: "Case Fans" }}
               slotCount={6}
               selectedValues={selectedCaseFans}
               setSelectedValues={setSelectedCaseFans}
               dataLookup={dataLookup}
+              partIcon={casefanIcon}
             />
             <h1 style={{ textAlign: 'left' }}>Peripherals</h1>
-            <PartSelector part={{ name: "Keyboard" }} selectedValue={selectedKeyboard} setSelectedValue={setSelectedKeyboard} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "Mouse" }} selectedValue={selectedMouse} setSelectedValue={setSelectedMouse} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "Headset" }} selectedValue={selectedHeadset} setSelectedValue={setSelectedHeadset} dataLookup={dataLookup} />
-            <PartSelector part={{ name: "Monitor" }} selectedValue={selectedMonitor} setSelectedValue={setSelectedMonitor} dataLookup={dataLookup} />
+            <PartSelector part={{ name: "Keyboard" }} selectedValue={selectedKeyboard} setSelectedValue={setSelectedKeyboard} dataLookup={dataLookup} partIcon={keyboardIcon} />
+            <PartSelector part={{ name: "Mouse" }} selectedValue={selectedMouse} setSelectedValue={setSelectedMouse} dataLookup={dataLookup} partIcon={mouseIcon} />
+            <PartSelector part={{ name: "Headset" }} selectedValue={selectedHeadset} setSelectedValue={setSelectedHeadset} dataLookup={dataLookup} partIcon={headsetIcon} />
+            <PartSelector part={{ name: "Monitor" }} selectedValue={selectedMonitor} setSelectedValue={setSelectedMonitor} dataLookup={dataLookup} partIcon={monitorIcon} />
           </div>
           <div className="RightColumn">
             <BuildSummary 

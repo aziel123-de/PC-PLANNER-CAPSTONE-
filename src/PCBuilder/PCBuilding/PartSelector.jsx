@@ -1,7 +1,10 @@
 import './PartSelector.css';
 import Select from 'react-select';
+import { useState } from 'react';
 
-function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex }) {
+function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex, partIcon }) {
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState(null);
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
   const mapByCanonical = {
@@ -292,6 +295,14 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
 
     return (
       <div className="PartSelectorContainer">
+        <div className="PartIconPlaceholder" onClick={() => { if(valuesArr[0]) { setModalData(valuesArr[0]); setShowModal(true); } }} style={{ cursor: valuesArr[0] ? 'pointer' : 'default' }}>
+          {valuesArr[0]?.image ? (
+            <img src={valuesArr[0].image} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          ) : (
+            !valuesArr[0] && partIcon && <img src={partIcon} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          )}
+        </div>
+        <div className="PartSelectorContent">
         <h1>{part.name}</h1>
         <h4>Select {part.name} for your build</h4>
         {options.length === 0 && (
@@ -357,12 +368,31 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
             </div>
           )}
         </div>
+        </div>
+        {showModal && modalData && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }} onClick={() => setShowModal(false)}>
+            <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', maxWidth: '500px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+              {modalData.image && <img src={modalData.image} alt={modalData.name} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', marginBottom: '20px' }} />}
+              <h2 style={{ margin: '0 0 20px 0' }}>{modalData.name}</h2>
+              <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand || 'N/A'}</div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className="PartSelectorContainer">
+      <div className="PartIconPlaceholder" onClick={() => { if(selectedValue) { setModalData(selectedValue); setShowModal(true); } }} style={{ cursor: selectedValue ? 'pointer' : 'default' }}>
+        {selectedValue?.image ? (
+          <img src={selectedValue.image} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        ) : (
+          !selectedValue && partIcon && <img src={partIcon} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        )}
+      </div>
+      <div className="PartSelectorContent">
       <h1>{part.name}</h1>
       <h4>Select a {part.name} for your build</h4>
       {options.length === 0 && (
@@ -385,6 +415,17 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
         menuHeight={200}
         maxMenuHeight={200}
       />
+      </div>
+      {showModal && modalData && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }} onClick={() => setShowModal(false)}>
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', maxWidth: '500px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+            {modalData.image && <img src={modalData.image} alt={modalData.name} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', marginBottom: '20px' }} />}
+            <h2 style={{ margin: '0 0 20px 0' }}>{modalData.name}</h2>
+            <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand || 'N/A'}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

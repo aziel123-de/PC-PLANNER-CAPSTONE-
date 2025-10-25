@@ -21,8 +21,8 @@
 }
 .LeftColumn{
   text-align: left;
-  background-color: #fafbfc;
-  border: 1px solid #e2e8f0;
+  background-color: #eaf3fdcf;
+  border: 1px solid #d7e4f6;
 }
 
 .PC-Note-Title{
@@ -203,4 +203,25 @@
     bottom: 15px;
     left: 15px;
   }
+}
+
+
+.PartSelectorContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.PartIconPlaceholder {
+  background: white;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(90deg, #1e40af, #1e3a8a, #1e293b) 1;
+  width: 130px;
+  height: 80px;
+  flex-shrink: 0;
+  padding: 5px;
+}
+
+.PartSelectorContent {
+  flex: 1;
 }
