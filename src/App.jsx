@@ -22,6 +22,7 @@ import UserOverview from './UserDashboard-main/Dashboard/UserOverview.jsx';
 import UserSettings from './UserDashboard-main/Dashboard/UserSettings.jsx';
 import CommunityList from './Pre-built/CommunityList';
 import CommunityBuildModal from './Pre-built/CommunityBuildModal';
+import ContactUs from './ContactUs/ContactUs';
 
 // removed Dashboard (UserOverview/UserSettings) imports and routes
 
@@ -127,6 +128,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardWrapper />} />
               <Route path="/settings" element={<SettingsWrapper />} />
               <Route path="/community" element={<CommunityList />} />
+              <Route path="/contact" element={<><ContactUs /><Footer /></>} />
             </Routes>
           </main>
         </div>

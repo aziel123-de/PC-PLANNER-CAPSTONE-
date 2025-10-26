@@ -1,0 +1,199 @@
+.Footer-title {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.contact-container {
+  background-color: #0a0e27;
+  color: #ffffff;
+  min-height: 100vh;
+  padding: 60px 40px;
+}
+
+.contact-header {
+  margin-bottom: 60px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: transparent;
+  border: 1px solid #4a90e2;
+  border-radius: 20px;
+  color: #4a90e2;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.contact-header h1 {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.contact-header p {
+  font-size: 16px;
+  color: #b0b0b0;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.team-section {
+  margin-bottom: 80px;
+}
+
+.team-section h2 {
+  font-size: 32px;
+  margin-bottom: 40px;
+  position: relative;
+  padding-bottom: 15px;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(to right, #4a90e2 0%, #4a90e2 20%, rgba(74, 144, 226, 0.1) 100%);
+  border-image-slice: 1;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+}
+
+.team-card {
+  background-color: #1a1f3a;
+  border: 1px solid #2a3050;
+  border-radius: 12px;
+  padding: 30px;
+  transition: transform 0.2s;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  border-color: #4a90e2;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.team-card h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.team-card .role {
+  color: #b0b0b0;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.social-icons span {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.social-icons span:hover {
+  opacity: 0.7;
+}
+
+.team-card .email {
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.contact-section h2 {
+  font-size: 32px;
+  margin-bottom: 40px;
+  position: relative;
+  padding-bottom: 15px;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(to right, #4a90e2 0%, #4a90e2 20%, rgba(74, 144, 226, 0.1) 100%);
+  border-image-slice: 1;
+}
+
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  max-width: 1000px;
+}
+
+.contact-item {
+  background-color: #1a1f3a;
+  border: 1px solid #2a3050;
+  border-radius: 12px;
+  padding: 30px;
+  transition: transform 0.2s;
+}
+
+.contact-item:hover {
+  transform: translateY(-5px);
+  border-color: #4a90e2;
+}
+
+.icon-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+.email-icon {
+  background-color: #1e3a5f;
+  color: #4a90e2;
+}
+
+.support-icon {
+  background-color: #3a1e5f;
+  color: #9b59b6;
+}
+
+.location-icon {
+  background-color: #1e4d5f;
+  color: #3498db;
+}
+
+.contact-item h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.contact-item p {
+  color: #b0b0b0;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .contact-container {
+    padding: 40px 20px;
+  }
+
+  .contact-header h1 {
+    font-size: 36px;
+  }
+
+  .team-section h2,
+  .contact-section h2 {
+    font-size: 28px;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+}

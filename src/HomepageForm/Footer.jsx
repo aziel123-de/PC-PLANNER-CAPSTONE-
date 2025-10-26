@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 function Footer(){
@@ -10,7 +11,7 @@ function Footer(){
     <p className="developers-text">Developed by: Maligaya, Manuel, Sadangsal, Verecio</p>
     <p className="footer-text">&copy; {new Date().getFullYear()} PC Planner. All rights reserved.</p>
     <div className="footer-links">
-      <a href="#">Contact Us</a>
+      <Link to="/contact">Contact Us</Link>
     </div>
   </div>
 </footer>
