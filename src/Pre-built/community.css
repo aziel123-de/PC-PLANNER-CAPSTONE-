@@ -1588,7 +1588,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 
 /* New Build Card Design */
 .card-header-gradient {
-  background: #1a2c93f5;
+  background: linear-gradient(135deg, #1a2c93 0%, #4b8eec 100%);
   margin: -1.25rem -1.25rem 1rem -1.25rem;
   padding: 1rem 1.25rem;
   display: flex;
