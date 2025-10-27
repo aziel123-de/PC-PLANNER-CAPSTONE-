@@ -17,6 +17,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
   const analysis = analyzeBuild(selectedParts);
   const { compatSeverity, bottleneckNote, laymanExplanation, upgradeRecommendation, ram, power } = analysis;
   const usageScores = analysis.usageScores || { gaming: 0, office: 0, productivity: 0 };
+  const BuildSuitabilitynote = analysis.BuildSuitabilitynote || '';
   const { ramBottleneck, ramBottleneckNote } = ram;
   const { showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, psuWatt, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, cpuTDP, gpuPowerTotal, totalRequiredPower, powerCause } = {
     showPowerWarning: power.showPowerWarning,
@@ -163,6 +164,13 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
               <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>
                 Finish the build to see the status bar
               </p>
+            )}
+            {BuildSuitabilitynote && (
+              <div style={{ marginTop: 12, padding: '8px 12px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#0c4a6e', fontWeight: 500 }}>
+                   {BuildSuitabilitynote}
+                </p>
+              </div>
             )}
           </div>
         </div>

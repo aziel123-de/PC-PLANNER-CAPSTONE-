@@ -137,59 +137,85 @@ export function analyzeBuild(selectedParts) {
     let compatible = false;
     let severity = 'good';
     let note = '';
+    let BuildSuitabilitynote = '';
     let laymanNote = '';
     let usageScores = { gaming: 0, office: 0, productivity: 0 };
     
-    // CUDA Cores (NVIDIA) compatibility
+    // CUDA Cores (NVIDIA) compatibility - Updated with more realistic thresholds
     if (cudaCores > 0) {
-      if (cpuCores === 4 && cudaCores >= 800 && cudaCores <= 1500) {
+      if (cpuCores == 4 && cudaCores >= 800 && cudaCores <= 1500) {
         compatible = true;
-        usageScores = { gaming: 60, office: 90, productivity: 50 };
-      } else if (cpuCores === 6 && cudaCores >= 1600 && cudaCores <= 6000) {
+        usageScores = { gaming: 60, office: 95, productivity: 55 };
+        BuildSuitabilitynote = 'Great for everyday tasks like schoolwork and office use. Light gaming possible, but not for heavy graphics.';
+
+      } else if (cpuCores == 6 && cudaCores >= 1600 && cudaCores <= 6000) {
         compatible = true;
-        usageScores = { gaming: 85, office: 50, productivity: 70 };
-      } else if (cpuCores === 8 && cudaCores >= 6000 && cudaCores <= 12000) {
+        usageScores = { gaming: 85, office: 85, productivity: 75 };
+        BuildSuitabilitynote = 'Balanced system for gaming, school, and light creative work. Slightly more powerful than needed for office tasks, so efficiency is a bit lower.';
+
+      } else if (cpuCores == 8  && cudaCores >= 6100 && cudaCores <= 12000) {
         compatible = true;
-        usageScores = { gaming: 95, office: 70, productivity: 90 };
-      } else if (cpuCores > 9 && cudaCores >= 12000 && cudaCores <= 20000) {
+        usageScores = { gaming: 90, office: 80, productivity: 90 };
+        BuildSuitabilitynote = 'Powerful setup for gaming and productivity. For office work, it’s more than needed, higher power draw and heat make it less ideal for simple tasks.';
+
+      } else if (cpuCores == 12 && cudaCores >= 12100) {
         compatible = true;
-        usageScores = { gaming: 85, office: 50, productivity: 95 };
+        usageScores = { gaming: 85, office: 70, productivity: 95 };
+        BuildSuitabilitynote = 'Top-tier hardware for advanced workloads. Excellent for gaming and professional use, but overpowered for basic office tasks and less power-efficient.';
+
       } else {
         compatible = false;
-        if (cudaCores > 20000 || (cpuCores === 4 && cudaCores > 1500) || (cpuCores === 6 && cudaCores > 6000) || (cpuCores === 8 && cudaCores > 12000)) {
-          severity = (cpuCores === 4 && cudaCores >= 6000) ? 'bad' : 'warn';
-          note = `GPU with ${cudaCores} CUDA cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+        if (cudaCores > 12000 && cpuCores < 8) {
+          severity = 'bad';
+          note = `High-end GPU with ${cudaCores} CUDA cores will be significantly bottlenecked by ${cpuCores}-core CPU. Consider upgrading to at least 8-core CPU.`;
           laymanNote = 'Your graphics card is too powerful for your processor. This means your processor might slow down your graphics card, preventing you from getting the best gaming performance.';
+        } else if (cudaCores > 6000 && cpuCores < 6) {
+          severity = 'warn';
+          note = `GPU with ${cudaCores} CUDA cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU for optimal performance.`;
+          laymanNote = 'Your graphics card might be limited by your processor in demanding games or applications.';
         } else {
           severity = 'warn';
-          note = `${cpuCores}-core CPU may be overpowered for GPU with ${cudaCores} CUDA cores. Consider upgrading GPU.`;
+          note = `${cpuCores}-core CPU may be overpowered for GPU with ${cudaCores} CUDA cores. Consider upgrading GPU for better balance.`;
           laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         }
       }
     }
-    // Computing Units (AMD Radeon) compatibility
+    // Computing Units (AMD Radeon) compatibility - Updated with more realistic thresholds
     else if (computeUnits > 0) {
-      if (cpuCores === 4 && computeUnits >= 16 && computeUnits <= 30) {
+      if (cpuCores == 4  && computeUnits >= 16 && computeUnits <= 30) {
         compatible = true;
-        usageScores = { gaming: 60, office: 90, productivity: 50 };
-      } else if (cpuCores === 6 && computeUnits >= 30 && computeUnits <= 54) {
+        usageScores = { gaming: 60, office: 95, productivity: 55 };
+
+        BuildSuitabilitynote = 'Great for everyday tasks like schoolwork and office use. Light gaming possible, but not for heavy graphics.';
+
+      } else if (cpuCores == 6 && computeUnits >= 31 && computeUnits <= 54) {
         compatible = true;
-        usageScores = { gaming: 85, office: 50, productivity: 70 };
-      } else if (cpuCores === 8 && computeUnits >= 55 && computeUnits <= 84) {
+        usageScores = { gaming: 85, office: 85, productivity: 75 };
+        BuildSuitabilitynote = 'Balanced system for gaming, school, and light creative work. Slightly more powerful than needed for office tasks, so efficiency is a bit lower.';
+
+      } else if (cpuCores == 8  && computeUnits >= 55 && computeUnits <= 84) {
         compatible = true;
-        usageScores = { gaming: 95, office: 70, productivity: 90 };
-      } else if (cpuCores > 9 && computeUnits >= 85 && computeUnits <= 100) {
+        usageScores = { gaming: 90, office: 80, productivity: 90 };
+        BuildSuitabilitynote = 'Powerful setup for gaming and productivity. For office work, it’s more than needed, higher power draw and heat make it less ideal for simple tasks.';
+
+      } else if (cpuCores == 12 && computeUnits >= 85) {
         compatible = true;
-        usageScores = { gaming: 85, office: 50, productivity: 95 };
+        usageScores = { gaming: 85, office: 70, productivity: 95 };
+        BuildSuitabilitynote = 'Top-tier hardware for advanced workloads. Excellent for gaming and professional use, but overpowered for basic office tasks and less power-efficient.';
+
       } else {
         compatible = false;
-        if (computeUnits > 100 || (cpuCores === 4 && computeUnits > 30) || (cpuCores === 6 && computeUnits > 54) || (cpuCores === 8 && computeUnits > 84)) {
-          severity = (cpuCores === 4 && computeUnits >= 55) ? 'bad' : 'warn';
-          note = `GPU with ${computeUnits} compute units may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
+        if (computeUnits > 80 && cpuCores < 8) {
+          severity = 'bad';
+          note = `High-end GPU with ${computeUnits} compute units will be significantly bottlenecked by ${cpuCores}-core CPU. Consider upgrading to at least 8-core CPU.`;
           laymanNote = 'Your graphics card is too powerful for your processor. This means your processor might slow down your graphics card, preventing you from getting the best gaming performance.';
+        } else if (computeUnits > 60 && cpuCores < 6) {
+          severity = 'warn';
+          note = `GPU with ${computeUnits} compute units may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU for optimal performance.`;
+          laymanNote = 'Your graphics card might be limited by your processor in demanding games or applications.';
         } else {
           severity = 'warn';
-          note = `${cpuCores}-core CPU may be overpowered for GPU with ${computeUnits} compute units. Consider upgrading GPU.`;
+          note = `${cpuCores}-core CPU may be overpowered for GPU with ${computeUnits} compute units. Consider upgrading GPU for better balance.`;
           laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         }
       }
@@ -198,20 +224,31 @@ export function analyzeBuild(selectedParts) {
     else if (xeCores > 0) {
       if (cpuCores === 4 && xeCores >= 4 && xeCores <= 8) {
         compatible = true;
-        usageScores = { gaming: 60, office: 90, productivity: 50 };
+        usageScores = { gaming: 60, office: 95, productivity: 55 };
+        BuildSuitabilitynote = 'Great for everyday tasks like schoolwork and office use. Light gaming possible, but not for heavy graphics.';
+
+
       } else if (cpuCores === 6 && xeCores >= 9 && xeCores <= 16) {
         compatible = true;
-        usageScores = { gaming: 85, office: 50, productivity: 70 };
-      } else if (cpuCores === 8 && xeCores >= 24 && xeCores <= 32) {
+        usageScores = { gaming: 85, office: 85, productivity: 75 };
+        BuildSuitabilitynote = 'Balanced system for gaming, school, and light creative work. Slightly more powerful than needed for office tasks, so efficiency is a bit lower.';
+
+
+      } else if (cpuCores === 8 && xeCores >= 17 && xeCores <= 32) {
         compatible = true;
-        usageScores = { gaming: 95, office: 70, productivity: 90 };
-      } else if (cpuCores > 9 && xeCores >= 33 && xeCores <= 45) {
+        usageScores = { gaming: 90, office: 80, productivity: 90 };
+        BuildSuitabilitynote = 'Powerful setup for gaming and productivity. For office work, it’s more than needed, higher power draw and heat make it less ideal for simple tasks.';
+
+      } else if (cpuCores > 8 && xeCores >= 33 && xeCores <= 45) {
         compatible = true;
-        usageScores = { gaming: 85, office: 50, productivity: 95 };
+        usageScores = { gaming: 85, office: 70, productivity: 95 };
+        BuildSuitabilitynote = 'Top-tier hardware for advanced workloads. Excellent for gaming and professional use, but overpowered for basic office tasks and less power-efficient.';
+
+
       } else {
         compatible = false;
         if (xeCores > 45 || (cpuCores === 4 && xeCores > 8) || (cpuCores === 6 && xeCores > 16) || (cpuCores === 8 && xeCores > 32)) {
-          severity = (cpuCores === 4 && xeCores >= 24) ? 'bad' : 'warn';
+          severity = (cpuCores === 4 && xeCores >= 17) ? 'bad' : 'warn';
           note = `GPU with ${xeCores} Xe cores may be bottlenecked by ${cpuCores}-core CPU. Consider upgrading CPU.`;
           laymanNote = 'Your graphics card is too powerful for your processor. This means your processor might slow down your graphics card, preventing you from getting the best gaming performance.';
         } else {
@@ -222,12 +259,13 @@ export function analyzeBuild(selectedParts) {
       }
     }
     
-    return { compatible, severity, note, laymanNote, usageScores };
+    return { compatible, severity, note, laymanNote, usageScores, BuildSuitabilitynote };
   };
  
   let bottleneckNote = hasCpuGpu ? '' : 'NO DATA';
   let laymanExplanation = '';
   let usageScores = { gaming: 0, office: 0, productivity: 0 };
+  let BuildSuitabilitynote = '';
   let compatSeverity = 'good';
   const cpuGpuCompat = checkCpuGpuCompatibility(cpuRaw, gpuArray);
   
@@ -239,10 +277,12 @@ export function analyzeBuild(selectedParts) {
       bottleneckNote = cpuGpuCompat.note;
       laymanExplanation = cpuGpuCompat.laymanNote || '';
       usageScores = cpuGpuCompat.usageScores || usageScores;
+      BuildSuitabilitynote = cpuGpuCompat.BuildSuitabilitynote || '';
       compatSeverity = cpuGpuCompat.severity;
     } else if (cpuGpuCompat.compatible) {
       bottleneckNote = 'Good balance: CPU and GPU configuration looks well-matched.';
       usageScores = cpuGpuCompat.usageScores || usageScores;
+      BuildSuitabilitynote = cpuGpuCompat.BuildSuitabilitynote || '';
       compatSeverity = 'good';
     } else {
       bottleneckNote = 'Configuration detected but specific compatibility ranges not found.';
@@ -311,6 +351,7 @@ export function analyzeBuild(selectedParts) {
     bottleneckNote,
     laymanExplanation,
     usageScores,
+    BuildSuitabilitynote,
     upgradeRecommendation,
     ram: { highestRamFrequency, cpuMaxMemSpeed, ramBottleneck, ramBottleneckNote },
     power: { cpuTDP, gpuPowerTotal, psuWatt, totalRequiredPower, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, powerCause }
