@@ -50,7 +50,8 @@ function ComponentSpecs({ part }) {
     vram: find('Vram', 'vram', 'VRAM'),
     maxTdp: find('MaxTDP', 'MaxTdp', 'maxTDP'),
     ramMax: find('RamMax', 'ramMax'),
-    cache: find('cache', 'Cache', 'L3Cache', 'L2Cache')
+    cache: find('cache', 'Cache', 'L3Cache', 'L2Cache'),
+    aspectRatio: find('aspect_ratio', 'aspectRatio', 'AspectRatio')
   };
 
   // helper to format values for display
@@ -81,7 +82,8 @@ function ComponentSpecs({ part }) {
     ['Cache', 'cache'],
     ['TDP', 'tdp'],
     ['Power Draw', 'powerDraw'],
-    ['VRAM', 'vram']
+    ['VRAM', 'vram'],
+    ['Aspect Ratio', 'aspectRatio']
   ];
 
   const entries = [];
@@ -97,6 +99,7 @@ function ComponentSpecs({ part }) {
   seen.add('form_factor'); seen.add('FormFactor'); seen.add('formfactor');
   seen.add('ram_type'); seen.add('RamType'); seen.add('ramtype'); seen.add('Ramtype');
   seen.add('ram_max'); seen.add('RamMax'); seen.add('rammax');
+  seen.add('aspect_ratio'); seen.add('AspectRatio'); seen.add('aspectratio');
   const collectPrimitives = (obj) => {
     if (!obj || typeof obj !== 'object') return;
     for (const [k, v] of Object.entries(obj)) {
