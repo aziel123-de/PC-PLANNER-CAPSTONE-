@@ -26,13 +26,51 @@ function CommunityList() {
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, buildId: null, buildTitle: '' });
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
   const [uploadedImages, setUploadedImages] = useState({});
+  const [pendingImages, setPendingImages] = useState({});
 
-  const handleImageUpload = (buildId, event) => {
+  const handleImageSelect = (buildId, event) => {
     const file = event.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setUploadedImages(prev => ({ ...prev, [buildId]: imageUrl }));
-      // TODO: Upload file to server
+      setPendingImages(prev => ({ ...prev, [buildId]: file }));
+    }
+  };
+
+  const handleImageUpload = async (buildId) => {
+    const file = pendingImages[buildId];
+    if (!file) return;
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAlertModal({ show: true, message: 'Login required', title: 'Authentication Required' });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await fetch(`${API_PREFIX}/${buildId}/image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Upload failed' }));
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
+      
+      const data = await res.json();
+      setBuilds(prev => prev.map(b => b.id === buildId ? { ...b, build_image: data.imageUrl } : b));
+      setAllBuilds(prev => prev.map(b => b.id === buildId ? { ...b, build_image: data.imageUrl } : b));
+      setPendingImages(prev => { const newPending = { ...prev }; delete newPending[buildId]; return newPending; });
+      setUploadedImages(prev => { const newUploaded = { ...prev }; delete newUploaded[buildId]; return newUploaded; });
+      setAlertModal({ show: true, message: 'Image uploaded successfully!', title: 'Success' });
+    } catch (e) {
+      console.error('Upload error:', e);
+      setAlertModal({ show: true, message: e.message || 'Upload failed', title: 'Upload Error' });
     }
   };
 
@@ -224,7 +262,18 @@ function CommunityList() {
                 <div className="card-body">
                   <div className="image-upload-area">
                     {build.build_image || uploadedImages[build.id] ? (
-                      <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
+                      <div style={{ position: 'relative', width: '100%' }}>
+                        <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
+                        {pendingImages[build.id] && (
+                          <button 
+                            className="save-image-btn" 
+                            onClick={() => handleImageUpload(build.id)}
+                            style={{ position: 'absolute', bottom: '10px', right: '10px', padding: '8px 16px', background: '#4a6cf7', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                          >
+                            Save Image
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       currentUserId && currentUserId === build.user_id ? (
                         <label htmlFor={`upload-${build.id}`} className="upload-placeholder" style={{ cursor: 'pointer', width: '100%' }}>
@@ -233,7 +282,7 @@ function CommunityList() {
                             type="file"
                             accept="image/*"
                             style={{ display: 'none' }}
-                            onChange={(e) => handleImageUpload(build.id, e)}
+                            onChange={(e) => handleImageSelect(build.id, e)}
                           />
                           <div className="upload-icon-box">
                             <TbFileUpload className="upload-icon" />

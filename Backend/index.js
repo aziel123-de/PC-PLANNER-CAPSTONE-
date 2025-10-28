@@ -21,7 +21,7 @@ app.use(express.json());
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configure multer for profile picture uploads
+// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, 'uploads');
@@ -32,22 +32,23 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const filename = `profile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}${ext}`;
+    const prefix = file.fieldname === 'image' ? 'build' : 'profile';
+    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}${ext}`;
     cb(null, filename);
   }
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png/;
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Only JPEG and PNG images are allowed'));
+      cb(new Error('Only image files are allowed'));
     }
   }
 });
@@ -107,11 +108,18 @@ async function ensureSchema() {
       total_price INT DEFAULT 0,
       up_votes INT DEFAULT 0,
       down_votes INT DEFAULT 0,
+      build_image TEXT,
       createdAt DATETIME NOT NULL,
       updatedAt DATETIME NOT NULL,
       INDEX(user_id),
       CONSTRAINT fk_community_builds_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
+    // Add build_image column if it doesn't exist
+    try {
+      await conn.query('ALTER TABLE community_builds ADD COLUMN build_image TEXT');
+    } catch (e) {
+      // Column already exists
+    }
     // Comments table
     await conn.query(`CREATE TABLE IF NOT EXISTS community_build_comments (
       id VARCHAR(36) PRIMARY KEY,
@@ -651,7 +659,7 @@ app.get(`${API_PREFIX}/community/builds`, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.query(
-      `SELECT b.id,b.user_id,b.title,b.description,b.total_price,b.up_votes,b.down_votes,b.createdAt,b.updatedAt,b.parts_json,u.username
+      `SELECT b.id,b.user_id,b.title,b.description,b.total_price,b.up_votes,b.down_votes,b.build_image,b.createdAt,b.updatedAt,b.parts_json,u.username,u.profile_picture
        FROM community_builds b
        LEFT JOIN users u ON u.id=b.user_id
        ORDER BY b.createdAt DESC LIMIT ? OFFSET ?`,
@@ -661,12 +669,14 @@ app.get(`${API_PREFIX}/community/builds`, async (req, res) => {
       id: r.id,
       user_id: r.user_id,
       username: r.username || null,
+      profile_picture: r.profile_picture || null,
       title: r.title,
       description: r.description,
       total_price: r.total_price,
       up_votes: r.up_votes||0,
       down_votes: r.down_votes||0,
       score: (r.up_votes||0) - (r.down_votes||0),
+      build_image: r.build_image || null,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
       parts: safeParse(r.parts_json, {})
@@ -813,6 +823,42 @@ app.post(`${API_PREFIX}/community/builds/:id/vote`, async (req, res) => {
   } finally { conn.release(); }
 });
 
+// Upload image for community build
+app.post(`${API_PREFIX}/community/builds/:id/image`, (req, res) => {
+  upload.single('image')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    
+    const userId = getUserIdFromRequest(req);
+    if (!userId) return res.status(401).json({ error: 'unauthorized' });
+    
+    const { id } = req.params;
+    if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
+    
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query('SELECT user_id, build_image FROM community_builds WHERE id=? LIMIT 1', [id]);
+      if (!rows.length) return res.status(404).json({ error: 'not found' });
+      if (rows[0].user_id !== userId) return res.status(403).json({ error: 'forbidden' });
+      
+      const oldImage = rows[0].build_image;
+      const imagePath = `/uploads/${req.file.filename}`;
+      await conn.query('UPDATE community_builds SET build_image=? WHERE id=?', [imagePath, id]);
+      
+      // Delete old image if exists
+      if (oldImage && oldImage.startsWith('/uploads/')) {
+        const oldFilePath = path.join(__dirname, oldImage);
+        if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
+      }
+      
+      res.json({ imageUrl: imagePath });
+    } catch (err) {
+      console.error('build image upload error', err);
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      res.status(500).json({ error: 'db error' });
+    } finally { conn.release(); }
+  });
+});
+
 // Delete community build (owner only)
 app.delete(`${API_PREFIX}/community/builds/:id`, async (req, res) => {
   const userId = getUserIdFromRequest(req);
@@ -820,9 +866,17 @@ app.delete(`${API_PREFIX}/community/builds/:id`, async (req, res) => {
   const { id } = req.params;
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query('SELECT user_id FROM community_builds WHERE id=? LIMIT 1', [id]);
+    const [rows] = await conn.query('SELECT user_id, build_image FROM community_builds WHERE id=? LIMIT 1', [id]);
     if (!rows.length) return res.status(404).json({ error: 'not found' });
     if (rows[0].user_id !== userId) return res.status(403).json({ error: 'forbidden' });
+    
+    // Delete image file if exists
+    const buildImage = rows[0].build_image;
+    if (buildImage && buildImage.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, buildImage);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+    
     await conn.query('DELETE FROM community_builds WHERE id=?', [id]);
     return res.json({ ok: true });
   } catch (err) {
