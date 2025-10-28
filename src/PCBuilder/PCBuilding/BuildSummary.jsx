@@ -17,6 +17,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
   const analysis = analyzeBuild(selectedParts);
   const { compatSeverity, bottleneckNote, laymanExplanation, upgradeRecommendation, ram, power } = analysis;
   const usageScores = analysis.usageScores || { gaming: 0, office: 0, productivity: 0 };
+  const BuildSuitabilitynote = analysis.BuildSuitabilitynote || '';
   const { ramBottleneck, ramBottleneckNote } = ram;
   const { showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, psuWatt, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, cpuTDP, gpuPowerTotal, totalRequiredPower, powerCause } = {
     showPowerWarning: power.showPowerWarning,
@@ -63,7 +64,12 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
             </div>
           </div>
           <div className="compat-card-content">
-            <p className="compat-description">{!hasCpuGpu ? 'NO DATA' : bottleneckNote}</p>
+            <p className="compat-description">
+              {!hasCpuGpu ? 'NO DATA' : (() => {
+                const parts = bottleneckNote.split('\n\nSuggestion: ');
+                return parts[0];
+              })()}
+            </p>
             {laymanExplanation && (
               <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057' }}>
@@ -71,16 +77,47 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
                 </p>
               </div>
             )}
+            {hasCpuGpu && bottleneckNote.includes('Suggestion: ') && (
+              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
+                  ⚙️ <strong>Suggestion:</strong> {bottleneckNote.split('\n\nSuggestion: ')[1]}
+                </p>
+              </div>
+            )}
             {ramBottleneck && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div className="compat-badge compat-warn compat-secondary">RAM BOTTLENECK</div>
-                <div style={{ color: '#7f1d1d', fontWeight: 600 }}>{ramBottleneckNote}</div>
+                <div style={{ color: '#7f1d1d', fontWeight: 600 }}>
+                  {(() => {
+                    const parts = ramBottleneckNote.split('\n\nSuggestion: ');
+                    return parts[0];
+                  })()}
+                </div>
+              </div>
+            )}
+            {ramBottleneck && ramBottleneckNote.includes('Suggestion: ') && (
+              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
+                  ⚙️ <strong>Suggestion:</strong> {ramBottleneckNote.split('\n\nSuggestion: ')[1]}
+                </p>
               </div>
             )}
             {upgradeRecommendation && (
               <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div className="compat-badge compat-warn compat-secondary">RECOMMENDATION</div>
-                <div style={{ color: '#334155', fontWeight: 600 }}>{upgradeRecommendation}</div>
+                <div style={{ color: '#334155', fontWeight: 600 }}>
+                  {(() => {
+                    const parts = upgradeRecommendation.split('\n\nSuggestion: ');
+                    return parts[0];
+                  })()}
+                </div>
+              </div>
+            )}
+            {upgradeRecommendation && upgradeRecommendation.includes('Suggestion: ') && (
+              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
+                  ⚙️ <strong>Suggestion:</strong> {upgradeRecommendation.split('\n\nSuggestion: ')[1]}
+                </p>
               </div>
             )}
             
@@ -117,12 +154,22 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
                 {!psuSelected
                   ? 'PSU not selected.'
                   : showPowerWarning || showOverpoweredWarning
-                    ? powerWarningText
+                    ? (() => {
+                        const parts = powerWarningText.split('\n\nSuggestion: ');
+                        return parts[0];
+                      })()
                     : isInRecommendedRange
                       ? `Excellent choice! PSU ${psuWatt}W is within the recommended range (${minRecommendedPSU}W - ${maxRecommendedPSU}W). This provides adequate power with headroom for future upgrades.`
                       : `PSU ${psuWatt}W is sufficient. Recommended range: ${minRecommendedPSU}W - ${maxRecommendedPSU}W for optimal efficiency and upgrade headroom (CPU ${cpuTDP || 0}W + GPUs ${gpuPowerTotal || 0}W = ${totalRequiredPower}W base).`
                 }
               </p>
+              {(showPowerWarning || showOverpoweredWarning) && powerWarningText.includes('Suggestion: ') && (
+                <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
+                    ⚙️ <strong>Suggestion:</strong> {powerWarningText.split('\n\nSuggestion: ')[1]}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -163,6 +210,13 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
               <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>
                 Finish the build to see the status bar
               </p>
+            )}
+            {BuildSuitabilitynote && (
+              <div style={{ marginTop: 12, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 500 }}>
+                   {BuildSuitabilitynote}
+                </p>
+              </div>
             )}
           </div>
         </div>
