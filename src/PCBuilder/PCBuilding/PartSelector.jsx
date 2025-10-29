@@ -1,10 +1,14 @@
 import './PartSelector.css';
 import Select from 'react-select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex, partIcon }) {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState(null);
+  const [iconImg, setIconImg] = useState(null);
+  const [modalImageUrl, setModalImageUrl] = useState(null);
+  const [multiSlotImgs, setMultiSlotImgs] = useState({}); // idx -> url
+  const firstSelected = Array.isArray(selectedValues) ? selectedValues[0] : null;
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
   const mapByCanonical = {
@@ -82,6 +86,34 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
 
   // normalize all options early so compatibility checks work
   options = options.map(normalize);
+
+  // Top-level: fetch DB image for single-select icon (by name only)
+  useEffect(() => {
+    let active = true;
+    const item = selectedValue;
+    async function load() {
+      try {
+        if (!item || !item.name) { if (active) setIconImg(null); return; }
+        if (item.image) { if (active) setIconImg(null); return; }
+        const cache = (typeof window !== 'undefined') ? (window.__imgCache = window.__imgCache || new Map()) : null;
+        const key = `imgdbname:${item.name}`;
+        if (cache && cache.has(key)) { if (active) setIconImg(cache.get(key)); return; }
+        const base = import.meta?.env?.VITE_BACKEND_URL || '';
+        const url = `${base}/api/items/image/by-name?name=${encodeURIComponent(item.name)}`;
+        const r = await fetch(url);
+        if (!r.ok) { if (active) setIconImg(null); return; }
+        const row = await r.json();
+        const imgUrl = row?.image_url || null;
+        if (active) {
+          setIconImg(imgUrl);
+          if (cache && imgUrl) cache.set(key, imgUrl);
+        }
+      } catch { if (active) setIconImg(null); }
+    }
+    load();
+    return () => { active = false; };
+  }, [selectedValue && selectedValue.name]);
+
 
   // GPU SLI/CrossFire compatibility filtering
   if (part.name === "Graphics Card (GPU)" && selectedGPUs && selectedGPUs[0] && selectedValue !== selectedGPUs[0]) {
@@ -293,15 +325,35 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       setSelectedValues(newArr);
     };
 
+    // Fetch DB-backed icon for each slot independently (by name only)
+    useEffect(() => {
+      let active = true;
+      const base = import.meta?.env?.VITE_BACKEND_URL || '';
+      const cache = (typeof window !== 'undefined') ? (window.__imgCache = window.__imgCache || new Map()) : null;
+      const next = {};
+      const promises = (valuesArr || []).map(async (val, idx) => {
+        try {
+          if (!val || !val.name) { next[idx] = null; return; }
+          if (val.image) { next[idx] = null; return; }
+          const key = `imgdbname:${val.name}`;
+          if (cache && cache.has(key)) { next[idx] = cache.get(key); return; }
+          const url = `${base}/api/items/image/by-name?name=${encodeURIComponent(val.name)}`;
+          const r = await fetch(url);
+          if (!r.ok) { next[idx] = null; return; }
+          const row = await r.json();
+          const imgUrl = row?.image_url || null;
+          next[idx] = imgUrl;
+          if (cache && imgUrl) cache.set(key, imgUrl);
+        } catch { next[idx] = null; }
+      });
+      Promise.all(promises).then(() => {
+        if (active) setMultiSlotImgs(next);
+      });
+      return () => { active = false; };
+    }, [valuesArr]);
+
     return (
       <div className="PartSelectorContainer">
-        <div className="PartIconPlaceholder" onClick={() => { if(valuesArr[0]) { setModalData(valuesArr[0]); setShowModal(true); } }} style={{ cursor: valuesArr[0] ? 'pointer' : 'default' }}>
-          {valuesArr[0]?.image ? (
-            <img src={valuesArr[0].image} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          ) : (
-            !valuesArr[0] && partIcon && <img src={partIcon} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          )}
-        </div>
         <div className="PartSelectorContent">
         <h1>{part.name}</h1>
         <h4>Select {part.name} for your build</h4>
@@ -311,38 +363,62 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
         <div className="MultiSlotWrapper">
           {valuesArr.map((val, idx) => (
             <div key={idx} className="SlotSelect">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <label className="SlotLabel">{part.name} {idx + 1}</label>
-                {valuesArr.length > 1 && (
-                  <button 
-                    type="button" 
-                    onClick={() => removeSlot(idx)}
-                    style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-              <Select
-                className="PartSelector"
-                value={val ? (() => {
-                  let label = `${val.name} (₱${Number(val.price || 0).toLocaleString()})`;
-                  if (part.name === "Memory (RAM)") {
-                    const frequency = val._raw?.frequency_mhz || val.frequency_mhz || val._raw?.Frequency || val.frequency;
-                    if (frequency) {
-                      label = `${val.name} - ${frequency}MHz (₱${Number(val.price || 0).toLocaleString()})`;
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <div
+                  className="PartIconPlaceholder"
+                  onClick={() => {
+                    if(val) {
+                      setModalData(val);
+                      const full = val?.image || multiSlotImgs[idx] || null;
+                      setModalImageUrl(full);
+                      setShowModal(true);
                     }
-                  }
-                  return { value: val.id, label, data: val };
-                })() : null}
-                onChange={(opt) => handleChangeAt(idx, opt)}
-                options={reactSelectOptions}
-                isSearchable
-                isClearable
-                placeholder={`-- Select ${part.name} ${idx + 1} --`}
-                menuHeight={200}
-                maxMenuHeight={200}
-              />
+                  }}
+                  style={{ cursor: val ? 'pointer' : 'default', width: 72, height: 72, flex: '0 0 auto' }}
+                >
+                  {val?.image ? (
+                    <img src={val.image} alt={`${part.name} ${idx+1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : multiSlotImgs[idx] ? (
+                    <img src={multiSlotImgs[idx]} alt={`${part.name} ${idx+1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    partIcon && <img src={partIcon} alt={`${part.name} ${idx+1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  )}
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap: 8, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label className="SlotLabel">{part.name} {idx + 1}</label>
+                    {valuesArr.length > 1 && (
+                      <button 
+                        type="button" 
+                        onClick={() => removeSlot(idx)}
+                        style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <Select
+                    className="PartSelector"
+                    value={val ? (() => {
+                      let label = `${val.name} (₱${Number(val.price || 0).toLocaleString()})`;
+                      if (part.name === "Memory (RAM)") {
+                        const frequency = val._raw?.frequency_mhz || val.frequency_mhz || val._raw?.Frequency || val.frequency;
+                        if (frequency) {
+                          label = `${val.name} - ${frequency}MHz (₱${Number(val.price || 0).toLocaleString()})`;
+                        }
+                      }
+                      return { value: val.id, label, data: val };
+                    })() : null}
+                    onChange={(opt) => handleChangeAt(idx, opt)}
+                    options={reactSelectOptions}
+                    isSearchable
+                    isClearable
+                    placeholder={`-- Select ${part.name} ${idx + 1} --`}
+                    menuHeight={200}
+                    maxMenuHeight={200}
+                  />
+                </div>
+              </div>
             </div>
           ))}
           {valuesArr.length < maxSlots && (
@@ -373,7 +449,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }} onClick={() => setShowModal(false)}>
             <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', maxWidth: '500px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
-              {modalData.image && <img src={modalData.image} alt={modalData.name} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', marginBottom: '20px' }} />}
+              {modalImageUrl && <img src={modalImageUrl} alt={modalData.name} style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', marginBottom: '20px' }} />}
               <h2 style={{ margin: '0 0 20px 0' }}>{modalData.name}</h2>
               <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand || 'N/A'}</div>
             </div>
@@ -385,11 +461,20 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
 
   return (
     <div className="PartSelectorContainer">
-      <div className="PartIconPlaceholder" onClick={() => { if(selectedValue) { setModalData(selectedValue); setShowModal(true); } }} style={{ cursor: selectedValue ? 'pointer' : 'default' }}>
+      <div className="PartIconPlaceholder" onClick={() => {
+        if(selectedValue) {
+          setModalData(selectedValue);
+          const full = selectedValue?.image || iconImg || null;
+          setModalImageUrl(full);
+          setShowModal(true);
+        }
+      }} style={{ cursor: selectedValue ? 'pointer' : 'default' }}>
         {selectedValue?.image ? (
           <img src={selectedValue.image} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        ) : iconImg ? (
+          <img src={iconImg} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         ) : (
-          !selectedValue && partIcon && <img src={partIcon} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          partIcon && <img src={partIcon} alt={part.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         )}
       </div>
       <div className="PartSelectorContent">
@@ -420,7 +505,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }} onClick={() => setShowModal(false)}>
           <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', maxWidth: '500px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
-            {modalData.image && <img src={modalData.image} alt={modalData.name} style={{ width: '100%', maxHeight: '300px', objectFit: 'contain', marginBottom: '20px' }} />}
+            {modalImageUrl && <img src={modalImageUrl} alt={modalData.name} style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', marginBottom: '20px' }} />}
             <h2 style={{ margin: '0 0 20px 0' }}>{modalData.name}</h2>
             <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand || 'N/A'}</div>
           </div>
