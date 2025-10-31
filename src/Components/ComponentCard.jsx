@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from 'react-dom';
 import './ComponentCard.css';
 
 /**
@@ -16,6 +17,7 @@ function ComponentCard({ component }) {
   const [imgSrcLink, setImgSrcLink] = useState(null);
   const [loadingImg, setLoadingImg] = useState(false);
   const [imgError, setImgError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   if (!item) {
     return (
@@ -71,7 +73,7 @@ function ComponentCard({ component }) {
   // Render component card
   return (
     <div className="component-card">
-      <h2>{item.name}</h2>
+      <h2 className="component-title-list">{item.name}</h2>
 
       <div className="component-image">
         {img ? (
@@ -89,23 +91,46 @@ function ComponentCard({ component }) {
         )}
       </div>
 
-      <ul>
-        {Object.entries(item).map(([key, value]) => {
-          // skip meta fields and any raw data fields
-          if (key === "id" || key === "name" || key === "image") return null;
-          if (String(key).toLowerCase().includes('raw')) return null;
+      <button className="component-details-btn" onClick={() => setShowModal(true)}>
+        See More Details
+      </button>
 
-          // format the label: replace underscores and title-case
-          const label = String(key).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-
-          return (
-            <li key={key} className="components-list-info">
-             <label className="label-text">{label}:</label>
-              <span className="value">{String(value)}</span>
-            </li>
-          );
-        })}
-      </ul>
+      {showModal && createPortal(
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            <h2 className="modal-title">{item.name}</h2>
+            <div className="component-image">
+              {img ? (
+                imgSrcLink ? (
+                  <a href={imgSrcLink} target="_blank" rel="noopener noreferrer">
+                    <img src={img} alt={item.name} />
+                  </a>
+                ) : (
+                  <img src={img} alt={item.name} />
+                )
+              ) : (
+                <div className="component-image--placeholder">
+                  {loadingImg ? 'Loading image…' : (imgError ? 'No image found' : 'No image')}
+                </div>
+              )}
+            </div>
+            <div className="modal-details">
+              {Object.entries(item).map(([key, value]) => {
+                if (key === "id" || key === "name" || key === "image") return null;
+                if (String(key).toLowerCase().includes('raw')) return null;
+                const label = String(key).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+                return (
+                  <div key={key} className="modal-detail-item">
+                    <strong>{label}:</strong> {String(value)}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
