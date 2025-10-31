@@ -94,8 +94,10 @@ function Login({ onSignUpClick, onLoginSuccess , onBackClick}) {
       if (typeof onLoginSuccess === 'function') onLoginSuccess(data.user);
       navigate('/dashboard');
     } catch (err) {
+      // Ignore user-cancelled actions
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
       console.error('Google sign-in error', err);
-      setError(err.message || 'Google sign-in failed');
+      setError('Google sign-in failed');
     }
   };
 
