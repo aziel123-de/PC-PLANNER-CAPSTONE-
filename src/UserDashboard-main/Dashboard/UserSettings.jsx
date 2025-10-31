@@ -146,33 +146,44 @@ function UserSettings({ onBack, onLogout, userId }) {
     setSaving(true);
     
     try {
-      // For MySQL, we'll send JSON data for user info (excluding email)
+      const token = localStorage.getItem('token');
+      let newProfilePicture = profilePictureUrl;
+
+      // Upload profile picture FIRST if selected
+      if (formData.profilePicture) {
+        try {
+          const uploadResult = await handleProfilePictureUpload();
+          newProfilePicture = uploadResult;
+        } catch (uploadError) {
+          console.error('Profile picture upload failed:', uploadError);
+          setSaving(false);
+          alert(`Profile picture upload failed: ${uploadError.message}`);
+          return;
+        }
+      }
+
+      // Then update user name
       const updateData = {
-        full_name: formData.fullName,
-        updated_at: new Date().toISOString()
+        full_name: formData.fullName
       };
 
-      // Update user data in MySQL
-    const token = localStorage.getItem('token');
-    const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(updateData),
       });
 
       if (response.ok) {
         const updatedUser = await response.json();
-        console.log('Profile updated successfully in MySQL:', updatedUser);
-
-        // Update local form state with the returned values (if any)
         const newFullName = updatedUser.full_name || updatedUser.fullName || formData.fullName;
         const newEmail = updatedUser.email || formData.email;
-        setFormData((prev) => ({ ...prev, fullName: newFullName, email: newEmail }));
+        
+        setFormData((prev) => ({ ...prev, fullName: newFullName, email: newEmail, profilePicture: null }));
 
-        // Merge changes into localStorage user so header updates immediately
+        // Update localStorage
         try {
           const rawLocal = localStorage.getItem('user');
           const localUser = rawLocal ? JSON.parse(rawLocal) : {};
@@ -182,8 +193,8 @@ function UserSettings({ onBack, onLogout, userId }) {
             username: newFullName,
             displayName: newFullName,
             email: newEmail,
-            profile_picture: profilePictureUrl,
-            photoURL: profilePictureUrl
+            profile_picture: newProfilePicture,
+            photoURL: newProfilePicture
           };
           localStorage.setItem('user', JSON.stringify(merged));
           window.dispatchEvent(new CustomEvent('authChanged', { detail: merged }));
@@ -191,28 +202,13 @@ function UserSettings({ onBack, onLogout, userId }) {
           console.warn('Failed to update localStorage user:', e);
         }
 
-        // Handle profile picture upload separately if needed
-        if (formData.profilePicture) {
-          try {
-            await handleProfilePictureUpload();
-          } catch (uploadError) {
-            console.error('Profile picture upload failed:', uploadError);
-            setShowSuccessDialog(false);
-            alert(`Profile updated but profile picture upload failed: ${uploadError.message}. Please try uploading the picture again.`);
-            return;
-          }
-        }
-
         setShowSuccessDialog(true);
       } else {
         const error = await response.json();
-        console.error('Failed to update profile in MySQL:', error.message);
-        setShowSuccessDialog(false);
         alert('Failed to update profile. Please try again.');
       }
     } catch (error) {
-      console.error('Error updating profile in MySQL database:', error);
-      setShowSuccessDialog(false);
+      console.error('Error updating profile:', error);
       alert('An error occurred while updating your profile.');
     } finally {
       setSaving(false);
@@ -220,81 +216,41 @@ function UserSettings({ onBack, onLogout, userId }) {
   };
 
   const handleProfilePictureUpload = async () => {
-    console.log('Starting profile picture upload...');
-    console.log('File to upload:', formData.profilePicture);
-    console.log('User ID:', userId);
-    
-    if (!formData.profilePicture) {
-      throw new Error('No file selected');
+    if (!formData.profilePicture || !userId) {
+      throw new Error('No file selected or user ID missing');
     }
     
-    if (!userId) {
-      throw new Error('User ID is missing');
-    }
-    
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('profilePicture', formData.profilePicture);
-      
-      console.log('FormData created, making request...');
+    const formDataToSend = new FormData();
+    formDataToSend.append('profilePicture', formData.profilePicture);
 
-      const token = localStorage.getItem('token');
-      const uploadResponse = await fetch(`/api/users/${userId}/profile-picture`, {
-        method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: formDataToSend,
-      });
-      
-      console.log('Upload response status:', uploadResponse.status);
-      console.log('Upload response headers:', uploadResponse.headers);
+    const token = localStorage.getItem('token');
+    const uploadResponse = await fetch(`/api/users/${userId}/profile-picture`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formDataToSend,
+    });
 
-      if (uploadResponse.ok) {
-        const uploadResult = await uploadResponse.json();
-        console.log('Upload successful:', uploadResult);
-        
-        // Update the displayed profile picture with proper URL
-        const picUrl = uploadResult.profile_picture.startsWith('http') 
-          ? uploadResult.profile_picture 
-          : `${window.location.origin}${uploadResult.profile_picture}`;
-        setProfilePictureUrl(picUrl);
-        
-        // Update localStorage user data
-        try {
-          const rawLocal = localStorage.getItem('user');
-          const localUser = rawLocal ? JSON.parse(rawLocal) : {};
-          const merged = {
-            ...localUser,
-            profile_picture: uploadResult.profile_picture,
-            photoURL: uploadResult.profile_picture
-          };
-          localStorage.setItem('user', JSON.stringify(merged));
-          window.dispatchEvent(new CustomEvent('authChanged', { detail: merged }));
-        } catch (e) {
-          console.warn('Failed to update localStorage user:', e);
-        }
-        
-        console.log('Profile picture updated in MySQL:', uploadResult.profile_picture);
-      } else {
-        const errorText = await uploadResponse.text();
-        console.error('Upload failed with status:', uploadResponse.status);
-        console.error('Error response:', errorText);
-        
-        let errorMessage = 'Upload failed';
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.error || errorJson.message || errorMessage;
-        } catch (e) {
-          errorMessage = errorText || errorMessage;
-        }
-        
-        throw new Error(errorMessage);
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      let errorMessage = 'Upload failed';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch (e) {
+        errorMessage = errorText || errorMessage;
       }
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
+
+    const uploadResult = await uploadResponse.json();
+    const picUrl = uploadResult.profile_picture.startsWith('http') 
+      ? uploadResult.profile_picture 
+      : `${window.location.origin}${uploadResult.profile_picture}`;
+    
+    setProfilePictureUrl(picUrl);
+    return picUrl;
   };
 
   return (
