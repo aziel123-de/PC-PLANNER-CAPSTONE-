@@ -68,6 +68,10 @@
   line-height: 1.2;
   text-align: center; /* center the component title */
   word-break: break-word;
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Price / tag styling if present */
