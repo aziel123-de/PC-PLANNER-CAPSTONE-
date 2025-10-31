@@ -30,8 +30,8 @@ export default function ConfirmModal({
           <p>{message}</p>
         </div>
         <div className="confirm-modal-footer">
-          <button className="confirm-modal-cancel" onClick={onClose}>{cancelText}</button>
-          <button className="confirm-modal-confirm" onClick={handleConfirm}>{confirmText}</button>
+          <button className="confirm-modal-cancel-btn" onClick={onClose}>{cancelText}</button>
+          <button className="confirm-modal-ok-btn" onClick={handleConfirm}>{confirmText}</button>
         </div>
       </div>
     </div>
