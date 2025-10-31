@@ -14,14 +14,14 @@ export function ComponentsProvider({ children }) {
     let mounted = true;
     async function loadAll() {
       setLoading(true);
-      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case'];
+      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','case-fans'];
       const map = {};
       for (const t of types) {
         try {
           const resp = await fetch(`/api/components/${t}`);
           if (!resp.ok) throw new Error('fetch failed');
           const json = await resp.json();
-          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t;
+          const key = t === 'case' ? 'case' : t === 'cpu-cooler' ? 'cpuCooler' : t === 'case-fans' ? 'case-fans' : t;
           map[key] = Array.isArray(json) ? json : [];
           // debug log
           // eslint-disable-next-line no-console

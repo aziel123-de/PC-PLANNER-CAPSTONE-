@@ -17,6 +17,7 @@ const CATEGORY_META = [
   { key: "storage", title: "Storage", type: 'storage' },
   { key: "m2", title: "M.2 / NVMe", type: 'm2' },
   { key: "case", title: "Cases", type: 'case' },
+  { key: "case-fans", title: "Case Fans", type: 'case-fans' },
 ];
 
 function ComponentPage() {
