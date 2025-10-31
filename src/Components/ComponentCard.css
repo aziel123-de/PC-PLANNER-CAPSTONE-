@@ -66,6 +66,8 @@
   color: var(--accent);
   font-weight: 700;
   line-height: 1.2;
+  text-align: center; /* center the component title */
+  word-break: break-word;
 }
 
 /* Price / tag styling if present */
