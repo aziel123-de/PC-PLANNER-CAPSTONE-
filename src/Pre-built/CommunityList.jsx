@@ -63,6 +63,10 @@ function CommunityList() {
       }
       
       const data = await res.json();
+      // Revoke blob URL to free memory
+      if (uploadedImages[buildId]) {
+        URL.revokeObjectURL(uploadedImages[buildId]);
+      }
       setBuilds(prev => prev.map(b => b.id === buildId ? { ...b, build_image: data.imageUrl } : b));
       setAllBuilds(prev => prev.map(b => b.id === buildId ? { ...b, build_image: data.imageUrl } : b));
       setPendingImages(prev => { const newPending = { ...prev }; delete newPending[buildId]; return newPending; });
@@ -263,7 +267,7 @@ function CommunityList() {
                   <div className="image-upload-area">
                     {build.build_image || uploadedImages[build.id] ? (
                       <div style={{ position: 'relative', width: '100%' }}>
-                        <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
+                        <img src={build.build_image || uploadedImages[build.id]} alt={build.title} className="build-image" />
                         {pendingImages[build.id] && (
                           <button 
                             className="save-image-btn" 
