@@ -8,6 +8,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   position: relative;
   transition: all 0.15s ease;
+  overflow: visible;
 }
 
 .PartSelectorContainer:hover {
@@ -30,6 +31,21 @@
   color: #64748b;
   margin: 0 0 8px 0;
   line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .PartSelectorContainer h1 {
+    font-size: 13px;
+  }
+  
+  .PartSelectorContainer h4 {
+    font-size: 11px;
+  }
+  
+  .PartSelector {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
 }
 
 .PartSelector {
@@ -90,4 +106,19 @@
 /* Focus state for container when selector is focused */
 .PartSelectorContainer:focus-within {
   border-color: #cbd5e1;
+}
+
+@media (max-width: 480px) {
+  .PartSelectorContainer h1 {
+    font-size: 12px;
+  }
+  
+  .PartSelectorContainer h4 {
+    font-size: 10px;
+  }
+  
+  .PartSelector {
+    font-size: 11px;
+    padding: 7px 9px;
+  }
 }

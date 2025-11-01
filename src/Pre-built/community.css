@@ -1731,6 +1731,11 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   line-height: 1.4;
   margin: 0 0 1rem 0;
   font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
 .card-footer {

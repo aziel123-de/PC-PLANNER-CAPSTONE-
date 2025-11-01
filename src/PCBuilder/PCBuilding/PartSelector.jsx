@@ -355,8 +355,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     return (
       <div className="PartSelectorContainer">
         <div className="PartSelectorContent">
-        <h1>{part.name}</h1>
-        <h4>Select {part.name} for your build</h4>
+        <h1 className ='part-name-title'> {part.name}</h1>
+        <h4 className='part-name-select'> Select {part.name} for your build</h4>
         {options.length === 0 && (
           <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
         )}
@@ -413,6 +413,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
                     options={reactSelectOptions}
                     isSearchable
                     isClearable
+                    onInputChange={(input) => input.slice(0, 10)}
                     placeholder={`-- Select ${part.name} ${idx + 1} --`}
                     menuHeight={200}
                     maxMenuHeight={200}
@@ -495,7 +496,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
         }}
         options={reactSelectOptions}
         isSearchable
-        isClearable // Add this prop
+        isClearable
+        onInputChange={(input) => input.slice(0, 10)}
         placeholder={`-- Select ${part.name} --`}
         menuHeight={200}
         maxMenuHeight={200}

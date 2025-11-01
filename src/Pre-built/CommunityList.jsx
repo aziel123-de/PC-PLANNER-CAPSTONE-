@@ -262,18 +262,7 @@ function CommunityList() {
                 <div className="card-body">
                   <div className="image-upload-area">
                     {build.build_image || uploadedImages[build.id] ? (
-                      <div style={{ position: 'relative', width: '100%' }}>
-                        <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
-                        {pendingImages[build.id] && (
-                          <button 
-                            className="save-image-btn" 
-                            onClick={() => handleImageUpload(build.id)}
-                            style={{ position: 'absolute', bottom: '10px', right: '10px', padding: '8px 16px', background: '#4a6cf7', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                          >
-                            Save Image
-                          </button>
-                        )}
-                      </div>
+                      <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
                     ) : (
                       currentUserId && currentUserId === build.user_id ? (
                         <label htmlFor={`upload-${build.id}`} className="upload-placeholder" style={{ cursor: 'pointer', width: '100%' }}>
@@ -299,6 +288,14 @@ function CommunityList() {
                       )
                     )}
                   </div>
+                  {pendingImages[build.id] && (
+                    <button 
+                      onClick={() => handleImageUpload(build.id)}
+                      style={{ width: '100%', padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', marginBottom: '1rem', fontSize: '0.875rem' }}
+                    >
+                      Save Image
+                    </button>
+                  )}
 
                   <h3 className="build-title">{build.title || 'Untitled Build'}</h3>
                   <div className="build-price">₱ {build.total_price?.toLocaleString() || '0'}</div>
