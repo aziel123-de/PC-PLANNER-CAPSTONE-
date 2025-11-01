@@ -3,6 +3,7 @@ import './community.css';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import CommunityBuildModal from './CommunityBuildModal';
 import AlertModal from '../components/AlertModal';
+import ImageUpload from '../components/ImageUpload';
 import { FaUser, FaEye, FaDownload, FaTrash, FaCaretUp, FaDollarSign, FaClock, FaTools, FaWrench } from 'react-icons/fa';
 import { TbFileUpload } from 'react-icons/tb';
 
@@ -25,54 +26,7 @@ function CommunityList() {
   const [modalBuildId, setModalBuildId] = useState(null); // placeholder until modal is implemented
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, buildId: null, buildTitle: '' });
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
-  const [uploadedImages, setUploadedImages] = useState({});
-  const [pendingImages, setPendingImages] = useState({});
 
-  const handleImageSelect = (buildId, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setUploadedImages(prev => ({ ...prev, [buildId]: imageUrl }));
-      setPendingImages(prev => ({ ...prev, [buildId]: file }));
-    }
-  };
-
-  const handleImageUpload = async (buildId) => {
-    const file = pendingImages[buildId];
-    if (!file) return;
-    
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setAlertModal({ show: true, message: 'Login required', title: 'Authentication Required' });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-      const res = await fetch(`${API_PREFIX}/${buildId}/image`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Upload failed' }));
-        throw new Error(errorData.error || 'Failed to upload image');
-      }
-      
-      const data = await res.json();
-      setBuilds(prev => prev.map(b => b.id === buildId ? { ...b, build_image: data.imageUrl } : b));
-      setAllBuilds(prev => prev.map(b => b.id === buildId ? { ...b, build_image: data.imageUrl } : b));
-      setPendingImages(prev => { const newPending = { ...prev }; delete newPending[buildId]; return newPending; });
-      setUploadedImages(prev => { const newUploaded = { ...prev }; delete newUploaded[buildId]; return newUploaded; });
-      setAlertModal({ show: true, message: 'Image uploaded successfully!', title: 'Success' });
-    } catch (e) {
-      console.error('Upload error:', e);
-      setAlertModal({ show: true, message: e.message || 'Upload failed', title: 'Upload Error' });
-    }
-  };
 
   const fetchBuilds = useCallback(async () => {
     setLoading(true); setError(null);
@@ -184,6 +138,36 @@ function CommunityList() {
     }
   };
 
+  const handleImageSave = async (buildId, imageFile) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAlertModal({ show: true, message: 'Login required', title: 'Authentication Required' });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    try {
+      const res = await fetch(`${API_PREFIX}/${buildId}/image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      
+      if (!res.ok) throw new Error('Failed to upload image');
+      
+      const data = await res.json();
+      setBuilds(prev => prev.map(build => 
+        build.id === buildId ? { ...build, build_image: data.imagePath } : build
+      ));
+      setAlertModal({ show: true, message: 'Image uploaded successfully!', title: 'Success' });
+    } catch (e) {
+      console.error('Image upload failed:', e);
+      throw e;
+    }
+  };
+
   return (
     <div className="community-builds-wrapper" style={{ padding: '1.25rem 1rem 3rem', maxWidth: 1220, margin: '0 auto' }}>
 
@@ -260,43 +244,23 @@ function CommunityList() {
                 </div>
 
                 <div className="card-body">
-                  <div className="image-upload-area">
-                    {build.build_image || uploadedImages[build.id] ? (
-                      <img src={uploadedImages[build.id] || build.build_image} alt={build.title} className="build-image" />
+                  {build.build_image ? (
+                    <div className="build-image-display">
+                      <img src={build.build_image} alt="Build" className="build-image" />
+                    </div>
+                  ) : (
+                    currentUserId && currentUserId === build.user_id ? (
+                      <ImageUpload 
+                        onImageSave={(imageFile) => handleImageSave(build.id, imageFile)}
+                        existingImage={build.build_image}
+                      />
                     ) : (
-                      currentUserId && currentUserId === build.user_id ? (
-                        <label htmlFor={`upload-${build.id}`} className="upload-placeholder" style={{ cursor: 'pointer', width: '100%' }}>
-                          <input
-                            id={`upload-${build.id}`}
-                            type="file"
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            onChange={(e) => handleImageSelect(build.id, e)}
-                          />
-                          <div className="upload-icon-box">
-                            <TbFileUpload className="upload-icon" />
-                          </div>
-                          <p className="upload-text">Click to upload image</p>
-                        </label>
-                      ) : (
-                        <div className="upload-placeholder">
-                          <div className="upload-icon-box">
-                            <TbFileUpload className="upload-icon" />
-                          </div>
-                          <p className="upload-text">No image uploaded</p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  {pendingImages[build.id] && (
-                    <button 
-                      onClick={() => handleImageUpload(build.id)}
-                      style={{ width: '100%', padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', marginBottom: '1rem', fontSize: '0.875rem' }}
-                    >
-                      Save Image
-                    </button>
+                      <div className="image-placeholder-box">
+                        <TbFileUpload className="placeholder-icon" />
+                        <p className="placeholder-text">No image uploaded</p>
+                      </div>
+                    )
                   )}
-
                   <h3 className="build-title">{build.title || 'Untitled Build'}</h3>
                   <div className="build-price">₱ {build.total_price?.toLocaleString() || '0'}</div>
                   <p className="build-description">{build.description || 'No description provided.'}</p>

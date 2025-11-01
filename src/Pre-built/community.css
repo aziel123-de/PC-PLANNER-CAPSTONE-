@@ -486,6 +486,11 @@
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  width: 100%;
+  max-width: 320px;
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
 }
 
 .build-card:hover {
@@ -910,31 +915,45 @@
   .build-card {
     padding: 1rem;
     max-width: none;
+    min-height: 480px;
   }
   
-  .card-top-row {
-    padding-right: 0;
+  .card-header-gradient {
+    height: 50px;
+    padding: 0.5rem 1rem;
   }
   
-  .card-right {
-    position: static;
-    margin-top: 0.5rem;
-    justify-content: flex-start;
+  .profile-avatar {
+    width: 32px;
+    height: 32px;
   }
   
-  .card-title {
-    font-size: 1rem;
-    margin-right: 0;
+  .username-text {
+    font-size: 0.9rem;
   }
   
-  .button-row {
+  .build-title {
+    font-size: 0.9rem;
+  }
+  
+  .build-price {
+    font-size: 1.1rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .build-description {
+    font-size: 0.8rem;
+    line-clamp: 2;
+  }
+  
+  .card-footer {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   
-  .details-btn,
-  .load-builds-btn {
-    width: 100%;
+  .save-btn, .details-btn-new, .load-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -973,54 +992,46 @@
   
   .build-card {
     padding: 0.75rem;
+    min-height: 420px;
   }
   
-  .creator-row {
-    margin-bottom: 0.75rem;
+  .card-header-gradient {
+    height: 45px;
+    padding: 0.4rem 0.75rem;
   }
   
-  .profile-picture {
+  .profile-avatar {
     width: 28px;
     height: 28px;
   }
   
-  .creator-name {
+  .username-text {
     font-size: 0.8rem;
   }
   
-  .card-title {
-    font-size: 0.95rem;
+  .build-title {
+    font-size: 0.85rem;
   }
   
-  .price-box {
-    font-size: 0.8rem;
+  .build-price {
+    font-size: 1rem;
+    padding: 0.35rem 0.5rem;
   }
   
-  .description-text {
-    font-size: 0.8rem;
+  .build-description {
+    font-size: 0.75rem;
+    line-clamp: 2;
   }
   
-  .votes {
-    padding: 0.2rem 0.4rem;
-  }
-  
-  .vote-triangle {
+  .save-btn, .details-btn-new, .load-btn {
+    padding: 0.5rem 0.6rem;
     font-size: 0.75rem;
   }
   
-  .vote-count {
-    font-size: 0.75rem;
-  }
-  
-  .delete-button {
-    padding: 0.4rem;
-    font-size: 0.7rem;
-  }
-  
-  .details-btn,
-  .load-builds-btn {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.8rem;
+  .image-upload-container,
+  .build-image-display,
+  .image-placeholder-box {
+    height: 150px;
   }
 }
 
@@ -1219,7 +1230,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 555px;
 }
 
 .card-top-row {
@@ -1590,11 +1601,12 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 .card-header-gradient {
   background: linear-gradient(135deg, #1a2c93 0%, #4b8eec 100%);
   margin: -1.25rem -1.25rem 1rem -1.25rem;
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-radius: 12px 12px 0 0;
+  height: 60px;
 }
 
 .header-left {
@@ -1602,6 +1614,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   align-items: center;
   gap: 0.75rem;
   line-height: 1;
+  height: 100%;
 }
 
 .profile-avatar {
@@ -1613,6 +1626,8 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .avatar-img {
@@ -1631,6 +1646,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   color: #6b7280;
   font-weight: 600;
   font-size: 0.875rem;
+
 }
 
 .username-text {
@@ -1656,6 +1672,9 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 
 .card-body {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .image-upload-area {
@@ -1712,10 +1731,14 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 }
 
 .build-title {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #1f2937;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0 0;
+ 
+  display: flex;
+  align-items: center;
+  margin-top: 0;
 }
 
 .build-price {
@@ -1723,6 +1746,9 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   font-weight: 700;
   color: #10b981;
   margin-bottom: 0.75rem;
+ 
+  display: flex;
+  align-items: center;
 }
 
 .build-description {
@@ -1733,9 +1759,9 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
   font-style: italic;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
+  max-height: 3.9rem; /* 3 lines * 1.4 line-height */
+  flex: 1;
+  font-style: italic;
 }
 
 .card-footer {
@@ -1777,7 +1803,7 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 }
 
 .details-btn-new:hover {
-  background: #4f46e5;
+  background: #080548;
 }
 
 .load-btn {
@@ -1794,4 +1820,86 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
 
 .load-btn:hover {
   background: #d1d5db;
+}
+.build-image-display {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.build-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+.build-image-display {
+  width: 100%;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.build-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.build-image.placeholder {
+  opacity: 0.7;
+}
+
+.upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.build-image-display:hover .upload-overlay {
+  opacity: 1;
+}
+.image-placeholder-box {
+  width: 100%;
+  height: 200px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  gap: 0.5rem;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  color: #6b7280;
+}
+
+.placeholder-text {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin: 0;
+  font-weight: 500;
+}
+.build-image-display {
+  width: 100%;
+  margin-bottom: 1rem;
+  height: 200px;
+}
+
+.image-upload-container {
+  margin-bottom: 1rem;
+  height: 200px;
 }
