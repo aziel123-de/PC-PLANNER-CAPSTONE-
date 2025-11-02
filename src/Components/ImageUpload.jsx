@@ -72,14 +72,6 @@ const ImageUpload = ({ onImageSave, existingImage = null }) => {
         )}
       </div>
       
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/jpg"
-        onChange={handleImageSelect}
-        style={{ display: 'none' }}
-      />
-      
       {selectedImage && (
         <div className="upload-actions">
           <button 
@@ -94,6 +86,14 @@ const ImageUpload = ({ onImageSave, existingImage = null }) => {
           </button>
         </div>
       )}
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/jpg"
+        onChange={handleImageSelect}
+        style={{ display: 'none' }}
+      />
       
       {errorMessage && (
         <div className="error-popup">

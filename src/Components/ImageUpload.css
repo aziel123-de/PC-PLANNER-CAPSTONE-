@@ -1,5 +1,6 @@
 .image-upload-container {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
 }
 
 .image-placeholder {
@@ -53,42 +54,64 @@
 .upload-actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .save-image-btn {
-  background: #4a6cf7;
+  background: linear-gradient(135deg, #4a6cf7 0%, #3b5998 100%);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(74, 108, 247, 0.25);
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .save-image-btn:hover:not(:disabled) {
-  background: #3b5998;
+  background: linear-gradient(135deg, #3b5998 0%, #2d4373 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(74, 108, 247, 0.35);
 }
 
 .save-image-btn:disabled {
-  background: #ccc;
+  background: #e5e7eb;
+  color: #9ca3af;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .remove-image-btn {
-  background: #dc3545;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(220, 53, 69, 0.25);
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .remove-image-btn:hover {
-  background: #c82333;
+  background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 53, 69, 0.35);
 }
 .error-popup {
   background: #fee2e2;
@@ -100,4 +123,53 @@
   font-size: 0.875rem;
   font-weight: 500;
   transition: opacity 0.2s ease;
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+  .upload-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  
+  .save-image-btn,
+  .remove-image-btn {
+    width: 100%;
+    min-width: auto;
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .image-placeholder {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-upload-container {
+    margin-bottom: 1.25rem;
+  }
+  
+  .save-image-btn,
+  .remove-image-btn {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.85rem;
+  }
+  
+  .image-placeholder {
+    height: 160px;
+  }
+  
+  .upload-icon {
+    font-size: 1.5rem;
+  }
+  
+  .placeholder-content p {
+    font-size: 0.9rem;
+  }
+  
+  .upload-hint {
+    font-size: 0.75rem;
+  }
 }
