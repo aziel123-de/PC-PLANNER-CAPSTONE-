@@ -159,7 +159,7 @@ function CommunityList() {
       
       const data = await res.json();
       setBuilds(prev => prev.map(build => 
-        build.id === buildId ? { ...build, build_image: data.imagePath } : build
+        build.id === buildId ? { ...build, build_image: data.imageData } : build
       ));
       setAlertModal({ show: true, message: 'Image uploaded successfully!', title: 'Success' });
     } catch (e) {
@@ -228,10 +228,24 @@ function CommunityList() {
                   <div className="header-left">
                     <div className="profile-avatar">
                       {build.profile_picture ? (
-                        <img src={build.profile_picture} alt={build.username} className="avatar-img" />
-                      ) : (
-                        <div className="avatar-placeholder">{(build.username || 'U').substring(0, 2).toUpperCase()}</div>
-                      )}
+                        <img 
+                          src={build.profile_picture.startsWith('data:') 
+                            ? build.profile_picture 
+                            : build.profile_picture.startsWith('/uploads/') 
+                              ? `${import.meta?.env?.VITE_BACKEND_URL || ''}${build.profile_picture}`
+                              : `data:image/jpeg;base64,${build.profile_picture}`
+                          } 
+                          alt={build.username} 
+                          className="avatar-img"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className="avatar-placeholder" style={{display: build.profile_picture ? 'none' : 'flex'}}>
+                        {(build.username || 'U').substring(0, 2).toUpperCase()}
+                      </div>
                     </div>
                     <span className="username-text">{build.username || 'User'}</span>
                   </div>
@@ -246,7 +260,24 @@ function CommunityList() {
                 <div className="card-body">
                   {build.build_image ? (
                     <div className="build-image-display">
-                      <img src={build.build_image} alt="Build" className="build-image" />
+                      <img 
+                        src={build.build_image.startsWith('data:') 
+                          ? build.build_image 
+                          : build.build_image.startsWith('/uploads/') 
+                            ? `${import.meta?.env?.VITE_BACKEND_URL || ''}${build.build_image}`
+                            : `data:image/jpeg;base64,${build.build_image}`
+                        } 
+                        alt="Build" 
+                        className="build-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                      <div className="image-placeholder-box" style={{display: 'none'}}>
+                        <TbFileUpload className="placeholder-icon" />
+                        <p className="placeholder-text">Image failed to load</p>
+                      </div>
                     </div>
                   ) : (
                     currentUserId && currentUserId === build.user_id ? (

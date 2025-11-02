@@ -16,41 +16,55 @@ const pool = require('./mysql');
 const app = express();
 app.use(helmet());
 app.use(cors({ origin: true }));
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configure multer for file uploads
+// Configure multer for temporary file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    const tempDir = path.join(__dirname, 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
     }
-    cb(null, uploadDir);
+    cb(null, tempDir);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const prefix = file.fieldname === 'image' ? 'build' : 'profile';
-    const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}${ext}`;
+    const filename = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}${ext}`;
     cb(null, filename);
   }
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit to match frontend
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const allowedTypes = /jpeg|jpg|png/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error('Only JPEG and PNG files are allowed'));
     }
   }
+});
+
+// Error handling middleware for multer
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 2MB.' });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+  if (error.message === 'Only JPEG and PNG files are allowed') {
+    return res.status(400).json({ error: error.message });
+  }
+  next(error);
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
@@ -635,7 +649,7 @@ app.post(`${API_PREFIX}/test-upload`, upload.single('profilePicture'), (req, res
   res.json({ message: 'Test upload successful', file: req.file });
 });
 
-// Profile picture upload endpoint
+// Profile picture upload endpoint - stores Base64 in database
 app.post(`${API_PREFIX}/users/:id/profile-picture`, (req, res) => {
   console.log('Profile picture upload attempt for user:', req.params.id);
   
@@ -646,7 +660,6 @@ app.post(`${API_PREFIX}/users/:id/profile-picture`, (req, res) => {
       return res.status(400).json({ error: err.message });
     }
     
-    console.log('File received:', req.file);
     const userId = getUserIdFromRequest(req);
     if (!userId) return res.status(401).json({ error: 'unauthorized' });
     if (userId !== req.params.id) return res.status(403).json({ error: 'forbidden' });
@@ -658,26 +671,20 @@ app.post(`${API_PREFIX}/users/:id/profile-picture`, (req, res) => {
   
     const conn = await pool.getConnection();
     try {
-      // Get old profile picture to delete it
-      const [oldRows] = await conn.query('SELECT profile_picture FROM users WHERE id = ?', [userId]);
-      const oldPicture = oldRows.length ? oldRows[0].profile_picture : null;
+      // Convert file to Base64
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const base64Data = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
       
-      // Update database with new profile picture path
-      const profilePicturePath = `/uploads/${req.file.filename}`;
-      await conn.query('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePicturePath, userId]);
+      // Update database with Base64 data
+      await conn.query('UPDATE users SET profile_picture = ? WHERE id = ?', [base64Data, userId]);
       
-      // Delete old profile picture file if it exists
-      if (oldPicture && oldPicture.startsWith('/uploads/')) {
-        const oldFilePath = path.join(__dirname, oldPicture);
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
-        }
-      }
+      // Delete the temporary file
+      fs.unlinkSync(req.file.path);
       
-      console.log('Profile picture saved successfully:', profilePicturePath);
+      console.log('Profile picture saved successfully as Base64');
       return res.json({ 
         message: 'Profile picture updated successfully',
-        profile_picture: profilePicturePath
+        profile_picture: base64Data
       });
     } catch (err) {
       console.error('profile picture upload error', err);
@@ -917,7 +924,7 @@ app.post(`${API_PREFIX}/community/builds`, async (req, res) => {
   } finally { conn.release(); }
 });
 
-// Upload image for community build
+// Upload image for community build - stores Base64 in database
 app.post(`${API_PREFIX}/community/builds/:id/image`, (req, res) => {
   console.log('Build image upload endpoint hit for build:', req.params.id);
   upload.single('image')(req, res, async (err) => {
@@ -927,31 +934,29 @@ app.post(`${API_PREFIX}/community/builds/:id/image`, (req, res) => {
     }
     
     const userId = getUserIdFromRequest(req);
-    console.log('User ID from token:', userId);
     if (!userId) return res.status(401).json({ error: 'unauthorized' });
     
     const { id } = req.params;
-    console.log('File received:', req.file);
     if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
     
     const conn = await pool.getConnection();
     try {
-      const [rows] = await conn.query('SELECT user_id, build_image FROM community_builds WHERE id=? LIMIT 1', [id]);
+      const [rows] = await conn.query('SELECT user_id FROM community_builds WHERE id=? LIMIT 1', [id]);
       if (!rows.length) return res.status(404).json({ error: 'not found' });
       if (rows[0].user_id !== userId) return res.status(403).json({ error: 'forbidden' });
       
-      const oldImage = rows[0].build_image;
-      const imagePath = `/uploads/${req.file.filename}`;
-      await conn.query('UPDATE community_builds SET build_image=? WHERE id=?', [imagePath, id]);
-      console.log('Build image saved successfully:', imagePath);
+      // Convert file to Base64
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const base64Data = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
       
-      // Delete old image if exists
-      if (oldImage && oldImage.startsWith('/uploads/')) {
-        const oldFilePath = path.join(__dirname, oldImage);
-        if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
-      }
+      // Update database with Base64 data
+      await conn.query('UPDATE community_builds SET build_image=? WHERE id=?', [base64Data, id]);
       
-      res.json({ imagePath });
+      // Delete the temporary file
+      fs.unlinkSync(req.file.path);
+      
+      console.log('Build image saved successfully as Base64');
+      res.json({ imageData: base64Data, imagePath: base64Data });
     } catch (err) {
       console.error('build image upload error', err);
       if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);

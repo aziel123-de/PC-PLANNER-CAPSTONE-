@@ -64,10 +64,17 @@ function UserSettings({ onBack, onLogout, userId }) {
             profilePicture: null
           });
           if (userData.profile_picture) {
-            const picUrl = userData.profile_picture.startsWith('http') 
-              ? userData.profile_picture 
-              : `${window.location.origin}${userData.profile_picture}`;
-            setProfilePictureUrl(picUrl);
+            // Handle both Base64 data and old file paths
+            if (userData.profile_picture.startsWith('data:')) {
+              // Base64 data - use directly
+              setProfilePictureUrl(userData.profile_picture);
+            } else if (userData.profile_picture.startsWith('http')) {
+              // Full URL - use directly
+              setProfilePictureUrl(userData.profile_picture);
+            } else {
+              // File path - construct URL
+              setProfilePictureUrl(`${window.location.origin}${userData.profile_picture}`);
+            }
           }
         } else {
           const error = await response.json();
@@ -183,6 +190,11 @@ function UserSettings({ onBack, onLogout, userId }) {
         
         setFormData((prev) => ({ ...prev, fullName: newFullName, email: newEmail, profilePicture: null }));
 
+        // Update profile picture URL in state
+        if (newProfilePicture) {
+          setProfilePictureUrl(newProfilePicture);
+        }
+
         // Update localStorage
         try {
           const rawLocal = localStorage.getItem('user');
@@ -245,9 +257,7 @@ function UserSettings({ onBack, onLogout, userId }) {
     }
 
     const uploadResult = await uploadResponse.json();
-    const picUrl = uploadResult.profile_picture.startsWith('http') 
-      ? uploadResult.profile_picture 
-      : `${window.location.origin}${uploadResult.profile_picture}`;
+    const picUrl = uploadResult.profile_picture; // Base64 data from server
     
     setProfilePictureUrl(picUrl);
     return picUrl;
