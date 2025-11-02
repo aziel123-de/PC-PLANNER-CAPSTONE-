@@ -356,7 +356,6 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       <div className="PartSelectorContainer">
         <div className="PartSelectorContent">
         <h1 className ='part-name-title'> {part.name}</h1>
-        <h4 className='part-name-select'> Select {part.name} for your build</h4>
         {options.length === 0 && (
           <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
         )}
@@ -374,7 +373,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
                       setShowModal(true);
                     }
                   }}
-                  style={{ cursor: val ? 'pointer' : 'default', width: 72, height: 72, flex: '0 0 auto' }}
+                  style={{ cursor: val ? 'pointer' : 'default' }}
                 >
                   {val?.image ? (
                     <img src={val.image} alt={`${part.name} ${idx+1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -397,6 +396,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
                       </button>
                     )}
                   </div>
+                  <h4 className='part-name-select'> Select {part.name} {idx + 1} for your build</h4>
                   <Select
                     className="PartSelector"
                     value={val ? (() => {

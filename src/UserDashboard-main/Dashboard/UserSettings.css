@@ -69,7 +69,11 @@
 @media (max-width: 1024px) {
   .profile-avatar {
     margin-top: 3rem;
-    
+  }
+  
+  .user-settings-wrapper .profile-avatar {
+    width: 200px !important;
+    height: 200px !important;
   }
 
 }
@@ -95,6 +99,11 @@
     width: 60px;
     height: 60px;
     margin-bottom: 0.5rem;
+  }
+  
+  .user-settings-wrapper .profile-avatar {
+    width: 200px !important;
+    height: 200px !important;
   }
   .profile-name-settings {
     font-size: 1.1rem;
@@ -295,6 +304,20 @@ body.hide-global-header .header {
   transition: all 0.3s ease;
 }
 
+.user-settings-wrapper .profile-avatar {
+  width: 200px !important;
+  height: 200px !important;
+  margin: 0 auto 1rem auto;
+  display: block;
+}
+
+.user-settings-wrapper .sidebar-settings .profile-header-settinds .profile-avatar {
+  width: 200px !important;
+  height: 200px !important;
+  min-width: 200px !important;
+  min-height: 200px !important;
+}
+
 .profile-avatar:hover {
   transform: scale(1.05);
   border-color: rgba(255, 255, 255, 0.5);
@@ -344,6 +367,11 @@ body.hide-global-header .header {
   width: 40px;
   height: 40px;
   margin-bottom: 0.5rem;
+}
+
+.user-settings-wrapper .sidebar-settings.collapsed .profile-avatar {
+  width: 200px !important;
+  height: 200px !important;
 }
 
 .sidebar-settings.collapsed .sidebar-content-settings {
@@ -739,6 +767,11 @@ body.hide-global-header .header {
     width: 80px;
     height: 80px;
     margin-bottom: 0;
+  }
+  
+  .user-settings-wrapper .profile-avatar {
+    width: 200px !important;
+    height: 200px !important;
   }
   
   .profile-name-settings {
