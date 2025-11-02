@@ -69,13 +69,9 @@
 @media (max-width: 1024px) {
   .profile-avatar {
     margin-top: 3rem;
+    width: 60px !important;
+    height: 60px !important;
   }
-  
-  .user-settings-wrapper .profile-avatar {
-    width: 200px !important;
-    height: 200px !important;
-  }
-
 }
 @media (max-width: 1024px) {
   .sidebar-content-settings {
@@ -96,14 +92,9 @@
     width: 100%;
   }
   .profile-avatar {
-    width: 60px;
-    height: 60px;
+    width: 60px !important;
+    height: 60px !important;
     margin-bottom: 0.5rem;
-  }
-  
-  .user-settings-wrapper .profile-avatar {
-    width: 200px !important;
-    height: 200px !important;
   }
   .profile-name-settings {
     font-size: 1.1rem;
@@ -304,18 +295,20 @@ body.hide-global-header .header {
   transition: all 0.3s ease;
 }
 
-.user-settings-wrapper .profile-avatar {
-  width: 200px !important;
-  height: 200px !important;
-  margin: 0 auto 1rem auto;
-  display: block;
-}
+@media (min-width: 1025px) {
+  .user-settings-wrapper .profile-avatar {
+    width: 200px !important;
+    height: 200px !important;
+    margin: 0 auto 1rem auto;
+    display: block;
+  }
 
-.user-settings-wrapper .sidebar-settings .profile-header-settinds .profile-avatar {
-  width: 200px !important;
-  height: 200px !important;
-  min-width: 200px !important;
-  min-height: 200px !important;
+  .user-settings-wrapper .sidebar-settings .profile-header-settinds .profile-avatar {
+    width: 200px !important;
+    height: 200px !important;
+    min-width: 200px !important;
+    min-height: 200px !important;
+  }
 }
 
 .profile-avatar:hover {
@@ -370,8 +363,8 @@ body.hide-global-header .header {
 }
 
 .user-settings-wrapper .sidebar-settings.collapsed .profile-avatar {
-  width: 200px !important;
-  height: 200px !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 
 .sidebar-settings.collapsed .sidebar-content-settings {
@@ -769,9 +762,9 @@ body.hide-global-header .header {
     margin-bottom: 0;
   }
   
-  .user-settings-wrapper .profile-avatar {
-    width: 200px !important;
-    height: 200px !important;
+  .profile-avatar {
+    width: 60px !important;
+    height: 60px !important;
   }
   
   .profile-name-settings {
