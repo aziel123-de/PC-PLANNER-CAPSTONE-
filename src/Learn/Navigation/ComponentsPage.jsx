@@ -9,6 +9,7 @@ import Case from '../LearnComponents/Case';
 import Monitor from '../LearnComponents/Monitor';
 import Keyboard from '../LearnComponents/Keyboard';
 import Mouse from '../LearnComponents/Mouse';
+import Headset from '../LearnComponents/Headset';
 import './ComponentsPage.css';
 import Navbar from '../Navigation/Navbar.jsx';
 
@@ -23,6 +24,7 @@ const components = [
   { id: 'monitor', name: 'Monitor', Comp: Monitor },
   { id: 'keyboard', name: 'Keyboard', Comp: Keyboard },
   { id: 'mouse', name: 'Mouse', Comp: Mouse },
+  { id: 'headset', name: 'Headset', Comp: Headset },
 ];
 
 function ComponentsPage() {
@@ -125,6 +127,9 @@ function svgFor(title) {
   );
   if (t.includes('mouse')) return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c3 0 6 1.5 6 4.5S15 13 12 13 6 8.5 6 6.5 9 2 12 2z" stroke="#111827" strokeWidth="1" fill="#F8FAFC"/><path d="M12 7v2" stroke="#374151" strokeWidth="1" strokeLinecap="round"/></svg>
+  );
+  if (t.includes('headset')) return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8 2 5 5 5 9v6c0 1.1.9 2 2 2h1v-6H7V9c0-2.8 2.2-5 5-5s5 2.2 5 5v2h-1v6h1c1.1 0 2-.9 2-2V9c0-4-3-7-7-7z" stroke="#DC2626" strokeWidth="1.2" fill="#FEF2F2"/><circle cx="7" cy="14" r="1" fill="#DC2626"/><circle cx="17" cy="14" r="1" fill="#DC2626"/></svg>
   );
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="16" rx="3" stroke="#64748B" strokeWidth="1" fill="#F1F5F9"/></svg>

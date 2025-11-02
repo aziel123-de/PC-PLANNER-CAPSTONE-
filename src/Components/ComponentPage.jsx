@@ -18,6 +18,10 @@ const CATEGORY_META = [
   { key: "m2", title: "M.2 / NVMe", type: 'm2' },
   { key: "case", title: "Cases", type: 'case' },
   { key: "case-fans", title: "Case Fans", type: 'case-fans' },
+  { key: "monitor", title: "Monitors", type: 'monitor' },
+  { key: "keyboard", title: "Keyboards", type: 'keyboard' },
+  { key: "mouse", title: "Mice", type: 'mouse' },
+  { key: "headset", title: "Headsets", type: 'headset' },
 ];
 
 function ComponentPage() {

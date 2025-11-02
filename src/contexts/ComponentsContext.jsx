@@ -14,7 +14,7 @@ export function ComponentsProvider({ children }) {
     let mounted = true;
     async function loadAll() {
       setLoading(true);
-      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','case-fans'];
+      const types = ['cpu','cpu-cooler','gpu','psu','mobo','ram','storage','m2','case','case-fans','monitor','keyboard','mouse','headset'];
       const map = {};
       for (const t of types) {
         try {
