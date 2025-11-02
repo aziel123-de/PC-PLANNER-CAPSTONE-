@@ -77,13 +77,9 @@ function ComponentCard({ component }) {
 
       <div className="component-image">
         {img ? (
-          imgSrcLink ? (
-            <a href={imgSrcLink} target="_blank" rel="noopener noreferrer">
-              <img src={img} alt={item.name} />
-            </a>
-          ) : (
+          <a href={img} target="_blank" rel="noopener noreferrer">
             <img src={img} alt={item.name} />
-          )
+          </a>
         ) : (
           <div className="component-image--placeholder">
             {loadingImg ? 'Loading image…' : (imgError ? 'No image found' : 'No image')}
@@ -102,13 +98,9 @@ function ComponentCard({ component }) {
             <h2 className="modal-title">{item.name}</h2>
             <div className="component-image">
               {img ? (
-                imgSrcLink ? (
-                  <a href={imgSrcLink} target="_blank" rel="noopener noreferrer">
-                    <img src={img} alt={item.name} />
-                  </a>
-                ) : (
+                <a href={img} target="_blank" rel="noopener noreferrer">
                   <img src={img} alt={item.name} />
-                )
+                </a>
               ) : (
                 <div className="component-image--placeholder">
                   {loadingImg ? 'Loading image…' : (imgError ? 'No image found' : 'No image')}
