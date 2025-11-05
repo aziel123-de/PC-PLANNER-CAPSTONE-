@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 /**
@@ -13,6 +13,9 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
   const [description, setDescription] = useState(build?.description || '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
 
   const escHandler = useCallback((e) => { if (e.key === 'Escape') onClose && onClose(); }, [onClose]);
   useEffect(() => { document.addEventListener('keydown', escHandler); return () => document.removeEventListener('keydown', escHandler); }, [escHandler]);
@@ -20,6 +23,36 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
 
   if (!build) return null;
   const parts = build.parts || {};
+
+  const handleImageSelect = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image size must be less than 2MB');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => setPreviewUrl(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   async function handleShare(e) {
     e.preventDefault();
@@ -42,6 +75,21 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
       });
       if (!resp.ok) throw new Error('Share failed');
       const json = await resp.json();
+      
+      // Upload image if selected
+      if (selectedImage && json.id) {
+        const formData = new FormData();
+        formData.append('image', selectedImage);
+        const imageResp = await fetch(`/api/community/builds/${json.id}/image`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+        if (!imageResp.ok) {
+          console.warn('Image upload failed, but build was shared successfully');
+        }
+      }
+      
       if (onShared) onShared(json);
     } catch (e) {
       setError(e.message || 'Share failed');
@@ -77,6 +125,31 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
           </label>
           <label className="share-label">Description (optional)
             <textarea value={description} onChange={e=>setDescription(e.target.value)} rows={3} placeholder="Describe highlights, goals, etc." />
+          </label>
+          <label className="share-label">Image Attachment (optional)
+            <div className="share-image-upload">
+              <div className="share-image-placeholder" onClick={() => fileInputRef.current?.click()}>
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Build preview" className="share-preview-image" />
+                ) : (
+                  <div className="share-placeholder-content">
+                    <div className="share-upload-icon">📷</div>
+                    <p>Click to upload build image</p>
+                    <span className="share-upload-hint">JPEG, PNG • Max 2MB</span>
+                  </div>
+                )}
+              </div>
+              {selectedImage && (
+                <button type="button" className="share-remove-image" onClick={handleRemoveImage}>Remove Image</button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={handleImageSelect}
+                style={{ display: 'none' }}
+              />
+            </div>
           </label>
           <div className="share-preview">
             <h3>Preview Parts</h3>
@@ -124,6 +197,34 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
         .share-btn.secondary { background:#fff; color:#1d5bff; }
         .share-btn.secondary:hover:not(:disabled) { background:#eef5ff; }
         .share-btn:disabled { opacity:.55; cursor:not-allowed; }
+        .share-image-upload { display:flex; flex-direction:column; gap:.5rem; }
+        .share-image-placeholder { border:2px dashed #d9e2ef; border-radius:8px; padding:1rem; cursor:pointer; text-align:center; transition:border-color .2s; }
+        .share-image-placeholder:hover { border-color:#1d5bff; }
+        .share-placeholder-content { display:flex; flex-direction:column; align-items:center; gap:.4rem; }
+        .share-upload-icon { font-size:1.5rem; }
+        .share-placeholder-content p { margin:0; font-size:.8rem; color:#5b6b7c; }
+        .share-upload-hint { font-size:.65rem; color:#8a9ba8; }
+        .share-preview-image { max-width:100%; max-height:200px; border-radius:6px; object-fit:cover; }
+        .share-remove-image { background:#f44336; color:#fff; border:none; padding:.4rem .8rem; border-radius:6px; font-size:.65rem; cursor:pointer; align-self:flex-start; }
+        .share-remove-image:hover { background:#d32f2f; }
+        @media (max-width: 768px) {
+          .share-overlay { padding:1rem .5rem; align-items:flex-start; }
+          .share-modal { width:100%; max-width:100%; padding:1rem; max-height:90vh; overflow-y:auto; }
+          .share-header h2 { font-size:1.2rem; }
+          .share-parts-grid { grid-template-columns:1fr; }
+          .share-actions { flex-direction:column; }
+          .share-btn { width:100%; justify-content:center; }
+          .share-image-placeholder { padding:.75rem; }
+          .share-placeholder-content p { font-size:.75rem; }
+          .share-upload-hint { font-size:.6rem; }
+        }
+        @media (max-width: 480px) {
+          .share-overlay { padding:.25rem; align-items:flex-start; }
+          .share-modal { padding:.75rem; max-height:95vh; }
+          .share-header { flex-direction:row; gap:.5rem; align-items:center; }
+          .share-close { position:static; }
+          .share-preview-image { max-height:150px; }
+        }
       `}</style>
     </div>
   );

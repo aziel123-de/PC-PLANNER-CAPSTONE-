@@ -1703,6 +1703,7 @@ body.hide-global-header .header {
   flex-direction: column;
   gap: 10px;
   min-width: 140px;
+  flex-shrink: 0;
 }
 
 /* ===== Modern Button Base Styles ===== */
@@ -1819,18 +1820,17 @@ body.hide-global-header .header {
 /* ===== Mobile Responsive Design ===== */
 @media (max-width: 768px) {
   .saved-build-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
-    justify-content: space-between;
+    min-width: 120px;
   }
   
   .saved-build-card-btn {
-    padding: 7px 12px;
+    padding: 8px 12px;
     font-size: 0.75rem;
-    flex: 1;
-    min-width: 70px;
+    width: 100%;
     border-radius: 18px;
+    white-space: nowrap;
   }
 }
 
@@ -1838,13 +1838,25 @@ body.hide-global-header .header {
   .saved-build-actions {
     flex-direction: column;
     gap: 6px;
+    min-width: 100px;
   }
   
   .saved-build-card-btn {
-    padding: 6px 10px;
+    padding: 8px 10px;
     font-size: 0.7rem;
     width: 100%;
     border-radius: 16px;
+    white-space: nowrap;
+  }
+  
+  .saved-build-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .saved-build-actions {
+    margin-top: 1rem;
+    align-self: stretch;
   }
 }
 
