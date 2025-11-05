@@ -15,6 +15,7 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [inputKey, setInputKey] = useState(0);
   const fileInputRef = useRef(null);
 
   const escHandler = useCallback((e) => { if (e.key === 'Escape') onClose && onClose(); }, [onClose]);
@@ -26,6 +27,7 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
 
   const handleImageSelect = (event) => {
     const file = event.target.files[0];
+    
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -41,17 +43,24 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
     }
 
     setSelectedImage(file);
+    
     const reader = new FileReader();
-    reader.onload = (e) => setPreviewUrl(e.target.result);
+    reader.onload = (e) => {
+      setPreviewUrl(e.target.result);
+    };
+    reader.onerror = () => {
+      setError('Failed to read image file');
+      setTimeout(() => setError(''), 3000);
+      setSelectedImage(null);
+      setPreviewUrl(null);
+    };
     reader.readAsDataURL(file);
   };
 
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setInputKey(prev => prev + 1);
   };
 
   async function handleShare(e) {
@@ -128,7 +137,11 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
           </label>
           <label className="share-label">Image Attachment (optional)
             <div className="share-image-upload">
-              <div className="share-image-placeholder" onClick={() => fileInputRef.current?.click()}>
+              <div className="share-image-placeholder" onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setTimeout(() => fileInputRef.current?.click(), 0);
+              }}>
                 {previewUrl ? (
                   <img src={previewUrl} alt="Build preview" className="share-preview-image" />
                 ) : (
@@ -143,10 +156,12 @@ export default function ShareSavedBuildModal({ build, onClose, onShared }) {
                 <button type="button" className="share-remove-image" onClick={handleRemoveImage}>Remove Image</button>
               )}
               <input
+                key={inputKey}
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/jpg"
                 onChange={handleImageSelect}
+                onClick={(e) => e.stopPropagation()}
                 style={{ display: 'none' }}
               />
             </div>
