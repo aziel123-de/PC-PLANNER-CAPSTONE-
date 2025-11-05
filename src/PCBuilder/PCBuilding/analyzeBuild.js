@@ -122,6 +122,210 @@ export function analyzeBuild(selectedParts) {
   })();
 
   const hasCpuGpu = !!cpuRaw && gpuArray.length>0;
+  
+  // Enhanced suggestion system for CPU-GPU balance
+  const getSuggestedComponents = (cpuRaw, gpuArray) => {
+    const suggestions = { cpus: [], gpus: [] };
+    
+    if (cpuRaw && (!gpuArray || gpuArray.length === 0)) {
+      // CPU selected first - suggest balanced GPUs
+      const cpuCores = toNumber(getFirst(cpuRaw,'Cores','cores','CoreCount','coreCount')) || findNumericByKeyPattern(cpuRaw,['core','cores']);
+      
+      if (cpuCores === 4) {
+        suggestions.gpus = [
+          { name: 'NVIDIA GTX 1650', price: '₱8,000' },
+          { name: 'AMD Radeon RX 6500 XT', price: '₱8,400' },
+          { name: 'Intel Arc A380', price: '₱9,550' },
+          { name: 'NVIDIA RTX 3050 (6GB)', price: '₱10,250' },
+          { name: 'Intel Arc A580', price: '₱10,100' },
+          { name: 'NVIDIA GTX 1660 Super', price: '₱11,900' },
+          { name: 'AMD Radeon RX 6600', price: '₱12,495' },
+          { name: 'NVIDIA RTX 3050 (8GB)', price: '₱13,000' },
+          { name: 'NVIDIA RTX 2060 (12GB)', price: '₱13,000' },
+          { name: 'AMD Radeon RX 6600 XT', price: '₱15,500' }
+        ];
+      } else if (cpuCores === 6) {
+        suggestions.gpus = [
+          { name: 'AMD Radeon RX 6600', price: '₱12,495' },
+          { name: 'NVIDIA RTX 3050 (8GB)', price: '₱13,000' },
+          { name: 'AMD Radeon RX 6600 XT', price: '₱15,500' },
+          { name: 'Intel Arc A750', price: '₱15,500' },
+          { name: 'AMD Radeon RX 6650 XT', price: '₱17,000' },
+          { name: 'Intel Arc B580', price: '₱17,000' },
+          { name: 'NVIDIA RTX 3060 (12GB)', price: '₱18,000' },
+          { name: 'NVIDIA RTX 3060', price: '₱18,895' },
+          { name: 'Intel Arc A770 (8GB)', price: '₱20,000' },
+          { name: 'NVIDIA RTX 3060 Ti', price: '₱23,950' }
+        ];
+      } else if (cpuCores === 8) {
+        suggestions.gpus = [
+          { name: 'NVIDIA RTX 3060 Ti', price: '₱23,950' },
+          { name: 'AMD Radeon RX 6700 XT', price: '₱25,500' },
+          { name: 'AMD Radeon RX 6750 XT', price: '₱28,900' },
+          { name: 'NVIDIA RTX 3070', price: '₱32,500' },
+          { name: 'Asus Radeon RX 7900 XT', price: '₱62,995' },
+          { name: 'Asus RTX 4080 TUF Gaming OC', price: '₱69,995' },
+          { name: 'Inno3D RTX 5080 X3', price: '₱73,740' },
+          { name: 'Asus RTX 4080 Super TUF Gaming OC', price: '₱80,975' },
+          { name: 'Gigabyte RTX 4080 Eagle OC', price: '₱82,350' },
+          { name: 'Asus RTX 4080 Super Strix', price: '₱96,350' }
+        ];
+      } else if (cpuCores >= 9) {
+        suggestions.gpus = [
+          { name: 'Asus Radeon RX 7900 XT', price: '₱62,995' },
+          { name: 'Asus RTX 4080 TUF Gaming OC', price: '₱69,995' },
+          { name: 'Inno3D RTX 5080 X3', price: '₱73,740' },
+          { name: 'Asus RTX 4080 Super TUF Gaming OC', price: '₱80,975' },
+          { name: 'Gigabyte RTX 4080 Eagle OC', price: '₱82,350' },
+          { name: 'Asus RTX 4080 Super Strix', price: '₱96,350' },
+          { name: 'Gigabyte RTX 4090 Gaming OC', price: '₱107,895' },
+          { name: 'MSI RTX 4090 Gaming X Trio', price: '₱109,995' },
+          { name: 'Asus RTX 4090 TUF Gaming OC', price: '₱121,995' },
+          { name: 'Inno3D RTX 4090 iChill X3', price: '₱124,999' }
+        ];
+      }
+    } else if (gpuArray && gpuArray.length > 0 && !cpuRaw) {
+      // GPU selected first - suggest balanced CPUs
+      const firstGpu = gpuArray[0];
+      const cudaCores = toNumber(getFirst(firstGpu,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(firstGpu,['cuda']);
+      const computeUnits = toNumber(getFirst(firstGpu,'ComputeUnits','compute_units')) || findNumericByKeyPattern(firstGpu,['computeunit','compute_units']);
+      const xeCores = toNumber(getFirst(firstGpu,'XeCores','xe_cores')) || 0;
+      
+      if (cudaCores > 0) {
+        if (cudaCores >= 800 && cudaCores <= 1500) {
+          suggestions.cpus = [
+            { name: 'Intel Core i3-14100F', price: '₱5,295' },
+            { name: 'Intel Core i3-14100', price: '₱6,995' },
+            { name: 'AMD RYZEN 3 5300G', price: '₱9,050' }
+          ];
+        } else if (cudaCores >= 1600 && cudaCores <= 6000) {
+          suggestions.cpus = [
+            { name: 'Intel Core i5-13400F', price: '₱7,513' },
+            { name: 'Intel Core i5-14400F', price: '₱8,375' },
+            { name: 'Intel Core i5-12400F', price: '₱8,990' },
+            { name: 'AMD Ryzen 5 5600X', price: '₱8,990' },
+            { name: 'AMD Ryzen 5 7600', price: '₱11,370' },
+            { name: 'AMD Ryzen 5 7600X', price: '₱12,370' },
+            { name: 'Intel Core i5-12600', price: '₱14,000' },
+            { name: 'Intel Core i5-14600K', price: '₱14,395' },
+            { name: 'AMD Ryzen 5 7600X', price: '₱14,650' }
+          ];
+        } else if (cudaCores >= 6100 && cudaCores <= 12000) {
+          suggestions.cpus = [
+            { name: 'AMD Ryzen 7 5700X', price: '₱10,930' },
+            { name: 'AMD Ryzen 7 7700', price: '₱11,985' },
+            { name: 'Intel Core i7-12700', price: '₱13,650' },
+            { name: 'AMD Ryzen 7 5800XT', price: '₱15,940' },
+            { name: 'Intel Core i7-14700F', price: '₱18,226' },
+            { name: 'Intel Core i7-13700K', price: '₱19,990' },
+            { name: 'Intel Core Ultra 7 265K', price: '₱22,750' },
+            { name: 'AMD Ryzen 7 7800X3D', price: '₱27,995' }
+          ];
+        } else if (cudaCores >= 12100) {
+          suggestions.cpus = [
+            { name: 'Intel Core i9-14900K', price: '₱31,478' },
+            { name: 'Intel Core i9-14900KF', price: '₱35,950' },
+            { name: 'AMD Ryzen 9 9950X3D', price: '₱43,550' },
+            { name: 'AMD Ryzen 9 9900X', price: '₱24,950' },
+            { name: 'AMD Ryzen 9 9950X', price: '₱36,750' },
+            { name: 'AMD Ryzen 9 9900X3D', price: '₱24,950' },
+            { name: 'AMD Ryzen 9 7950X3D', price: '₱32,999' },
+            { name: 'AMD Ryzen 9 7900X', price: '₱21,895' }
+          ];
+        }
+      } else if (computeUnits > 0) {
+        if (computeUnits >= 16 && computeUnits <= 30) {
+          suggestions.cpus = [
+            { name: 'Intel Core i3-14100F', price: '₱5,295' },
+            { name: 'Intel Core i3-14100', price: '₱6,995' },
+            { name: 'AMD RYZEN 3 5300G', price: '₱9,050' }
+          ];
+        } else if (computeUnits >= 31 && computeUnits <= 54) {
+          suggestions.cpus = [
+            { name: 'Intel Core i5-13400F', price: '₱7,513' },
+            { name: 'Intel Core i5-14400F', price: '₱8,375' },
+            { name: 'Intel Core i5-12400F', price: '₱8,990' },
+            { name: 'AMD Ryzen 5 5600X', price: '₱8,990' },
+            { name: 'AMD Ryzen 5 7600', price: '₱11,370' },
+            { name: 'AMD Ryzen 5 7600X', price: '₱12,370' },
+            { name: 'Intel Core i5-12600', price: '₱14,000' },
+            { name: 'Intel Core i5-14600K', price: '₱14,395' },
+            { name: 'AMD Ryzen 5 7600X', price: '₱14,650' }
+          ];
+        } else if (computeUnits >= 55 && computeUnits <= 84) {
+          suggestions.cpus = [
+            { name: 'AMD Ryzen 7 5700X', price: '₱10,930' },
+            { name: 'AMD Ryzen 7 7700', price: '₱11,985' },
+            { name: 'Intel Core i7-12700', price: '₱13,650' },
+            { name: 'AMD Ryzen 7 5800XT', price: '₱15,940' },
+            { name: 'Intel Core i7-14700F', price: '₱18,226' },
+            { name: 'Intel Core i7-13700K', price: '₱19,990' },
+            { name: 'Intel Core Ultra 7 265K', price: '₱22,750' },
+            { name: 'AMD Ryzen 7 7800X3D', price: '₱27,995' }
+          ];
+        } else if (computeUnits >= 85) {
+          suggestions.cpus = [
+            { name: 'Intel Core i9-14900K', price: '₱31,478' },
+            { name: 'Intel Core i9-14900KF', price: '₱35,950' },
+            { name: 'AMD Ryzen 9 9950X3D', price: '₱43,550' },
+            { name: 'AMD Ryzen 9 9900X', price: '₱24,950' },
+            { name: 'AMD Ryzen 9 9950X', price: '₱36,750' },
+            { name: 'AMD Ryzen 9 9900X3D', price: '₱24,950' },
+            { name: 'AMD Ryzen 9 7950X3D', price: '₱32,999' },
+            { name: 'AMD Ryzen 9 7900X', price: '₱21,895' }
+          ];
+        }
+      } else if (xeCores > 0) {
+        if (xeCores >= 4 && xeCores <= 8) {
+          suggestions.cpus = [
+            { name: 'Intel Core i3-14100F', price: '₱5,295' },
+            { name: 'Intel Core i3-14100', price: '₱6,995' },
+            { name: 'AMD RYZEN 3 5300G', price: '₱9,050' }
+          ];
+        } else if (xeCores >= 9 && xeCores <= 16) {
+          suggestions.cpus = [
+            { name: 'Intel Core i5-13400F', price: '₱7,513' },
+            { name: 'Intel Core i5-14400F', price: '₱8,375' },
+            { name: 'Intel Core i5-12400F', price: '₱8,990' },
+            { name: 'AMD Ryzen 5 5600X', price: '₱8,990' },
+            { name: 'AMD Ryzen 5 7600', price: '₱11,370' },
+            { name: 'AMD Ryzen 5 7600X', price: '₱12,370' },
+            { name: 'Intel Core i5-12600', price: '₱14,000' },
+            { name: 'Intel Core i5-14600K', price: '₱14,395' },
+            { name: 'AMD Ryzen 5 7600X', price: '₱14,650' }
+          ];
+        } else if (xeCores >= 17 && xeCores <= 32) {
+          suggestions.cpus = [
+            { name: 'AMD Ryzen 7 5700X', price: '₱10,930' },
+            { name: 'AMD Ryzen 7 7700', price: '₱11,985' },
+            { name: 'Intel Core i7-12700', price: '₱13,650' },
+            { name: 'AMD Ryzen 7 5800XT', price: '₱15,940' },
+            { name: 'Intel Core i7-14700F', price: '₱18,226' },
+            { name: 'Intel Core i7-13700K', price: '₱19,990' },
+            { name: 'Intel Core Ultra 7 265K', price: '₱22,750' },
+            { name: 'AMD Ryzen 7 7800X3D', price: '₱27,995' }
+          ];
+        } else if (xeCores >= 33) {
+          suggestions.cpus = [
+            { name: 'Intel Core i9-14900K', price: '₱31,478' },
+            { name: 'Intel Core i9-14900KF', price: '₱35,950' },
+            { name: 'AMD Ryzen 9 9950X3D', price: '₱43,550' },
+            { name: 'AMD Ryzen 9 9900X', price: '₱24,950' },
+            { name: 'AMD Ryzen 9 9950X', price: '₱36,750' },
+            { name: 'AMD Ryzen 9 9900X3D', price: '₱24,950' },
+            { name: 'AMD Ryzen 9 7950X3D', price: '₱32,999' },
+            { name: 'AMD Ryzen 9 7900X', price: '₱21,895' }
+          ];
+        }
+      }
+    }
+    
+    return suggestions;
+  };
+  
+  const suggestions = getSuggestedComponents(cpuRaw, gpuArray);
+  const shouldShowSuggestions = (cpuRaw && (!gpuArray || gpuArray.length === 0)) || (gpuArray && gpuArray.length > 0 && !cpuRaw);
+  
   // Check CPU-GPU compatibility based on core counts and GPU specifications
   const checkCpuGpuCompatibility = (cpuRaw, gpuArray) => {
     if (!cpuRaw || !gpuArray || gpuArray.length === 0) return { compatible: false, severity: 'good', note: '' };
@@ -187,7 +391,7 @@ export function analyzeBuild(selectedParts) {
           laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         } else if (cpuCores >= 8 && cudaCores < 6100) {
           severity = 'warn';
-          note = `${cpuCores}-core CPU is overpowered for GPU with ${cudaCores} CUDA cores. Consider upgrading GPU.\n\nSuggestion: RTX 3070, RTX 3080, RTX 4070, or higher`;
+          note = `${cpuCores}-core CPU is overpowered for GPU with ${cudaCores} CUDA cores. Consider upgrading GPU.\n\nSuggestion: RX 7800XT, ARC 770 , RTX 4080`;
           laymanNote = 'Your processor is more powerful than needed for this graphics card. You could get a better graphics card to match your processor\'s capabilities.';
         } else {
           severity = 'warn';
@@ -409,7 +613,9 @@ export function analyzeBuild(selectedParts) {
     BuildSuitabilitynote,
     upgradeRecommendation,
     ram: { highestRamFrequency, cpuMaxMemSpeed, ramBottleneck, ramBottleneckNote },
-    power: { cpuTDP, gpuPowerTotal, psuWatt, totalRequiredPower, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, powerCause }
+    power: { cpuTDP, gpuPowerTotal, psuWatt, totalRequiredPower, requiredWithHeadroom, minRecommendedPSU, maxRecommendedPSU, showPowerWarning, showOverpoweredWarning, isInRecommendedRange, powerWarningText, powerCause },
+    suggestions,
+    shouldShowSuggestions
   };
 }
 

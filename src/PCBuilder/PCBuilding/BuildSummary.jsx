@@ -15,7 +15,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
 
   // Centralized analysis
   const analysis = analyzeBuild(selectedParts);
-  const { compatSeverity, bottleneckNote, laymanExplanation, upgradeRecommendation, ram, power } = analysis;
+  const { compatSeverity, bottleneckNote, laymanExplanation, upgradeRecommendation, ram, power, suggestions, shouldShowSuggestions } = analysis;
   const usageScores = analysis.usageScores || { gaming: 0, office: 0, productivity: 0 };
   const BuildSuitabilitynote = analysis.BuildSuitabilitynote || '';
   const { ramBottleneck, ramBottleneckNote } = ram;
@@ -77,13 +77,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
                 </p>
               </div>
             )}
-            {hasCpuGpu && bottleneckNote.includes('Suggestion: ') && (
-              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
-                  ⚙️ <strong>Suggestion:</strong> {bottleneckNote.split('\n\nSuggestion: ')[1]}
-                </p>
-              </div>
-            )}
+
             {ramBottleneck && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div className="compat-badge compat-warn compat-secondary">RAM BOTTLENECK</div>
@@ -95,13 +89,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
                 </div>
               </div>
             )}
-            {ramBottleneck && ramBottleneckNote.includes('Suggestion: ') && (
-              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
-                  ⚙️ <strong>Suggestion:</strong> {ramBottleneckNote.split('\n\nSuggestion: ')[1]}
-                </p>
-              </div>
-            )}
+
             {upgradeRecommendation && (
               <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div className="compat-badge compat-warn compat-secondary">RECOMMENDATION</div>
@@ -113,13 +101,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
                 </div>
               </div>
             )}
-            {upgradeRecommendation && upgradeRecommendation.includes('Suggestion: ') && (
-              <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
-                  ⚙️ <strong>Suggestion:</strong> {upgradeRecommendation.split('\n\nSuggestion: ')[1]}
-                </p>
-              </div>
-            )}
+
             
           </div>
         </div>
@@ -163,13 +145,74 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
                       : `PSU ${psuWatt}W is sufficient. Recommended range: ${minRecommendedPSU}W - ${maxRecommendedPSU}W for optimal efficiency and upgrade headroom (CPU ${cpuTDP || 0}W + GPUs ${gpuPowerTotal || 0}W = ${totalRequiredPower}W base).`
                 }
               </p>
-              {(showPowerWarning || showOverpoweredWarning) && powerWarningText.includes('Suggestion: ') && (
-                <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 600 }}>
-                    ⚙️ <strong>Suggestion:</strong> {powerWarningText.split('\n\nSuggestion: ')[1]}
+
+            </div>
+          </div>
+        )}
+
+        {/* Smart Suggestions */}
+        {shouldShowSuggestions && suggestions && (suggestions.cpus.length > 0 || suggestions.gpus.length > 0) && (
+          <div className="compat-card">
+            <div className="compat-card-header">
+              <div className="compat-card-title">
+                <span>Smart Suggestions</span>
+              </div>
+              <div className="compat-badge compat-info">RECOMMENDED</div>
+            </div>
+            <div className="compat-card-content">
+              {suggestions.gpus.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                    Recommended GPUs for your CPU:
                   </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {suggestions.gpus.map((gpu, idx) => (
+                      <div key={idx} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        backgroundColor: '#ffffff'
+                      }}>
+                        <span style={{ fontWeight: 500, color: '#374151' }}>{typeof gpu === 'string' ? gpu : gpu.name}</span>
+                        <span style={{ fontWeight: 600, color: '#059669' }}>{typeof gpu === 'string' ? '' : gpu.price}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+              {suggestions.cpus.length > 0 && (
+                <div>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                    Recommended CPUs for your GPU:
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {suggestions.cpus.map((cpu, idx) => (
+                      <div key={idx} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        backgroundColor: '#ffffff'
+                      }}>
+                        <span style={{ fontWeight: 500, color: '#374151' }}>{typeof cpu === 'string' ? cpu : cpu.name}</span>
+                        <span style={{ fontWeight: 600, color: '#059669' }}>{typeof cpu === 'string' ? '' : cpu.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div style={{ marginTop: 10, padding: '8px 12px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#0c4a6e', fontWeight: 500 }}>
+                  💡 These components from your PC Builder database are optimally balanced for your selected hardware, with real Philippine market prices.
+                </p>
+              </div>
             </div>
           </div>
         )}

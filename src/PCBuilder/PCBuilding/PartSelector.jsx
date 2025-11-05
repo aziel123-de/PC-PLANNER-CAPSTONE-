@@ -10,6 +10,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
   const [multiSlotImgs, setMultiSlotImgs] = useState({}); // idx -> url
   const firstSelected = Array.isArray(selectedValues) ? selectedValues[0] : null;
   const [otherSelected, setOtherSelected] = useState({});
+  const [showSuggestions, setShowSuggestions] = useState(false);
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
   const mapByCanonical = {
@@ -311,6 +312,56 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       break;
   }
 
+  // Utility functions for suggestions
+  const toNumber = (v) => { if (v == null) return 0; if (typeof v === 'number') return v; const m = String(v).match(/[0-9]+(\.[0-9]+)?/); if (!m) return 0; const n = parseFloat(m[0]); return Number.isFinite(n) ? n : 0; };
+  const findNumericByKeyPattern = (obj, patterns=['core','cores']) => { if(!obj||typeof obj!=='object') return 0; const keys=Object.keys(obj); for(const p of patterns){ for(const k of keys){ if(k.toLowerCase().includes(p)){ const n=toNumber(obj[k]); if(n>0) return n; } } } return 0; };
+  
+  // Get suggestions for current selection context
+  const getSuggestions = () => {
+    // Simple suggestion logic based on current context
+    if (part.name === "Graphics Card (GPU)" && effectiveCPU && !selectedValue) {
+      const cpuCores = toNumber(getFirst(effectiveCPU,'Cores','cores','CoreCount','coreCount')) || findNumericByKeyPattern(effectiveCPU,['core','cores']);
+      if (cpuCores === 4) {
+        return ['GTX 1650 Super', 'GTX 1660', 'RTX 3050', 'RX 6500 XT', 'RX 6600'];
+      } else if (cpuCores === 6) {
+        return ['RTX 3060', 'RTX 4060', 'RTX 3060 Ti', 'RX 6600 XT', 'RX 7600'];
+      } else if (cpuCores === 8) {
+        return ['RTX 3070', 'RTX 4070', 'RTX 4070 Ti', 'RX 7700 XT', 'RX 7800 XT'];
+      } else if (cpuCores >= 9) {
+        return ['RTX 4080', 'RTX 4090', 'RX 7900 XT', 'RX 7900 XTX'];
+      }
+    } else if (part.name === "Processor (CPU)" && selectedGPUs && selectedGPUs[0] && !selectedValue) {
+      const firstGpu = selectedGPUs[0];
+      const cudaCores = toNumber(getFirst(firstGpu,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(firstGpu,['cuda']);
+      const computeUnits = toNumber(getFirst(firstGpu,'ComputeUnits','compute_units')) || findNumericByKeyPattern(firstGpu,['computeunit','compute_units']);
+      
+      if (cudaCores > 0) {
+        if (cudaCores >= 800 && cudaCores <= 1500) {
+          return ['Intel Core i3-12100F', 'Intel Core i5-11400F', 'AMD Ryzen 5 4500'];
+        } else if (cudaCores >= 1600 && cudaCores <= 6000) {
+          return ['Intel Core i5-12400F', 'AMD Ryzen 5 5600X', 'Intel Core i5-13400F'];
+        } else if (cudaCores >= 6100 && cudaCores <= 12000) {
+          return ['Intel Core i7-12700F', 'AMD Ryzen 7 5800X', 'Intel Core i7-13700F'];
+        } else if (cudaCores >= 12100) {
+          return ['Intel Core i9-12900K', 'AMD Ryzen 9 5900X', 'Intel Core i9-13900K'];
+        }
+      } else if (computeUnits > 0) {
+        if (computeUnits >= 16 && computeUnits <= 30) {
+          return ['Intel Core i3-12100F', 'Intel Core i5-11400F', 'AMD Ryzen 5 4500'];
+        } else if (computeUnits >= 31 && computeUnits <= 54) {
+          return ['Intel Core i5-12400F', 'AMD Ryzen 5 5600X', 'Intel Core i5-13400F'];
+        } else if (computeUnits >= 55 && computeUnits <= 84) {
+          return ['Intel Core i7-12700F', 'AMD Ryzen 7 5800X', 'Intel Core i7-13700F'];
+        } else if (computeUnits >= 85) {
+          return ['Intel Core i9-12900K', 'AMD Ryzen 9 5900X', 'Intel Core i9-13900K'];
+        }
+      }
+    }
+    return [];
+  };
+  
+  const suggestions = getSuggestions();
+  
   // React-Select expects { value, label } format
   const reactSelectOptions = options.map(opt => {
     let label = `${opt.name} (₱${Number(opt.price || 0).toLocaleString()})`;
@@ -549,6 +600,60 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       <div className="PartSelectorContent">
       <h1>{part.name}</h1>
       <h4>Select a {part.name} for your build</h4>
+      
+      {/* Smart Suggestions */}
+      {suggestions.length > 0 && (
+        <div style={{ marginBottom: 12, padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0c4a6e' }}>
+              ⚙️ Recommended for your build:
+            </span>
+            <button 
+              type="button"
+              onClick={() => setShowSuggestions(!showSuggestions)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#0c4a6e',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                textDecoration: 'underline'
+              }}
+            >
+              {showSuggestions ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showSuggestions && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {suggestions.slice(0, 5).map((suggestion, idx) => (
+                <span key={idx} style={{
+                  background: part.name === "Graphics Card (GPU)" ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  padding: '3px 6px',
+                  borderRadius: '10px',
+                  fontSize: '0.7rem',
+                  fontWeight: 500
+                }}>
+                  {suggestion}
+                </span>
+              ))}
+              {suggestions.length > 5 && (
+                <span style={{
+                  background: '#e5e7eb',
+                  color: '#6b7280',
+                  padding: '3px 6px',
+                  borderRadius: '10px',
+                  fontSize: '0.7rem',
+                  fontWeight: 500
+                }}>
+                  +{suggestions.length - 5} more
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      
       {options.length === 0 && (
         <div className="EmptyOptionsHint">No {part.name} options loaded.</div>
       )}
