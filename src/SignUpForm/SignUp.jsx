@@ -147,6 +147,7 @@ function SignUp({ onLoginClick }) {
             type="text"
             placeholder="Enter your full name"
             value={Fullname}
+            maxLength={30}
             onChange={(e) => {
               setFullName(e.target.value);
               setShowNameError(false);
@@ -175,6 +176,7 @@ function SignUp({ onLoginClick }) {
             type="text"
             placeholder="Enter your email"
             value={Email}
+            maxLength={50}
             onChange={(e) => {
               setEmail(e.target.value);
               setShowEmailError(false);
