@@ -9,6 +9,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
   const [modalImageUrl, setModalImageUrl] = useState(null);
   const [multiSlotImgs, setMultiSlotImgs] = useState({}); // idx -> url
   const firstSelected = Array.isArray(selectedValues) ? selectedValues[0] : null;
+  const [otherSelected, setOtherSelected] = useState({});
   // Flexible part name resolution (case-insensitive, allow synonyms)
   const partName = (part?.name || '').toLowerCase();
   const mapByCanonical = {
@@ -115,6 +116,10 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
   }, [selectedValue && selectedValue.name]);
 
 
+  // effective selections: combine props with otherSelected events so any selector can drive filtering
+  const effectiveMOBO = selectedMOBO || otherSelected['Motherboard (MOBO)'] || otherSelected['Motherboard'] || null;
+  const effectiveCPU = selectedCPU || otherSelected['Processor (CPU)'] || otherSelected['CPU'] || null;
+
   // GPU SLI/CrossFire compatibility filtering
   if (part.name === "Graphics Card (GPU)" && selectedGPUs && selectedGPUs[0] && selectedValue !== selectedGPUs[0]) {
     const firstGPU = selectedGPUs[0];
@@ -148,37 +153,36 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     });
   }
 
-  // Compatibility filtering
-  if (selectedMOBO) {
-    const normalizeStr = (s) => (s || '').toString().trim().toLowerCase();
-    const normalizeId = (s) => normalizeStr(s).replace(/[^a-z0-9]/g, '');
-    const socketMatch = (a, b) => {
-      if (!a || !b) return false;
-      const sa = normalizeId(a);
-      const sb = normalizeId(b);
-      if (!sa || !sb) return false;
-      if (sa === sb) return true;
-      if (sa.includes(sb) || sb.includes(sa)) return true;
-      return false;
-    };
+  // Compatibility helpers (shared)
+  const normalizeStr = (s) => (s || '').toString().trim().toLowerCase();
+  const normalizeId = (s) => normalizeStr(s).replace(/[^a-z0-9]/g, '');
+  const socketMatch = (a, b) => {
+    if (!a || !b) return false;
+    const sa = normalizeId(a);
+    const sb = normalizeId(b);
+    if (!sa || !sb) return false;
+    if (sa === sb) return true;
+    if (sa.includes(sb) || sb.includes(sa)) return true;
+    return false;
+  };
 
-    const parseRamTypes = (s) => {
-      if (!s) return [];
-      return s.toString().split(/[,;&\\/]|\band\b|&/i).map(x => x.replace(/[^a-z0-9]/gi, '').toLowerCase()).filter(Boolean);
-    };
+  const parseRamTypes = (s) => {
+    if (!s) return [];
+    return s.toString().split(/[,;&\\/]|\band\b|&/i).map(x => x.replace(/[^a-z0-9]/gi, '').toLowerCase()).filter(Boolean);
+  };
 
-    // Helper: form factor normalization (adds handling for ambiguous 'mini-atx' -> micro-atx)
-    const normalizeFormFactor = (raw) => {
-      if (!raw) return '';
-      const v = raw.toString().toLowerCase();
-      if (/mini\s*-?itx|mitx/.test(v)) return 'mini-itx';
-      if (/e\s*-?atx|eatx/.test(v)) return 'e-atx';
-      if (/micro\s*-?atx|m\s*-?atx|matx|microatx|mini\s*-?atx/.test(v)) return 'matx'; // treat 'mini-atx' as micro-atx (dataset quirk)
-      if (/\batx\b/.test(v) || v.startsWith('atx')) return 'atx';
-      return v.replace(/\s+/g,'');
-    };
+  // Helper: form factor normalization (adds handling for ambiguous 'mini-atx' -> micro-atx)
+  const normalizeFormFactor = (raw) => {
+    if (!raw) return '';
+    const v = raw.toString().toLowerCase();
+    if (/mini\s*-?itx|mitx/.test(v)) return 'mini-itx';
+    if (/e\s*-?atx|eatx/.test(v)) return 'e-atx';
+    if (/micro\s*-?atx|m\s*-?atx|matx|microatx|mini\s*-?atx/.test(v)) return 'matx'; // treat 'mini-atx' as micro-atx (dataset quirk)
+    if (/\batx\b/.test(v) || v.startsWith('atx')) return 'atx';
+    return v.replace(/\s+/g,'');
+  };
 
-    const moboFF = normalizeFormFactor(selectedMOBO.formFactor || selectedMOBO.FormFactor || selectedMOBO._raw?.formFactor || selectedMOBO._raw?.FormFactor);
+  const moboFF = effectiveMOBO ? normalizeFormFactor(effectiveMOBO.formFactor || effectiveMOBO.FormFactor || effectiveMOBO._raw?.formFactor || effectiveMOBO._raw?.FormFactor) : '';
 
     // Define what a case supports by parsing all advertised form factors and applying hierarchy
     // Hierarchy (small -> large): mini-itx (1), matx (2), atx (3), e-atx (4)
@@ -211,53 +215,88 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       return true;
     };
 
-    switch (part.name) {
+  // Symmetric, start-anywhere compatibility filtering
+  switch (part.name) {
+    case "Motherboard (MOBO)":
+      // If CPU chosen elsewhere, filter MOBOs by socket
+      if (effectiveCPU) {
+        const cpuSocket = effectiveCPU.socket || effectiveCPU._raw?.Socket || effectiveCPU._raw?.socket;
+        if (cpuSocket) {
+          options = options.filter(mobo => {
+            const mSocket = mobo.socket || mobo._raw?.Socket || mobo._raw?.socket;
+            return mSocket ? socketMatch(mSocket, cpuSocket) : true;
+          });
+        }
+      }
+      // If RAM chosen elsewhere (array), filter MOBO by supported RAM type
+      {
+        const ramSel = otherSelected['Memory (RAM)'];
+        const ramList = Array.isArray(ramSel?.slots) ? ramSel.slots.filter(Boolean) : [];
+        if (ramList.length > 0) {
+          const pickedTypes = new Set();
+          for (const r of ramList) {
+            const types = parseRamTypes(r?.ramType || r?.ram_type || r?._raw?.RamType || r?._raw?.ram_type || r?._raw?.type);
+            types.forEach(t => pickedTypes.add(t));
+          }
+          if (pickedTypes.size > 0) {
+            options = options.filter(mobo => {
+              const mTypes = parseRamTypes(mobo.ramType || mobo.ram_type || mobo._raw?.RamType || mobo._raw?.ramType || mobo._raw?.ram_type);
+              if (mTypes.length === 0) return true;
+              return mTypes.some(t => pickedTypes.has(t));
+            });
+          }
+        }
+      }
+      break;
       case "Processor (CPU)":
+      if (effectiveMOBO) {
         options = options.filter(cpu => {
           const cpuSocket = cpu.socket || cpu._raw?.Socket || cpu._raw?.socket;
-          const mSocket = selectedMOBO.socket || selectedMOBO.Socket || selectedMOBO._raw?.Socket || selectedMOBO._raw?.socket;
+          const mSocket = effectiveMOBO.socket || effectiveMOBO.Socket || effectiveMOBO._raw?.Socket || effectiveMOBO._raw?.socket;
           if (mSocket) {
             return cpuSocket ? socketMatch(cpuSocket, mSocket) : false;
           }
           return true;
         });
+      }
         break;
       case "CPU Cooler":
-        if (selectedCPU) {
-          const cpuSocket = selectedCPU.socket || selectedCPU._raw?.Socket || selectedCPU._raw?.socket;
-          if (cpuSocket) {
-            options = options.filter(cooler => {
-              const coolerSocket = cooler.socket || cooler._raw?.Socket || cooler._raw?.socket;
-              return coolerSocket ? socketMatch(coolerSocket, cpuSocket) : true;
-            });
-          }
+      {
+        const cpuRef = effectiveCPU;
+        const cpuSocket = cpuRef ? (cpuRef.socket || cpuRef._raw?.Socket || cpuRef._raw?.socket) : null;
+        if (cpuSocket) {
+          options = options.filter(cooler => {
+            const coolerSocket = cooler.socket || cooler._raw?.Socket || cooler._raw?.socket;
+            return coolerSocket ? socketMatch(coolerSocket, cpuSocket) : true;
+          });
         }
+      }
         break;
       case "Memory (RAM)":
+      if (effectiveMOBO) {
         options = options.filter(ram => {
           const ramTypes = parseRamTypes(ram.ramType || ram.ram_type || ram.type || ram._raw?.RamType || ram._raw?.Ramtype || ram._raw?.ram_type || ram._raw?.type);
-            const mTypes = parseRamTypes(selectedMOBO.ramType || selectedMOBO.ram_type || selectedMOBO.RamType || selectedMOBO._raw?.RamType || selectedMOBO._raw?.ramType || selectedMOBO._raw?.ram_type);
+          const mTypes = parseRamTypes(effectiveMOBO?.ramType || effectiveMOBO?.ram_type || effectiveMOBO?.RamType || effectiveMOBO?._raw?.RamType || effectiveMOBO?._raw?.ramType || effectiveMOBO?._raw?.ram_type);
           if (ramTypes.length > 0 && mTypes.length > 0) {
             if (!ramTypes.some(rt => mTypes.includes(rt))) return false;
           } else {
             const ramPrimary = ram.ramType || ram.ram_type || ram.type;
-            const moboPrimary = selectedMOBO.ramType || selectedMOBO.ram_type;
+            const moboPrimary = effectiveMOBO?.ramType || effectiveMOBO?.ram_type;
             if (ramPrimary && moboPrimary) {
               if (!(normalizeStr(ramPrimary).includes(normalizeStr(moboPrimary)) || normalizeStr(moboPrimary).includes(normalizeStr(ramPrimary)))) return false;
             }
           }
-          
           // Filter by CPU RAM max frequency
-          if (selectedCPU) {
-            const cpuRamMax = selectedCPU.ram_max || selectedCPU._raw?.ram_max || selectedCPU._raw?.RamMax;
+          if (effectiveCPU) {
+            const cpuRamMax = effectiveCPU.ram_max || effectiveCPU._raw?.ram_max || effectiveCPU._raw?.RamMax;
             const ramFreq = ram.frequency_mhz || ram._raw?.frequency_mhz || ram._raw?.Frequency;
             if (cpuRamMax && ramFreq && Number(ramFreq) > Number(cpuRamMax)) {
               return false;
             }
           }
-          
           return true;
         });
+      }
         break;
       case "Storage":
         options = options.filter(storage => (storage.interface || '').toString().toLowerCase() === "sata");
@@ -268,9 +307,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       case "Case":
         options = options.filter(c => caseSupportsMobo(c));
         break;
-      default:
-        break;
-    }
+    default:
+      break;
   }
 
   // React-Select expects { value, label } format
@@ -300,9 +338,39 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
     };
   });
 
+  // Broadcast selection changes so other PartSelector instances can react
+  useEffect(() => {
+    const name = part?.name || '';
+    const handler = (e) => {
+      // update otherSelected map when others broadcast
+      const { detail } = e;
+      if (!detail || !detail.partName) return;
+      setOtherSelected(prev => ({ ...prev, [detail.partName]: detail.value }));
+    };
+    window.addEventListener('pc-part-selected', handler);
+    return () => window.removeEventListener('pc-part-selected', handler);
+  }, []);
+
+  // Fire event when selectedValue changes from this selector
+  useEffect(() => {
+    const partName = part?.name || '';
+    const payload = { partName, value: selectedValue || null };
+    const ev = new CustomEvent('pc-part-selected', { detail: payload });
+    window.dispatchEvent(ev);
+  }, [selectedValue]);
+
   // multi-slot support for RAM / M.2 / Storage / Case Fans with dynamic add/remove
   const multiTypes = ['Memory (RAM)', 'M.2 SSD', 'Storage', 'Case Fans'];
   const isMulti = multiTypes.includes(part.name) && Array.isArray(selectedValues);
+
+  // Broadcast RAM multi-slot selection so other selectors (e.g., MOBO) can filter by RAM type
+  useEffect(() => {
+    if (!isMulti) return;
+    if (part.name !== 'Memory (RAM)') return;
+    const payload = { partName: 'Memory (RAM)', value: { slots: selectedValues || [] } };
+    const ev = new CustomEvent('pc-part-selected', { detail: payload });
+    window.dispatchEvent(ev);
+  }, [isMulti, part?.name, selectedValues]);
 
   if (isMulti) {
     const valuesArr = selectedValues || [];
