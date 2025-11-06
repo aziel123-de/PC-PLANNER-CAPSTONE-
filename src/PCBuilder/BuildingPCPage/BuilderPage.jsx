@@ -468,65 +468,12 @@ function BuilderPage() {
               part={{ name: "Graphics Card (GPU)" }}
               selectedValue={selectedGPUs[0]}
               setSelectedValue={(value) => {
-                const updated = [...selectedGPUs];
-                updated[0] = value;
-                setSelectedGPUs(updated);
+                setSelectedGPUs([value]);
               }}
               dataLookup={dataLookup}
-              selectedGPUs={selectedGPUs}
               partIcon={gpuIcon}
             />
-            {selectedGPUs.slice(1).map((gpu, index) => (
-              <div key={`gpu-${index + 1}`}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <h1 style={{ margin: 0 }}>Graphics Card (GPU) {index + 2}</h1>
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      const updated = selectedGPUs.filter((_, i) => i !== index + 1);
-                      setSelectedGPUs(updated);
-                    }}
-                    style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    Remove
-                  </button>
-                </div>
-                <PartSelector
-                  part={{ name: "Graphics Card (GPU)" }}
-                  selectedValue={gpu}
-                  setSelectedValue={(value) => {
-                    const updated = [...selectedGPUs];
-                    updated[index + 1] = value;
-                    setSelectedGPUs(updated);
-                  }}
-                  dataLookup={dataLookup}
-                  selectedGPUs={selectedGPUs}
-                  partIcon={gpuIcon}
-                />
-              </div>
-            ))}
-            {selectedGPUs.length < (gpuSlotsCount || 2) && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setSelectedGPUs([...selectedGPUs, null])}
-                  style={{ 
-                    background: '#059669', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    padding: '12px 16px', 
-                    fontSize: '14px', 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px'
-                  }}
-                >
-                  + Add Graphics Card
-                </button>
-              </div>
-            )}
+
             <PartSelector
               part={{ name: "Memory (RAM)" }}
               slotCount={ramSlotsCount || 8}

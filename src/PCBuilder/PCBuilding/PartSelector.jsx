@@ -2,7 +2,7 @@ import './PartSelector.css';
 import Select from 'react-select';
 import { useState, useEffect } from 'react';
 
-function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, selectedGPUs, onAddGPU, onRemoveGPU, gpuIndex, partIcon }) {
+function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, selectedCPU, dataLookup, slotCount, selectedValues, setSelectedValues, partIcon }) {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState(null);
   const [iconImg, setIconImg] = useState(null);
@@ -121,38 +121,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
   const effectiveMOBO = selectedMOBO || otherSelected['Motherboard (MOBO)'] || otherSelected['Motherboard'] || null;
   const effectiveCPU = selectedCPU || otherSelected['Processor (CPU)'] || otherSelected['CPU'] || null;
 
-  // GPU SLI/CrossFire compatibility filtering
-  if (part.name === "Graphics Card (GPU)" && selectedGPUs && selectedGPUs[0] && selectedValue !== selectedGPUs[0]) {
-    const firstGPU = selectedGPUs[0];
-    const firstGPUName = (firstGPU.name || '').toLowerCase();
-    
-    // Extract brand and model from first GPU
-    const isNvidia = firstGPUName.includes('rtx') || firstGPUName.includes('gtx') || firstGPUName.includes('nvidia');
-    const isAMD = firstGPUName.includes('rx') || firstGPUName.includes('radeon') || firstGPUName.includes('amd');
-    
-    // Extract model number (e.g., "4090" from "RTX 4090")
-    const modelMatch = firstGPUName.match(/(\d{4}|\d{3})/); // Match 3-4 digit numbers
-    const firstModel = modelMatch ? modelMatch[1] : null;
-    
-    options = options.filter(gpu => {
-      const gpuName = (gpu.name || '').toLowerCase();
-      const gpuIsNvidia = gpuName.includes('rtx') || gpuName.includes('gtx') || gpuName.includes('nvidia');
-      const gpuIsAMD = gpuName.includes('rx') || gpuName.includes('radeon') || gpuName.includes('amd');
-      
-      // Must be same brand
-      if (isNvidia && !gpuIsNvidia) return false;
-      if (isAMD && !gpuIsAMD) return false;
-      
-      // Must be same model for SLI/CrossFire
-      if (firstModel) {
-        const gpuModelMatch = gpuName.match(/(\d{4}|\d{3})/);
-        const gpuModel = gpuModelMatch ? gpuModelMatch[1] : null;
-        return gpuModel === firstModel;
-      }
-      
-      return true;
-    });
-  }
+  // No GPU filtering needed for single GPU setup
 
   // Compatibility helpers (shared)
   const normalizeStr = (s) => (s || '').toString().trim().toLowerCase();
@@ -330,8 +299,8 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
       } else if (cpuCores >= 9) {
         return ['RTX 4080', 'RTX 4090', 'RX 7900 XT', 'RX 7900 XTX'];
       }
-    } else if (part.name === "Processor (CPU)" && selectedGPUs && selectedGPUs[0] && !selectedValue) {
-      const firstGpu = selectedGPUs[0];
+    } else if (part.name === "Processor (CPU)" && otherSelected['Graphics Card (GPU)'] && !selectedValue) {
+      const firstGpu = otherSelected['Graphics Card (GPU)'];
       const cudaCores = toNumber(getFirst(firstGpu,'CudaCores','cuda_cores','Cuda')) || findNumericByKeyPattern(firstGpu,['cuda']);
       const computeUnits = toNumber(getFirst(firstGpu,'ComputeUnits','compute_units')) || findNumericByKeyPattern(firstGpu,['computeunit','compute_units']);
       

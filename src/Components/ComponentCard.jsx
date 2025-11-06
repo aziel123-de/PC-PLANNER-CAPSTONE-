@@ -75,11 +75,9 @@ function ComponentCard({ component }) {
     <div className="component-card">
       <h2 className="component-title-list">{item.name}</h2>
 
-      <div className="component-image">
+      <div className="component-image" onClick={() => setShowModal(true)} style={{ cursor: 'pointer' }}>
         {img ? (
-          <a href={img} target="_blank" rel="noopener noreferrer">
-            <img src={img} alt={item.name} />
-          </a>
+          <img src={img} alt={item.name} />
         ) : (
           <div className="component-image--placeholder">
             {loadingImg ? 'Loading image…' : (imgError ? 'No image found' : 'No image')}
