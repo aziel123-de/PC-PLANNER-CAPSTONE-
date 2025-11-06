@@ -309,12 +309,12 @@ export default function BuilderPageEdit(){
             <PartSelector part={{ name: "Monitor" }} selectedValue={selectedMonitor} setSelectedValue={setSelectedMonitor} dataLookup={dataLookup} />
           </div>
           <div className="RightColumn">
-            <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} onSaveBuild={handleSaveBuild} onClearBuild={handleClearBuild} isLoggedIn={isLoggedIn} />
+            <BuildSummary selectedParts={buildSummaryParts} dataLookup={dataLookup} onSaveBuild={handleSaveBuild} onClearBuild={handleClearBuild} isLoggedIn={isLoggedIn} isEditing={true} />
           </div>
         </div>
       </main>
       
-      <BuildNameModal isOpen={showNameModal} onClose={() => setShowNameModal(false)} onSave={handleNameModalSave} initialName={tempName} initialDescription={tempDescription} />
+  <BuildNameModal isOpen={showNameModal} onClose={() => setShowNameModal(false)} onSave={handleNameModalSave} initialName={tempName} initialDescription={tempDescription} isEditing={true} />
       <SaveBuildModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} buildId={saveModalData.buildId} buildName={saveModalData.buildName} hasIssues={saveModalData.hasIssues} warnings={saveModalData.warnings} />
       <AlertModal isOpen={alertModal.show} onClose={() => setAlertModal({ show: false, message: '', title: 'Alert' })} title={alertModal.title} message={alertModal.message} />
       <ConfirmModal isOpen={confirmModal.show} onClose={() => setConfirmModal({ show: false, message: '', title: 'Confirm', onConfirm: null })} onConfirm={confirmModal.onConfirm} title={confirmModal.title} message={confirmModal.message} />

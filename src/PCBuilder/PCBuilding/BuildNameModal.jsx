@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './BuildNameModal.css';
 
-function BuildNameModal({ isOpen, onClose, onSave, initialName = '', initialDescription = '' }) {
+function BuildNameModal({ isOpen, onClose, onSave, initialName = '', initialDescription = '', isEditing = false }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [nameError, setNameError] = useState('');
@@ -68,7 +68,7 @@ function BuildNameModal({ isOpen, onClose, onSave, initialName = '', initialDesc
     <div className="build-name-modal-backdrop" onClick={handleBackdropClick}>
       <div className="build-name-modal" onKeyDown={handleKeyDown}>
         <div className="build-name-modal-header">
-          <h2 className="build-name-modal-title">Save Your Build</h2>
+          <h2 className="build-name-modal-title">{isEditing ? 'Update Your Build' : 'Save Your Build'}</h2>
           <button className="build-name-modal-close" onClick={handleCancel}>
             ×
           </button>
@@ -125,7 +125,7 @@ function BuildNameModal({ isOpen, onClose, onSave, initialName = '', initialDesc
             onClick={handleSave}
             disabled={!name.trim()}
           >
-            Save Build
+            {isEditing ? 'Update Build' : 'Save Build'}
           </button>
         </div>
         

@@ -4,7 +4,7 @@ import React from 'react';
 import analyzeBuild from './analyzeBuild';
 import { FiLock } from 'react-icons/fi';
 
-function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, dataLookup }) {
+function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, dataLookup, isEditing = false }) {
   // Convert selectedParts object to a flat array of all selected parts (filter out null/undefined)
   const allParts = Object.values(selectedParts).flat().filter(Boolean).map(p => p._raw ? p : p);
   const TOTAL_PART_COUNT = 14; // configurable expected parts count (includes 4 peripherals)
@@ -291,7 +291,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
               disabled={!dataLookup} 
               className="save-build-btn-builderpage"
             >
-              Save Build
+              {isEditing ? 'Update Build' : 'Save Build'}
             </button>
             <button 
               onClick={onClearBuild}
