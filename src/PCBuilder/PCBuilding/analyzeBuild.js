@@ -136,51 +136,46 @@ export function analyzeBuild(selectedParts) {
           { name: 'NVIDIA GTX 1650', price: '₱8,000' },
           { name: 'AMD Radeon RX 6500 XT', price: '₱8,400' },
           { name: 'Intel Arc A380', price: '₱9,550' },
-          { name: 'NVIDIA RTX 3050 (6GB)', price: '₱10,250' },
-          { name: 'Intel Arc A580', price: '₱10,100' },
-          { name: 'NVIDIA GTX 1660 Super', price: '₱11,900' },
-          { name: 'AMD Radeon RX 6600', price: '₱12,495' },
-          { name: 'NVIDIA RTX 3050 (8GB)', price: '₱13,000' },
-          { name: 'NVIDIA RTX 2060 (12GB)', price: '₱13,000' },
-          { name: 'AMD Radeon RX 6600 XT', price: '₱15,500' }
+          { name: 'NVIDIA GTX 1660 Super', price: '₱12,500' },
+          { name: 'AMD Radeon RX 6600', price: '₱12,495' }
+
         ];
       } else if (cpuCores === 6) {
         suggestions.gpus = [
-          { name: 'AMD Radeon RX 6600', price: '₱12,495' },
-          { name: 'NVIDIA RTX 3050 (8GB)', price: '₱13,000' },
-          { name: 'AMD Radeon RX 6600 XT', price: '₱15,500' },
-          { name: 'Intel Arc A750', price: '₱15,500' },
+
           { name: 'AMD Radeon RX 6650 XT', price: '₱17,000' },
-          { name: 'Intel Arc B580', price: '₱17,000' },
+          { name: 'AMD Radeon RX 6600 XT', price: '₱15,500' },
+          { name: 'AMD Radeon RX 6700 XT', price: '₱25,500' },
+          { name: 'AMD Radeon RX 6750 XT', price: '₱28,900' },
           { name: 'NVIDIA RTX 3060 (12GB)', price: '₱18,000' },
           { name: 'NVIDIA RTX 3060', price: '₱18,895' },
-          { name: 'Intel Arc A770 (8GB)', price: '₱20,000' },
-          { name: 'NVIDIA RTX 3060 Ti', price: '₱23,950' }
+          { name: 'NVIDIA RTX 3060 Ti', price: '₱23,950' },
+          { name: 'NVIDIA RTX 3070', price: '₱32,500' },
+          { name: 'AMD Radeon RX 7600 XT OC', price: '₱21,950' },
+          { name: 'AMD Radeon RX 7600 Gaming OC 8G', price: '₱16,495' },
+          { name: 'AMD Radeon RX 7700 XT OC ', price: '₱28,628' },
+          { name: 'NVIDIA RTX 2060 (12GB)', price: '₱13,000' }
         ];
       } else if (cpuCores === 8) {
         suggestions.gpus = [
-          { name: 'NVIDIA RTX 3060 Ti', price: '₱23,950' },
-          { name: 'AMD Radeon RX 6700 XT', price: '₱25,500' },
-          { name: 'AMD Radeon RX 6750 XT', price: '₱28,900' },
-          { name: 'NVIDIA RTX 3070', price: '₱32,500' },
-          { name: 'Asus Radeon RX 7900 XT', price: '₱62,995' },
+          { name: 'Intel Arc A770 (8GB)', price: '₱20,000' },
           { name: 'Asus RTX 4080 TUF Gaming OC', price: '₱69,995' },
           { name: 'Inno3D RTX 5080 X3', price: '₱73,740' },
           { name: 'Asus RTX 4080 Super TUF Gaming OC', price: '₱80,975' },
           { name: 'Gigabyte RTX 4080 Eagle OC', price: '₱82,350' },
+          { name: 'AMD Radeon 7800 XT', price: '₱35,450' },
           { name: 'Asus RTX 4080 Super Strix', price: '₱96,350' }
         ];
       } else if (cpuCores >= 9) {
         suggestions.gpus = [
           { name: 'Asus Radeon RX 7900 XT', price: '₱62,995' },
-          { name: 'Asus RTX 4080 TUF Gaming OC', price: '₱69,995' },
-          { name: 'Inno3D RTX 5080 X3', price: '₱73,740' },
-          { name: 'Asus RTX 4080 Super TUF Gaming OC', price: '₱80,975' },
-          { name: 'Gigabyte RTX 4080 Eagle OC', price: '₱82,350' },
-          { name: 'Asus RTX 4080 Super Strix', price: '₱96,350' },
+          { name: 'ASRock Steel Legend Radeon RX 7900 GRE OC', price: '₱40,950' },
+          { name: 'Sapphire Nitro+ Radeon RX 7900 XTX VAPORT-X OC', price: '₱54,950' },
           { name: 'Gigabyte RTX 4090 Gaming OC', price: '₱107,895' },
           { name: 'MSI RTX 4090 Gaming X Trio', price: '₱109,995' },
           { name: 'Asus RTX 4090 TUF Gaming OC', price: '₱121,995' },
+          { name: 'Asus RTX 4090 Strix Gaming', price: '₱134,095' },
+          { name: 'Asus RTX 4090 Strix LC', price: '₱146,800' },
           { name: 'Inno3D RTX 4090 iChill X3', price: '₱124,999' }
         ];
       }
