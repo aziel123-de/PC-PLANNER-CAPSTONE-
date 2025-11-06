@@ -272,7 +272,7 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
         options = options.filter(storage => (storage.interface || '').toString().toLowerCase() === "sata");
         break;
       case "M.2 SSD":
-        options = options.filter(m2 => (m2.interface || '').toString().toLowerCase() === "nvme");
+        // Show all M.2 SSDs without interface restriction
         break;
       case "Case":
         options = options.filter(c => caseSupportsMobo(c));
