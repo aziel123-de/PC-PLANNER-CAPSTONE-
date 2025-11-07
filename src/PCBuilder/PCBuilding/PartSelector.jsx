@@ -540,7 +540,9 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
               <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
               {modalImageUrl && <img src={modalImageUrl} alt={modalData.name} style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', marginBottom: '20px' }} />}
               <h2 style={{ margin: '0 0 20px 0' }}>{modalData.name}</h2>
-              <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand || 'N/A'}</div>
+              {(modalData._raw?.brand || modalData.brand) && (
+                <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand}</div>
+              )}
             </div>
           </div>
         )}
@@ -651,7 +653,9 @@ function PartSelector({ part, selectedValue, setSelectedValue, selectedMOBO, sel
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
             {modalImageUrl && <img src={modalImageUrl} alt={modalData.name} style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', marginBottom: '20px' }} />}
             <h2 style={{ margin: '0 0 20px 0' }}>{modalData.name}</h2>
-            <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand || 'N/A'}</div>
+            {(modalData._raw?.brand || modalData.brand) && (
+              <div><strong>Brand:</strong> {modalData._raw?.brand || modalData.brand}</div>
+            )}
           </div>
         </div>
       )}
