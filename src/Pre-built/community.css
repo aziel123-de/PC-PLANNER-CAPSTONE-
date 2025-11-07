@@ -145,6 +145,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 
@@ -1568,6 +1569,16 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
     margin-right: 0;
     text-align: center;
   }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  
+  .header-actions select {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1576,6 +1587,10 @@ textarea.cb-comment-input:focus { outline: none; border-color: var(--cb-primary)
     padding: 8px 12px;
     padding-right: 35px;
     background-size: 14px;
+  }
+  
+  .header-actions {
+    gap: 0.5rem;
   }
 }
 

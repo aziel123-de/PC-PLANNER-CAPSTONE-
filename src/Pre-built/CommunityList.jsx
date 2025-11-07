@@ -19,6 +19,7 @@ function CommunityList() {
   const [builds, setBuilds] = useState([]);
   const [allBuilds, setAllBuilds] = useState([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+  const [sortBy, setSortBy] = useState('default');
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,23 +35,10 @@ function CommunityList() {
       const res = await fetch(`${API_PREFIX}`);
       if (!res.ok) throw new Error('Failed to load builds');
       const data = await res.json();
-      // Sort with pcplannermain@gmail.com builds at top, then by score
-      const sortedData = data.sort((a, b) => {
-        // Check for PC Planner identification by full name
-        const isPcPlannerA = a.username === 'PCPlannerMain' || a.full_name === 'PCPlannerMain';
-        const isPcPlannerB = b.username === 'PCPlannerMain' || b.full_name === 'PCPlannerMain';
-        
-        // PC Planner builds always go first
-        if (isPcPlannerA && !isPcPlannerB) return -1;
-        if (!isPcPlannerA && isPcPlannerB) return 1;
-        
-        // If both or neither are PC Planner builds, sort by score
-        const scoreA = (a.up_votes || 0) - (a.down_votes || 0);
-        const scoreB = (b.up_votes || 0) - (b.down_votes || 0);
-        return scoreB - scoreA;
-      });
-      setAllBuilds(sortedData);
-      setBuilds(filterBuildsByPrice(sortedData, selectedPriceRange));
+      setAllBuilds(data);
+      const filteredData = filterBuildsByPrice(data, selectedPriceRange);
+      const sortedData = sortBuilds(filteredData, sortBy);
+      setBuilds(sortedData);
     } catch (e) {
       setError(e.message || 'Error');
     } finally {
@@ -85,9 +73,45 @@ function CommunityList() {
     });
   };
 
+  const sortBuilds = (buildsToSort, sortOption) => {
+    const sorted = [...buildsToSort].sort((a, b) => {
+      // PC Planner builds always go first regardless of sort
+      const isPcPlannerA = a.username === 'PCPlannerMain' || a.full_name === 'PCPlannerMain';
+      const isPcPlannerB = b.username === 'PCPlannerMain' || b.full_name === 'PCPlannerMain';
+      
+      if (isPcPlannerA && !isPcPlannerB) return -1;
+      if (!isPcPlannerA && isPcPlannerB) return 1;
+      
+      // Apply sorting for non-PC Planner builds
+      switch (sortOption) {
+        case 'price-asc':
+          return (a.total_price || 0) - (b.total_price || 0);
+        case 'price-desc':
+          return (b.total_price || 0) - (a.total_price || 0);
+        case 'votes-asc':
+          return ((a.up_votes || 0) - (a.down_votes || 0)) - ((b.up_votes || 0) - (b.down_votes || 0));
+        case 'votes-desc':
+        default: // 'default' - sort by score (votes)
+          const scoreA = (a.up_votes || 0) - (a.down_votes || 0);
+          const scoreB = (b.up_votes || 0) - (b.down_votes || 0);
+          return scoreB - scoreA;
+      }
+    });
+    return sorted;
+  };
+
   const handlePriceRangeChange = (range) => {
     setSelectedPriceRange(range);
-    setBuilds(filterBuildsByPrice(allBuilds, range));
+    const filteredData = filterBuildsByPrice(allBuilds, range);
+    const sortedData = sortBuilds(filteredData, sortBy);
+    setBuilds(sortedData);
+  };
+
+  const handleSortChange = (sortOption) => {
+    setSortBy(sortOption);
+    const filteredData = filterBuildsByPrice(allBuilds, selectedPriceRange);
+    const sortedData = sortBuilds(filteredData, sortOption);
+    setBuilds(sortedData);
   };
 
   const openModal = (id) => { setModalBuildId(id); lockScroll(); };
@@ -189,6 +213,17 @@ function CommunityList() {
                 <option value="40000-60000">₱40K - ₱60K</option>
                 <option value="60000-100000">₱60K - ₱100K</option>
                 <option value="100000+">₱100K+</option>
+              </select>
+              <select 
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="modern-price-filter"
+              >
+                <option value="default">Sort by Votes</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="votes-asc">Votes: Low to High</option>
+                <option value="votes-desc">Votes: High to Low</option>
               </select>
               <button className="share-build-btn" onClick={() => {
                 const token = localStorage.getItem('token');
