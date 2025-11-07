@@ -164,6 +164,7 @@ function ComponentPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="Search components"
+                maxLength={20}
               />
               {query && (
                 <button
@@ -352,6 +353,7 @@ function FloatingFilterButton({ filters, activeFilter, onFilterChange, query, on
               placeholder="Search components..."
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
+              maxLength={20}
             />
           </div>
         </div>
