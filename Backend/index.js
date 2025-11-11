@@ -277,106 +277,17 @@ function getUserIdFromRequest(req) {
 async function ensureSchema() {
   const conn = await pool.getConnection();
   try {
-    const sql = `CREATE TABLE IF NOT EXISTS users (
-      id VARCHAR(36) PRIMARY KEY,
-      email VARCHAR(255) NOT NULL UNIQUE,
-      username VARCHAR(255),
-      firebase_uid VARCHAR(255),
-      salt VARCHAR(100),
-      hash VARCHAR(255),
-      profile_picture TEXT,
-      createdAt DATETIME NOT NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
-    
-    // Add firebase_uid column if it doesn't exist
-    try {
-      await conn.query('ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(255)');
-    } catch (e) {
-      // Column already exists
+    // Use central table definitions for idempotent creation
+    const { tableQueries } = require('./table_queries');
+    for (const [name, ddl] of Object.entries(tableQueries)) {
+      try {
+        await conn.query(ddl);
+        // console.log(`[ensureSchema] ensured table: ${name}`);
+      } catch (e) {
+        console.error(`[ensureSchema] failed creating ${name}:`, e.message);
+        throw e;
+      }
     }
-    
-    // Make salt and hash nullable for Firebase users
-    try {
-      await conn.query('ALTER TABLE users MODIFY salt VARCHAR(100)');
-      await conn.query('ALTER TABLE users MODIFY hash VARCHAR(255)');
-    } catch (e) {
-      // Already nullable
-    }
-    await conn.query(sql);
-    // Community builds main table
-    await conn.query(`CREATE TABLE IF NOT EXISTS community_builds (
-      id VARCHAR(36) PRIMARY KEY,
-      user_id VARCHAR(36) NOT NULL,
-      title VARCHAR(150) NOT NULL,
-      description TEXT,
-      parts_json JSON NOT NULL,
-      total_price INT DEFAULT 0,
-      up_votes INT DEFAULT 0,
-      down_votes INT DEFAULT 0,
-      build_image TEXT,
-      createdAt DATETIME NOT NULL,
-      updatedAt DATETIME NOT NULL,
-      INDEX(user_id),
-      CONSTRAINT fk_community_builds_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
-    // Add build_image column if it doesn't exist
-    try {
-      await conn.query('ALTER TABLE community_builds ADD COLUMN build_image TEXT');
-    } catch (e) {
-      // Column already exists
-    }
-    // Comments table
-    await conn.query(`CREATE TABLE IF NOT EXISTS community_build_comments (
-      id VARCHAR(36) PRIMARY KEY,
-      build_id VARCHAR(36) NOT NULL,
-      user_id VARCHAR(36) NOT NULL,
-      comment_text VARCHAR(600) NOT NULL,
-      createdAt DATETIME NOT NULL,
-      INDEX(build_id),
-      INDEX(user_id),
-      CONSTRAINT fk_cbc_build FOREIGN KEY (build_id) REFERENCES community_builds(id) ON DELETE CASCADE,
-      CONSTRAINT fk_cbc_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
-    // Votes table (one row per user per build)
-    await conn.query(`CREATE TABLE IF NOT EXISTS community_build_votes (
-      build_id VARCHAR(36) NOT NULL,
-      user_id VARCHAR(36) NOT NULL,
-      direction ENUM('up','down') NOT NULL,
-      createdAt DATETIME NOT NULL,
-      updatedAt DATETIME NOT NULL,
-      PRIMARY KEY (build_id, user_id),
-      INDEX(user_id),
-      CONSTRAINT fk_cbv_build FOREIGN KEY (build_id) REFERENCES community_builds(id) ON DELETE CASCADE,
-      CONSTRAINT fk_cbv_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
-    // Password reset tokens
-    await conn.query(`CREATE TABLE IF NOT EXISTS password_resets (
-      id VARCHAR(36) PRIMARY KEY,
-      user_id VARCHAR(36) NOT NULL,
-      token_hash VARCHAR(128) NOT NULL,
-      expiresAt DATETIME NOT NULL,
-      used TINYINT DEFAULT 0,
-      createdAt DATETIME NOT NULL,
-      INDEX(token_hash),
-      INDEX(user_id),
-      CONSTRAINT fk_pr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
-
-    // Ensure item_images table (fallback if migrations not run)
-    await conn.query(`CREATE TABLE IF NOT EXISTS item_images (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      item_id INT NOT NULL DEFAULT 0,
-      name VARCHAR(255) NOT NULL,
-      image_url VARCHAR(1024) NOT NULL,
-      source_url VARCHAR(1024),
-      width INT NULL,
-      height INT NULL,
-      provider VARCHAR(32) NOT NULL DEFAULT 'serper',
-      created_at DATETIME NOT NULL,
-      updated_at DATETIME NOT NULL,
-      UNIQUE KEY uniq_item_name (item_id, name),
-      KEY idx_name (name)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
   } finally {
     conn.release();
   }
