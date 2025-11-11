@@ -81,6 +81,7 @@ function BuilderPage() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: '', title: 'Confirm', onConfirm: null });
+  const [pendingUsage, setPendingUsage] = useState(null);
 
   // Prefill from a previously loaded build or saved draft
   useEffect(() => {
@@ -227,7 +228,7 @@ function BuilderPage() {
     caseFans: (selectedCaseFans || []).filter(Boolean)
   });
 
-  const handleSaveBuild = async () => {
+  const handleSaveBuild = async (usageSnapshot) => {
     const token = localStorage.getItem('token');
     if (!token) {
       setAlertModal({ show: true, message: 'You must be logged in to save a build.', title: 'Login Required' });
@@ -250,20 +251,23 @@ function BuilderPage() {
 
     // If we don't have a name, show the name modal
     if (!tempName) {
+      setPendingUsage(usageSnapshot || null);
       setShowNameModal(true);
       return;
     }
 
     // If we have a name, proceed with saving
-    await performSaveBuild(tempName, tempDescription);
+    setPendingUsage(usageSnapshot || null);
+    await performSaveBuild(tempName, tempDescription, usageSnapshot);
   };
 
-  const performSaveBuild = async (name, description) => {
+  const performSaveBuild = async (name, description, usageSnapshot) => {
     const parts = buildSnapshot();
     const total_price = computeTotalPrice();
     const analysis = analyzeBuild(parts);
     const warnings = analysis.warnings || [];
     const has_issues = analysis.hasIssues;
+    const usage = usageSnapshot && usageSnapshot.scores ? usageSnapshot : { scores: analysis.usageScores || { gaming: 0, office: 0, productivity: 0 }, note: analysis.BuildSuitabilitynote || '' };
     
     try {
       const resp = await fetch('/api/builds', {
@@ -272,7 +276,7 @@ function BuilderPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
+        body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues, usage })
       });
       
       if (!resp.ok) {
@@ -317,7 +321,7 @@ function BuilderPage() {
 
   const handleNameModalSave = async (name, description) => {
     setShowNameModal(false);
-    await performSaveBuild(name, description);
+    await performSaveBuild(name, description, pendingUsage);
   };
 
   const handleNameModalClose = () => {

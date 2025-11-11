@@ -2,6 +2,7 @@ import './BuildSummary.css';
 import ComponentSpecs from './ComponentSpecs';
 import React from 'react';
 import analyzeBuild from './analyzeBuild';
+import UsageBars from '../../components/UsageBars';
 import { FiLock } from 'react-icons/fi';
 
 function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, dataLookup, isEditing = false }) {
@@ -226,40 +227,11 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
           </div>
           <div className="compat-card-content">
             {(usageScores.gaming > 0 || usageScores.office > 0 || usageScores.productivity > 0) ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ minWidth: 80, fontSize: '0.85rem', fontWeight: 500 }}>Gaming:</span>
-                  <div style={{ flex: 1, height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, overflow: 'hidden' }}>
-                    <div style={{ width: `${usageScores.gaming}%`, height: '100%', backgroundColor: usageScores.gaming >= 80 ? '#10b981' : usageScores.gaming >= 60 ? '#f59e0b' : '#ef4444', transition: 'width 0.3s ease' }}></div>
-                  </div>
-                  <span style={{ minWidth: 35, fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>{usageScores.gaming}%</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ minWidth: 80, fontSize: '0.85rem', fontWeight: 500 }}>Office Use:</span>
-                  <div style={{ flex: 1, height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, overflow: 'hidden' }}>
-                    <div style={{ width: `${usageScores.office}%`, height: '100%', backgroundColor: usageScores.office >= 80 ? '#10b981' : usageScores.office >= 60 ? '#f59e0b' : '#ef4444', transition: 'width 0.3s ease' }}></div>
-                  </div>
-                  <span style={{ minWidth: 35, fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>{usageScores.office}%</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ minWidth: 80, fontSize: '0.85rem', fontWeight: 500 }}>Productivity:</span>
-                  <div style={{ flex: 1, height: 10, backgroundColor: '#e5e7eb', borderRadius: 5, overflow: 'hidden' }}>
-                    <div style={{ width: `${usageScores.productivity}%`, height: '100%', backgroundColor: usageScores.productivity >= 80 ? '#10b981' : usageScores.productivity >= 60 ? '#f59e0b' : '#ef4444', transition: 'width 0.3s ease' }}></div>
-                  </div>
-                  <span style={{ minWidth: 35, fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>{usageScores.productivity}%</span>
-                </div>
-              </div>
+              <UsageBars scores={usageScores} note={BuildSuitabilitynote} />
             ) : (
               <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>
                 Finish the build to see the status bar
               </p>
-            )}
-            {BuildSuitabilitynote && (
-              <div style={{ marginTop: 12, padding: '8px 12px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#495057', fontWeight: 500 }}>
-                   {BuildSuitabilitynote}
-                </p>
-              </div>
             )}
           </div>
         </div>
@@ -287,7 +259,7 @@ function BuildSummary({ selectedParts, onSaveBuild, onClearBuild, isLoggedIn, da
           <>
             <button 
               id="save-build-btn-builderpage"
-              onClick={onSaveBuild} 
+              onClick={() => onSaveBuild && onSaveBuild({ scores: usageScores, note: BuildSuitabilitynote })} 
               disabled={!dataLookup} 
               className="save-build-btn-builderpage"
             >

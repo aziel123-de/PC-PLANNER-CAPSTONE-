@@ -361,6 +361,49 @@ async function ensureSchema() {
       UNIQUE KEY uniq_item_name (item_id, name),
       KEY idx_name (name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
+
+    // Robust column ensure using INFORMATION_SCHEMA (works across MySQL/MariaDB without IF NOT EXISTS)
+    async function ensureColumnExists(table, column, addClauseSQL) {
+      const [tc] = await conn.query(
+        `SELECT COUNT(*) AS c FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+        [table]
+      );
+      if ((tc[0]?.c || 0) === 0) return; // table doesn't exist yet
+      const [rows] = await conn.query(
+        `SELECT COUNT(*) AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+        [table, column]
+      );
+      if ((rows[0]?.c || 0) === 0) {
+        await conn.query(`ALTER TABLE \`${table}\` ${addClauseSQL}`);
+      }
+    }
+
+    // Ensure saved_builds.usage_json exists
+    await ensureColumnExists('saved_builds', 'usage_json', `ADD COLUMN usage_json JSON DEFAULT (JSON_OBJECT())`);
+  } finally {
+    conn.release();
+  }
+}
+
+// On-demand ensure for runtime requests (memoized)
+let ensuredUsageColumn = false;
+async function ensureSavedBuildsUsageColumn() {
+  if (ensuredUsageColumn) return;
+  const conn = await pool.getConnection();
+  try {
+    const [tc] = await conn.query(
+      `SELECT COUNT(*) AS c FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'saved_builds'`
+    );
+    if ((tc[0]?.c || 0) === 0) return;
+    const [rows] = await conn.query(
+      `SELECT COUNT(*) AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'saved_builds' AND COLUMN_NAME = 'usage_json'`
+    );
+    if ((rows[0]?.c || 0) === 0) {
+      await conn.query(`ALTER TABLE saved_builds ADD COLUMN usage_json JSON DEFAULT (JSON_OBJECT())`);
+    }
+    ensuredUsageColumn = true;
+  } catch (e) {
+    // Leave not ensured; we'll retry on next call
   } finally {
     conn.release();
   }
@@ -737,15 +780,18 @@ app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
 app.post(`${API_PREFIX}/builds`, async (req, res) => {
   const userId = getUserIdFromRequest(req);
   if (!userId) return res.status(401).json({ error: 'unauthorized' });
-  const { name, description, parts, total_price, warnings, has_issues } = req.body || {};
+  const { name, description, parts, total_price, warnings, has_issues, usage } = req.body || {};
   if (!name || !parts) return res.status(400).json({ error: 'name and parts required' });
   const now = new Date();
   const id = uuidv4();
   const conn = await pool.getConnection();
   try {
+    await ensureSavedBuildsUsageColumn();
+    // If caller forgot to send usage, just inject empty default so frontend bars don't break
+    const safeUsage = (usage && typeof usage === 'object') ? usage : { scores: { gaming: 0, office: 0, productivity: 0 }, note: '' };
     await conn.query(
-      'INSERT INTO saved_builds (id,user_id,name,description,total_price,parts_json,warnings_json,has_issues,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
-      [id, userId, name, description || '', total_price || 0, JSON.stringify(parts), JSON.stringify(warnings || []), has_issues ? 1 : 0, now, now]
+      'INSERT INTO saved_builds (id,user_id,name,description,total_price,parts_json,warnings_json,usage_json,has_issues,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+      [id, userId, name, description || '', total_price || 0, JSON.stringify(parts), JSON.stringify(warnings || []), JSON.stringify(safeUsage), has_issues ? 1 : 0, now, now]
     );
     return res.status(201).json({ id, name });
   } catch (err) {
@@ -759,19 +805,61 @@ app.get(`${API_PREFIX}/builds`, async (req, res) => {
   if (!userId) return res.status(401).json({ error: 'unauthorized' });
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query('SELECT id,name,description,total_price,warnings_json,has_issues,createdAt,updatedAt,parts_json FROM saved_builds WHERE user_id=? ORDER BY createdAt DESC LIMIT 200', [userId]);
-    const mapped = rows.map(r => ({
-      id: r.id,
-      name: r.name,
-      description: r.description,
-      total_price: r.total_price,
-      warnings: safeParse(r.warnings_json, []),
-      has_issues: !!r.has_issues,
-      createdAt: r.createdAt,
-      updatedAt: r.updatedAt,
-      parts: safeParse(r.parts_json, {})
-    }));
-    return res.json(mapped);
+    try {
+      const [rows] = await conn.query('SELECT id,name,description,total_price,warnings_json,usage_json,has_issues,createdAt,updatedAt,parts_json FROM saved_builds WHERE user_id=? ORDER BY createdAt DESC LIMIT 200', [userId]);
+      const mapped = rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        description: r.description,
+        total_price: r.total_price,
+        warnings: safeParse(r.warnings_json, []),
+        usage: safeParse(r.usage_json, {}),
+        has_issues: !!r.has_issues,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+        parts: safeParse(r.parts_json, {})
+      }));
+      return res.json(mapped);
+    } catch (err) {
+      // Fallback if usage_json column is missing
+      if (err && err.code === 'ER_BAD_FIELD_ERROR') {
+        await ensureSavedBuildsUsageColumn();
+        // Retry full select after ensuring column
+        try {
+          const [rows2] = await conn.query('SELECT id,name,description,total_price,warnings_json,usage_json,has_issues,createdAt,updatedAt,parts_json FROM saved_builds WHERE user_id=? ORDER BY createdAt DESC LIMIT 200', [userId]);
+          const mapped2 = rows2.map(r => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            total_price: r.total_price,
+            warnings: safeParse(r.warnings_json, []),
+            usage: safeParse(r.usage_json, {}),
+            has_issues: !!r.has_issues,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+            parts: safeParse(r.parts_json, {})
+          }));
+          return res.json(mapped2);
+        } catch (e2) {
+          // As a last resort, select without usage_json and return empty usage
+          const [rows3] = await conn.query('SELECT id,name,description,total_price,warnings_json,has_issues,createdAt,updatedAt,parts_json FROM saved_builds WHERE user_id=? ORDER BY createdAt DESC LIMIT 200', [userId]);
+          const mapped3 = rows3.map(r => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            total_price: r.total_price,
+            warnings: safeParse(r.warnings_json, []),
+            usage: {},
+            has_issues: !!r.has_issues,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+            parts: safeParse(r.parts_json, {})
+          }));
+          return res.json(mapped3);
+        }
+      }
+      throw err;
+    }
   } catch (err) {
     console.error('list builds db error', err && err.message ? err.message : err);
     return res.status(500).json({ error: 'db error' });
@@ -784,20 +872,43 @@ app.get(`${API_PREFIX}/builds/:id`, async (req, res) => {
   const { id } = req.params;
   const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query('SELECT * FROM saved_builds WHERE id=? AND user_id=? LIMIT 1', [id, userId]);
-    if (!rows.length) return res.status(404).json({ error: 'not found' });
-    const r = rows[0];
-    return res.json({
-      id: r.id,
-      name: r.name,
-      description: r.description,
-      total_price: r.total_price,
-      warnings: safeParse(r.warnings_json, []),
-      has_issues: !!r.has_issues,
-      createdAt: r.createdAt,
-      updatedAt: r.updatedAt,
-      parts: safeParse(r.parts_json, {})
-    });
+    try {
+      const [rows] = await conn.query('SELECT * FROM saved_builds WHERE id=? AND user_id=? LIMIT 1', [id, userId]);
+      if (!rows.length) return res.status(404).json({ error: 'not found' });
+      const r = rows[0];
+      return res.json({
+        id: r.id,
+        name: r.name,
+        description: r.description,
+        total_price: r.total_price,
+        warnings: safeParse(r.warnings_json, []),
+        usage: safeParse(r.usage_json, {}),
+        has_issues: !!r.has_issues,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+        parts: safeParse(r.parts_json, {})
+      });
+    } catch (err) {
+      if (err && err.code === 'ER_BAD_FIELD_ERROR') {
+        await ensureSavedBuildsUsageColumn();
+        const [rows2] = await conn.query('SELECT * FROM saved_builds WHERE id=? AND user_id=? LIMIT 1', [id, userId]);
+        if (!rows2.length) return res.status(404).json({ error: 'not found' });
+        const r2 = rows2[0];
+        return res.json({
+          id: r2.id,
+          name: r2.name,
+          description: r2.description,
+          total_price: r2.total_price,
+          warnings: safeParse(r2.warnings_json, []),
+          usage: safeParse(r2.usage_json, {}),
+          has_issues: !!r2.has_issues,
+          createdAt: r2.createdAt,
+          updatedAt: r2.updatedAt,
+          parts: safeParse(r2.parts_json, {})
+        });
+      }
+      throw err;
+    }
   } catch (err) {
     console.error('get build db error', err && err.message ? err.message : err);
     return res.status(500).json({ error: 'db error' });
@@ -824,16 +935,18 @@ app.put(`${API_PREFIX}/builds/:id`, async (req, res) => {
   const userId = getUserIdFromRequest(req);
   if (!userId) return res.status(401).json({ error: 'unauthorized' });
   const { id } = req.params;
-  const { name, description, parts, total_price, warnings, has_issues } = req.body || {};
+  const { name, description, parts, total_price, warnings, has_issues, usage } = req.body || {};
   if (!parts) return res.status(400).json({ error: 'parts required' });
   const now = new Date();
   const conn = await pool.getConnection();
   try {
     const [existing] = await conn.query('SELECT id FROM saved_builds WHERE id=? AND user_id=? LIMIT 1', [id, userId]);
     if (!existing.length) return res.status(404).json({ error: 'not found' });
+    await ensureSavedBuildsUsageColumn();
+    const safeUsage = (usage && typeof usage === 'object') ? usage : { scores: { gaming: 0, office: 0, productivity: 0 }, note: '' };
     await conn.query(
-      'UPDATE saved_builds SET name=COALESCE(?,name), description=COALESCE(?,description), total_price=?, parts_json=?, warnings_json=?, has_issues=?, updatedAt=? WHERE id=? AND user_id=?',
-      [name || null, description || null, total_price || 0, JSON.stringify(parts), JSON.stringify(warnings || []), has_issues ? 1 : 0, now, id, userId]
+      'UPDATE saved_builds SET name=COALESCE(?,name), description=COALESCE(?,description), total_price=?, parts_json=?, warnings_json=?, usage_json=?, has_issues=?, updatedAt=? WHERE id=? AND user_id=?',
+      [name || null, description || null, total_price || 0, JSON.stringify(parts), JSON.stringify(warnings || []), JSON.stringify(safeUsage), has_issues ? 1 : 0, now, id, userId]
     );
     return res.json({ id, name: name || undefined, updated: true });
   } catch (err) {

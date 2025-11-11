@@ -31,6 +31,7 @@ export default function BuilderPageEdit(){
   const [showNameModal, setShowNameModal] = useState(false);
   const [alertModal, setAlertModal] = useState({ show: false, message: '', title: 'Alert' });
   const [confirmModal, setConfirmModal] = useState({ show: false, message: '', title: 'Confirm', onConfirm: null });
+  const [pendingUsage, setPendingUsage] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -147,7 +148,7 @@ export default function BuilderPageEdit(){
     caseFans: (selectedCaseFans || []).filter(Boolean)
   });
 
-  const handleSaveBuild = async () => {
+  const handleSaveBuild = async (usageSnapshot) => {
     const token = localStorage.getItem('token');
     if (!token) {
       setAlertModal({ show: true, message: 'You must be logged in to save a build.', title: 'Login Required' });
@@ -168,6 +169,7 @@ export default function BuilderPageEdit(){
     }
 
     // Always show name modal to allow editing of name and description
+    setPendingUsage(usageSnapshot || null);
     setShowNameModal(true);
   };
 
@@ -177,6 +179,7 @@ export default function BuilderPageEdit(){
     const analysis = analyzeBuild(parts);
     const warnings = analysis.warnings || [];
     const has_issues = analysis.hasIssues;
+    const usage = pendingUsage && pendingUsage.scores ? pendingUsage : { scores: analysis.usageScores || { gaming: 0, office: 0, productivity: 0 }, note: analysis.BuildSuitabilitynote || '' };
     
     // Check if we're editing an existing build
     const editingBuildId = localStorage.getItem('editingBuildId');
@@ -189,7 +192,7 @@ export default function BuilderPageEdit(){
       const resp = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues })
+        body: JSON.stringify({ name, description, parts, total_price, warnings, has_issues, usage })
       });
       
       if (!resp.ok) {

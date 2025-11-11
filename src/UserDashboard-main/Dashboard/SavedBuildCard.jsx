@@ -1,5 +1,7 @@
 import React from 'react';
 import { Trash } from 'lucide-react';
+import UsageBars from '../../components/UsageBars';
+
 
 /**
  * SavedBuildCard
@@ -11,8 +13,9 @@ import { Trash } from 'lucide-react';
  */
 export default function SavedBuildCard({ build, onDelete, onLoad, onView, onShare }) {
   if (!build) return null;
-  const { id, name, total_price, createdAt, has_issues, warnings = [] } = build;
+  const { id, name, total_price, createdAt, has_issues, warnings = [], usage } = build;
   const dateStr = createdAt ? new Date(createdAt).toLocaleString() : '';
+  const scores = usage?.scores || { gaming: 0, office: 0, productivity: 0 };
 
   return (
     <div style={styles.card} className="saved-build-card">
@@ -27,6 +30,9 @@ export default function SavedBuildCard({ build, onDelete, onLoad, onView, onShar
         </div>
         <div style={styles.meta}>Saved: {dateStr}</div>
         <div style={styles.meta}>Total: ₱{Number(total_price || 0).toLocaleString()}</div>
+        <div style={{ marginTop: 8 }}>
+          <UsageBars scores={scores} note={usage?.note} />
+        </div>
         {warnings.length > 0 && (
           <div style={styles.warnings}>
             <strong>Warnings:</strong> {warnings.slice(0, 3).join('; ')}{warnings.length > 3 ? '…' : ''}
@@ -87,5 +93,6 @@ const styles = {
   warnings: { color: '#dc2626', fontSize: 13, marginTop: 8, fontWeight: 500 },
   badge: { padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' },
   badgeIssues: { background: '#fee2e2', color: '#dc2626' },
-  badgeOk: { background: '#d1fae5', color: '#059669' }
+  badgeOk: { background: '#d1fae5', color: '#059669' },
+ 
 };
