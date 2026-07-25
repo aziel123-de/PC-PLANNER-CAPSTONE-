@@ -45,7 +45,7 @@ function ComponentPage() {
     const matchesQuery = (component) => {
       if (!normalizedQuery) return true;
       // check name + stringified values
-      const text = (component.name || "") + " " + Object.values(component || {}).join(" ");
+      const text = [component.name || "", component.searchText || "", ...Object.values(component || {})].join(" ");
       return text.toLowerCase().includes(normalizedQuery);
     };
 

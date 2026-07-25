@@ -12,6 +12,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const pool = require('./mysql');
+const { loadBuildCoresCategory } = require('./buildcores_open_db');
 
 const app = express();
 app.use(helmet());
@@ -745,33 +746,12 @@ app.use((err, req, res, next) => {
 // Components listing endpoint
 app.get(`${API_PREFIX}/components/:type`, async (req, res) => {
   const { type } = req.params || {};
-  const map = {
-    cpu: 'cpu',
-    'cpu-cooler': 'cpu_cooler',
-    gpu: 'gpu',
-    psu: 'psu',
-    mobo: 'mobo',
-    ram: 'ram',
-    storage: 'storage',
-    m2: 'm2',
-    case: 'pc_case',
-    'case-fans': 'case_fans',     // <-- added mapping for your new table
-    keyboard: 'keyboard',
-    mouse: 'mouse',
-    headset: 'headset',
-    monitor: 'monitor'
-  };
-  const table = map[type];
-  if (!table) return res.status(400).json({ error: 'unknown component type' });
-  const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query(`SELECT * FROM \`${table}\` ORDER BY id ASC LIMIT 1000`);
-    return res.json(rows.map(r => ({ ...r })));
+    const rows = await loadBuildCoresCategory(type);
+    return res.json(rows);
   } catch (err) {
     console.error('components fetch error', err && err.message ? err.message : err);
-    return res.status(500).json({ error: 'db error' });
-  } finally {
-    conn.release();
+    return res.status(500).json({ error: 'buildcores fetch error' });
   }
 });
 
